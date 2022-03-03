@@ -10,7 +10,12 @@ from porespy import settings
 tqdm = get_tqdm()
 
 
-def ibip(im, inlets=None, dt=None, maxiter=10000):
+__all__ = [
+    'ibip_w_gravity',
+    ]
+
+
+def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
     r"""
     Performs invasion percolation on given image using iterative image dilation
 
@@ -53,10 +58,19 @@ def ibip(im, inlets=None, dt=None, maxiter=10000):
     bd = np.copy(inlets > 0)
     if dt is None:  # Find dt if not given
         dt = edt(im)
-    dt = dt.astype(int)  # Conert the dt to nearest integer
+
+    # This pc calc is still very basic, just proof-of-concept for now
+    pc = 1/(dt*1e-4)
+    h = np.ones_like(im)
+    h[0, ...] = False
+    h = edt(h)
+    pc = pc + g * h
+    pc = pc.astype(int)  # Convert the pc to nearest integer
+    dt = dt.astype(int)  # Convert the dt to nearest integer
+
     # Initialize inv image with -1 in the solid, and 0's in the void
     inv = -1*(~im)
-    sizes = -1*(~im)
+    pressures = -1*(~im)
     scratch = np.copy(bd)
     for step in tqdm(range(1, maxiter), **settings.tqdm):
         pt = _where(bd)
@@ -64,32 +78,33 @@ def ibip(im, inlets=None, dt=None, maxiter=10000):
         temp = _insert_disks_at_points(im=scratch, coords=pt,
                                        r=1, v=1, smooth=False)
         # Reduce to only the 'new' boundary
-        edge = temp*(dt > 0)
+        edge = temp*(pc > 0)
         if ~edge.any():
             break
-        # Find the maximum value of the dt underlaying the new edge
-        r_max = (dt*edge).max()
-        # Find all values of the dt with that size
-        dt_thresh = dt >= r_max
+        # Find the minimum value of the pc map underlaying the new edge
+        pc_min = pc[edge].min()
+        # Find all values of the dt with that pressure
+        pc_thresh = (pc <= pc_min)*im
         # Extract the actual coordinates of the insertion sites
-        pt = _where(edge*dt_thresh)
+        pt = _where(edge*pc_thresh)
+        r = dt[tuple([i[0] for i in pt])]
         inv = _insert_disks_at_points(im=inv, coords=pt,
-                                      r=r_max, v=step, smooth=True)
-        sizes = _insert_disks_at_points(im=sizes, coords=pt,
-                                        r=r_max, v=r_max, smooth=True)
-        dt, bd = _update_dt_and_bd(dt, bd, pt)
+                                      r=r, v=step, smooth=True)
+        pressures = _insert_disks_at_points(im=pressures, coords=pt,
+                                            r=r, v=pc_min, smooth=True)
+        pc, bd = _update_pc_and_bd(pc, bd, pt)
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
     inv[~im] = 0
     inv[temp] = -1
     inv = make_contiguous(im=inv, mode='symmetric')
     # Deal with invasion sizes similarly
-    temp = sizes == 0
-    sizes[~im] = 0
-    sizes[temp] = -1
+    temp = pressures == 0
+    pressures[~im] = 0
+    pressures[temp] = -1
     results = Results()
     results.inv_sequence = inv
-    results.inv_sizes = sizes
+    results.inv_pressures = pressures
     return results
 
 
@@ -101,16 +116,16 @@ def _where(arr):
 
 
 @numba.jit(nopython=True)
-def _update_dt_and_bd(dt, bd, pt):
-    if dt.ndim == 2:
+def _update_pc_and_bd(pc, bd, pt):
+    if pc.ndim == 2:
         for i in range(pt.shape[1]):
             bd[pt[0, i], pt[1, i]] = True
-            dt[pt[0, i], pt[1, i]] = 0
+            pc[pt[0, i], pt[1, i]] = 0
     else:
         for i in range(pt.shape[1]):
             bd[pt[0, i], pt[1, i], pt[2, i]] = True
-            dt[pt[0, i], pt[1, i], pt[2, i]] = 0
-    return dt, bd
+            pc[pt[0, i], pt[1, i], pt[2, i]] = 0
+    return pc, bd
 
 
 @numba.jit(nopython=True, parallel=False)
@@ -251,67 +266,27 @@ def _make_ball(r, smooth=True):  # pragma: no cover
     return s
 
 
-def find_trapped_regions(seq, outlets=None, bins=25, return_mask=True):
-    r"""
-    Find the trapped regions given an invasion sequence image
-
-    Parameters
-    ----------
-    seq : ndarray
-        An image with invasion sequence values in each voxel.  Regions
-        labelled -1 are considered uninvaded, and regions labelled 0 are
-        considered solid.
-    outlets : ndarray, optional
-        An image the same size as ``seq`` with ``True`` indicating outlets
-        and ``False`` elsewhere.  If not given then all image boundaries
-        are considered outlets.
-    bins : int
-        The resolution to use when thresholding the ``seq`` image.  By default
-        the invasion sequence will be broken into 25 discrete steps and
-        trapping will be identified at each step. A higher value of ``bins``
-        will provide a more accurate trapping analysis, but is more time
-        consuming. If ``None`` is specified, then *all* the steps will
-        analyzed, providing the highest accuracy.
-    return_mask : bool
-        If ``True`` (default) then the returned image is a boolean mask
-        indicating which voxels are trapped.  If ``False``, then a copy of
-        ``seq`` is returned with the trapped voxels set to uninvaded and
-        the invasion sequence values adjusted accordingly.
-
-    Returns
-    -------
-    trapped : ND-image
-        An image, the same size as ``seq``.  If ``return_mask`` is ``True``,
-        then the image has ``True`` values indicating the trapped voxels.  If
-        ``return_mask`` is ``False``, then a copy of ``seq`` is returned with
-        trapped voxels set to 0.
-
-    """
-    seq = np.copy(seq)
-    if outlets is None:
-        outlets = get_border(seq.shape, mode='faces')
-    trapped = np.zeros_like(outlets)
-    if bins is None:
-        bins = np.unique(seq)[-1::-1]
-        bins = bins[bins > 0]
-    elif isinstance(bins, int):
-        bins = np.linspace(seq.max(), 1, bins)
-    for i in tqdm(bins, **settings.tqdm):
-        temp = seq >= i
-        labels = spim.label(temp)[0]
-        keep = np.unique(labels[outlets])[1:]
-        trapped += temp*np.isin(labels, keep, invert=True)
-    if return_mask:
-        return trapped
-    else:
-        seq[trapped] = -1
-        seq = make_contiguous(seq, mode='symmetric')
-        return seq
-
-
 if __name__ == "__main__":
     import porespy as ps
-    im = ps.generators.blobs([100, 100], porosity=0.5)
+    import matplotlib.pyplot as plt
+    np.random.seed(0)
+    im = ps.generators.blobs([300, 300], porosity=0.7, blobiness=1.5)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
-    inv, siz = ibip(im=im, inlets=inlets)
+    fig, ax = plt.subplots(2, 2)
+
+    inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=20)
+    ax[0][0].imshow(inv_g/im, origin='lower', interpolation='none')
+    ax[0][1].imshow(pc_g/im, origin='lower', interpolation='none')
+
+    # satn_g = ps.filters.seq_to_satn(inv_g, im=im)
+    # ani = ps.visualization.satn_to_movie(im=im, satn=satn_g)
+    # ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=3)
+
+    inv, pc = ibip_w_gravity(im=im, inlets=inlets, g=0)
+    ax[1][0].imshow(inv/im, origin='lower', interpolation='none')
+    ax[1][1].imshow(pc/im, origin='lower', interpolation='none')
+
+    satn = ps.filters.seq_to_satn(inv, im=im)
+    ani = ps.visualization.satn_to_movie(im=im, satn=satn)
+    ani.save('image_based_ip.gif', writer='imagemagick', fps=3)
