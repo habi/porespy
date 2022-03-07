@@ -439,28 +439,12 @@ def _make_ball(r, smooth=True):  # pragma: no cover
 if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
+    import numpy as np
     ps.settings.tqdm['leave'] = True
     np.random.seed(0)
-    im = ps.generators.blobs([400, 400], porosity=0.7, blobiness=1.5)
+    im = ps.generators.blobs([200, 200], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
-    # fig, ax = plt.subplots(2, 2)
-
-    # inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=9.81, maxiter=50000)
-    # satn_g = ps.filters.seq_to_satn(inv_g, im=im)
-
-    ip = invasion(im=im, inlets=inlets, voxel_size=1e-5, g=0, maxiter=10000)
+    ip = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4, g=9.81, maxiter=10000)
     satn_g = ps.filters.seq_to_satn(ip.im_seq, im=im)
-#     # ax[0][0].imshow(inv_g/im, origin='lower', interpolation='none')
-#     # ax[0][1].imshow(pc_g/im, origin='lower', interpolation='none')
-
-#     ani = ps.visualization.satn_to_movie(im=im, satn=satn_g)
-#     # ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=10)
-
-#     # inv, pc = ibip_w_gravity(im=im, inlets=inlets, g=0)
-#     # ax[1][0].imshow(inv/im, origin='lower', interpolation='none')
-#     # ax[1][1].imshow(pc/im, origin='lower', interpolation='none')
-
-#     # satn = ps.filters.seq_to_satn(inv, im=im)
-#     # ani = ps.visualization.satn_to_movie(im=im, satn=satn)
-#     # ani.save('image_based_ip.gif', writer='imagemagick', fps=3)
+    ani = ps.visualization.satn_to_movie(satn=satn_g, im=im)
