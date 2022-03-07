@@ -7,11 +7,14 @@ from porespy.tools import get_border, make_contiguous
 from porespy.tools import Results
 import numba
 from porespy import settings
+import heapq as hq
+from random import seed
 tqdm = get_tqdm()
 
 
 __all__ = [
     'ibip_w_gravity',
+    'invasion',
     ]
 
 
@@ -53,27 +56,29 @@ def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=1
         if (g * delta_rho) != 0:
             h = np.ones_like(im)
             h[0, ...] = False
-            h = edt(h)
+            h = edt(h) * voxel_size
             pc = pc + delta_rho * g * h
 
+    pc = np.around(pc, decimals=0)  # Convert the dt to nearest integer
     dt = dt.astype(int)  # Convert the dt to nearest integer
 
     # Prepare heap
     inds = np.where(inlets*im)
-    bd = list(zip(pc[inds], *inds))
+    bd = list(zip(pc[inds], dt[inds], *inds))
     hq.heapify(bd)
-    y, x = np.meshgrid(*[np.arange(im.shape[i]) for i in range(im.ndim)])
+    # Note which sites have been added to heap already
+    edge = np.copy(inlets)
 
     # Initial arrays
     inv = np.zeros_like(im, dtype=int)
     pressures = np.zeros_like(im, dtype=float)
-    edge = np.zeros_like(im)
 
     for step in tqdm(range(1, maxiter), **settings.tqdm):
         # Find sites to add spheres, which may be multiple
         try:  # pop the top item from heap to get current size
             pts = [hq.heappop(bd)]
         except IndexError:  # bd is empty, exit
+            print(f'Exiting after {step} steps')
             break
         try:  # pop any additional items with the same size
             while bd[0][0] == pts[0][0]:
@@ -82,29 +87,20 @@ def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=1
             pass
         # Add spheres to image
         p = pts[0][0]
-        r = -2*sigma*np.cos(np.deg2rad(theta))/(p*voxel_size)
-        r = dt[pts[0][1:]]
-        coords = np.vstack([pts[i][1:] for i in range(len(pts))]).T
+        r = pts[0][1]
+        coords = np.vstack([pts[i][2:] for i in range(len(pts))]).T
         inv = _insert_disks_at_points(im=inv, coords=coords,
-                                      r=int(r), v=step, smooth=True)
+                                      r=r, v=step, smooth=True)
         pressures = _insert_disks_at_points(im=pressures, coords=coords,
-                                            r=int(r), v=p, smooth=True)
-        edge = _insert_disks_at_points(im=edge, coords=coords,
-                                            r=1, v=True, smooth=True)
+                                            r=r, v=p, smooth=True)
         # Check neighborhood around coords and add new points if any
-        for p in pts:
+        for pt in pts:
             # Get extended slices around each point in pts
-            s = tuple([slice(max(p[i+1]-1, 0), min(p[i+1]+2, im.shape[i]-1))
-                       for i in range(im.ndim)])
-            temp = edge[s]
-            # Add any new points to bd
-            for i in range(len(dt[s].flatten())):
-                if edge[s].flatten()[i] == False:
-                    hq.heappush(bd, (pc[s].flatten()[i],
-                                     x[s].flatten()[i],
-                                     y[s].flatten()[i]))
-            # Add points to edge so they are not added again
-            edge[s] = True
+            x, y = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
+            for item in zip(x, y):
+                if (edge[item] == False):
+                    hq.heappush(bd, (pc[item], dt[item], *item))
+                    edge[item] = True
 
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
@@ -122,6 +118,20 @@ def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=1
     results.im_pc = pressures
     results.im_satn = seq_to_satn(inv)  # convert sequence to saturation
     return results
+
+
+_x = np.array([-1, -1, -1,  0,  0,  0,  1,  1,  1], dtype=int)
+_y = np.array([-1,  0,  1, -1,  0,  1, -1,  0,  1], dtype=int)
+_conn = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=int).flatten()
+
+
+def find_neighbor_coordinates(pt, shape):
+    xi = _x + pt[0]
+    yi = _y + pt[1]
+    mask_x = (xi >= 0) * (xi < shape[0])
+    mask_y = (yi >= 0) * (yi < shape[1])
+    mask = np.array(mask_x * mask_y * _conn, dtype=bool)
+    return xi[mask], yi[mask]
 
 
 def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
@@ -401,19 +411,21 @@ if __name__ == "__main__":
     inlets[0, :] = True
     # fig, ax = plt.subplots(2, 2)
 
-    # inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=0, maxiter=50000)
-    ip = invasion(im=im, inlets=inlets, voxel_size=1e-4, g=-9.81, maxiter=100000)
-    # ax[0][0].imshow(inv_g/im, origin='lower', interpolation='none')
-    # ax[0][1].imshow(pc_g/im, origin='lower', interpolation='none')
+    # inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=9.81, maxiter=50000)
+    # satn_g = ps.filters.seq_to_satn(inv_g, im=im)
 
+    ip = invasion(im=im, inlets=inlets, voxel_size=1e-5, g=0, maxiter=10000)
     satn_g = ps.filters.seq_to_satn(ip.im_seq, im=im)
-    ani = ps.visualization.satn_to_movie(im=im, satn=satn_g)
-    # ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=10)
+#     # ax[0][0].imshow(inv_g/im, origin='lower', interpolation='none')
+#     # ax[0][1].imshow(pc_g/im, origin='lower', interpolation='none')
 
-    # inv, pc = ibip_w_gravity(im=im, inlets=inlets, g=0)
-    # ax[1][0].imshow(inv/im, origin='lower', interpolation='none')
-    # ax[1][1].imshow(pc/im, origin='lower', interpolation='none')
+#     ani = ps.visualization.satn_to_movie(im=im, satn=satn_g)
+#     # ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=10)
 
-    # satn = ps.filters.seq_to_satn(inv, im=im)
-    # ani = ps.visualization.satn_to_movie(im=im, satn=satn)
-    # ani.save('image_based_ip.gif', writer='imagemagick', fps=3)
+#     # inv, pc = ibip_w_gravity(im=im, inlets=inlets, g=0)
+#     # ax[1][0].imshow(inv/im, origin='lower', interpolation='none')
+#     # ax[1][1].imshow(pc/im, origin='lower', interpolation='none')
+
+#     # satn = ps.filters.seq_to_satn(inv, im=im)
+#     # ani = ps.visualization.satn_to_movie(im=im, satn=satn)
+#     # ani.save('image_based_ip.gif', writer='imagemagick', fps=3)
