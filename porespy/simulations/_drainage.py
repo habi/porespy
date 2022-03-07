@@ -113,7 +113,7 @@ def _make_ball(r, smooth=True):  # pragma: no cover
 
 
 def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
-             bins=25, delta_rho=1000, g=9.81, sigma=0.072, theta=180):
+             bins=25, delta_rho=1000, g=0, sigma=0.072, theta=180):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
@@ -156,10 +156,10 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
         Note that if air is displacing water this value should be -997 (1-998).
     g : float (default = 9.81)
         The gravitational constant prevailing for the simulation. The default
-        is 9.81. If the domain is on an angle, such as a tilted micromodel,
-        this value should be scaled appropriately by the user
-        (i.e. g = 9.81 sin(alpha) where alpha is the angle relative to the
-        horizonal).  Setting this value to zeor removes any gravity effects.
+        is 0, which removes the effect of gravity.  If the domain is on an
+        angle, such as a tilted micromodel, this value should be scaled
+        appropriately by the user (i.e. g = 9.81 sin(alpha) where alpha is
+        the angle relative to the horizonal).
     sigma : float (default = 0.072)
         The surface tension of the fluid pair. If ``pc`` is provided this is
         ignored.

@@ -2,7 +2,7 @@ import numpy as np
 from edt import edt
 from porespy.tools import get_tqdm
 import scipy.ndimage as spim
-from porespy.filters import trim_disconnected_blobs
+from porespy.filters import trim_disconnected_blobs, seq_to_satn
 from porespy.tools import get_border, make_contiguous
 from porespy.tools import Results
 import numba
@@ -13,6 +13,115 @@ tqdm = get_tqdm()
 __all__ = [
     'ibip_w_gravity',
     ]
+
+
+import heapq as hq
+def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=180, delta_rho=998, g=0, maxiter=10000):
+    r"""
+    Perform image-based invasion percolation in the presence of gravity
+
+    Returns
+    -------
+    results : Results object
+        A dataclass-like object with the following attributes:
+
+        ========== ============================================================
+        Attribute  Description
+        ========== ============================================================
+        im_seq     A numpy array with each voxel value containing the step at
+                   which it was invaded.  Uninvaded voxels are set to -1.
+        im_pc      A numpy array with each voxel value indicating the
+                   capillary pressure at which it was invaded. In invaded
+                   voxels have value of ``np.inf``.
+        im_satn    A numpy array with each voxel value indicating the global
+                   saturation value at the point it was invaded
+        pc         1D array of capillary pressure values that were applied
+        swnp       1D array of non-wetting phase saturations for each applied
+                   value of capillary pressure (``pc``).
+        ========== ============================================================
+    """
+
+    if inlets is None:
+        inlets = np.zeros_like(im)
+        inlets[0, ...] = True
+
+    if dt is None:
+        dt = edt(im)
+
+    if pc is None:
+        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
+        if (g * delta_rho) != 0:
+            h = np.ones_like(im)
+            h[0, ...] = False
+            h = edt(h)
+            pc = pc + delta_rho * g * h
+
+    dt = dt.astype(int)  # Convert the dt to nearest integer
+
+    # Prepare heap
+    inds = np.where(inlets*im)
+    bd = list(zip(pc[inds], *inds))
+    hq.heapify(bd)
+    y, x = np.meshgrid(*[np.arange(im.shape[i]) for i in range(im.ndim)])
+
+    # Initial arrays
+    inv = np.zeros_like(im, dtype=int)
+    pressures = np.zeros_like(im, dtype=float)
+    edge = np.zeros_like(im)
+
+    for step in tqdm(range(1, maxiter), **settings.tqdm):
+        # Find sites to add spheres, which may be multiple
+        try:  # pop the top item from heap to get current size
+            pts = [hq.heappop(bd)]
+        except IndexError:  # bd is empty, exit
+            break
+        try:  # pop any additional items with the same size
+            while bd[0][0] == pts[0][0]:
+                pts.append(hq.heappop(bd))
+        except IndexError:  # if bd gets emptied, stop popping and finish loop
+            pass
+        # Add spheres to image
+        p = pts[0][0]
+        r = -2*sigma*np.cos(np.deg2rad(theta))/(p*voxel_size)
+        r = dt[pts[0][1:]]
+        coords = np.vstack([pts[i][1:] for i in range(len(pts))]).T
+        inv = _insert_disks_at_points(im=inv, coords=coords,
+                                      r=int(r), v=step, smooth=True)
+        pressures = _insert_disks_at_points(im=pressures, coords=coords,
+                                            r=int(r), v=p, smooth=True)
+        edge = _insert_disks_at_points(im=edge, coords=coords,
+                                            r=1, v=True, smooth=True)
+        # Check neighborhood around coords and add new points if any
+        for p in pts:
+            # Get extended slices around each point in pts
+            s = tuple([slice(max(p[i+1]-1, 0), min(p[i+1]+2, im.shape[i]-1))
+                       for i in range(im.ndim)])
+            temp = edge[s]
+            # Add any new points to bd
+            for i in range(len(dt[s].flatten())):
+                if edge[s].flatten()[i] == False:
+                    hq.heappush(bd, (pc[s].flatten()[i],
+                                     x[s].flatten()[i],
+                                     y[s].flatten()[i]))
+            # Add points to edge so they are not added again
+            edge[s] = True
+
+    # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
+    temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
+    inv[temp] = -1
+    inv[~im] = 0
+    inv = make_contiguous(im=inv, mode='symmetric')
+    # Deal with invasion sizes similarly
+    temp = pressures == 0
+    # pressures[temp] = np.inf
+    pressures[~im] = 0
+
+    # Create results object for collected returned values
+    results = Results()
+    results.im_seq = inv
+    results.im_pc = pressures
+    results.im_satn = seq_to_satn(inv)  # convert sequence to saturation
+    return results
 
 
 def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
@@ -80,6 +189,7 @@ def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
         # Reduce to only the 'new' boundary
         edge = temp*(pc > 0)
         if ~edge.any():
+            print('No edges found, exiting')
             break
         # Find the minimum value of the pc map underlaying the new edge
         pc_min = pc[edge].min()
@@ -128,7 +238,7 @@ def _update_pc_and_bd(pc, bd, pt):
     return pc, bd
 
 
-@numba.jit(nopython=True, parallel=False)
+@numba.jit(nopython=True)
 def _make_disks(r, smooth=True):  # pragma: no cover
     r"""
     Returns a list of disks from size 0 to ``r``
@@ -148,8 +258,8 @@ def _make_disks(r, smooth=True):  # pragma: no cover
         R of the list, meaning it can be accessed as ``disks[R]``.
 
     """
-    disks = [np.atleast_2d(np.array([]))]
-    for val in range(1, r):
+    disks = []
+    for val in range(0, r+1):
         disk = _make_disk(val, smooth)
         disks.append(disk)
     return disks
@@ -182,8 +292,21 @@ def _make_balls(r, smooth=True):  # pragma: no cover
     return balls
 
 
+def insert_disk(im, c, s, v=1):
+    r = int(s.shape[0]/2)
+    i_im = tuple([slice(c[i] - r - 1 if (c[i] - r - 1) > 0 else 0,
+                        min(c[i] + r, im.shape[i]-1))
+                  for i in range(im.ndim)])
+    i_s = tuple([slice(0 if (c[i] - r - 1) > 0 else (r - c[i] + 1),
+                       s.shape[i] if (c[i] + r) < im.shape[i]
+                       else (s.shape[i] - (c[i] + r - im.shape[i])) - 1)
+                 for i in range(im.ndim)])
+    im[i_im] += s[i_s]*(im[i_im] == 0)*v
+    return im
+
+
 @numba.jit(nopython=True, parallel=False)
-def _insert_disks_at_points(im, coords, r, v, smooth=True):  # pragma: no cover
+def _insert_disks_at_points(im, coords, r, v, s=None, smooth=True):  # pragma: no cover
     r"""
     Insert spheres (or disks) into the given ND-image at given locations
 
@@ -212,7 +335,8 @@ def _insert_disks_at_points(im, coords, r, v, smooth=True):  # pragma: no cover
     npts = len(coords[0])
     if im.ndim == 2:
         xlim, ylim = im.shape
-        s = _make_disk(r, smooth)
+        if s is None:
+            s = _make_disk(r, smooth)
         for i in range(npts):
             pt = coords[:, i]
             for a, x in enumerate(range(pt[0]-r, pt[0]+r+1)):
@@ -223,7 +347,8 @@ def _insert_disks_at_points(im, coords, r, v, smooth=True):  # pragma: no cover
                                 im[x, y] = v
     elif im.ndim == 3:
         xlim, ylim, zlim = im.shape
-        s = _make_ball(r, smooth)
+        if s is None:
+            s = _make_ball(r, smooth)
         for i in range(npts):
             pt = coords[:, i]
             for a, x in enumerate(range(pt[0]-r, pt[0]+r+1)):
@@ -269,19 +394,21 @@ def _make_ball(r, smooth=True):  # pragma: no cover
 if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
+    ps.settings.tqdm['leave'] = True
     np.random.seed(0)
-    im = ps.generators.blobs([300, 300], porosity=0.7, blobiness=1.5)
+    im = ps.generators.blobs([400, 400], porosity=0.7, blobiness=1.5)
     inlets = np.zeros_like(im)
-    inlets[-1, :] = True
-    fig, ax = plt.subplots(2, 2)
+    inlets[0, :] = True
+    # fig, ax = plt.subplots(2, 2)
 
-    inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=100)
+    # inv_g, pc_g = ibip_w_gravity(im=im, inlets=inlets, g=0, maxiter=50000)
+    ip = invasion(im=im, inlets=inlets, voxel_size=1e-4, g=-9.81, maxiter=100000)
     # ax[0][0].imshow(inv_g/im, origin='lower', interpolation='none')
     # ax[0][1].imshow(pc_g/im, origin='lower', interpolation='none')
 
-    satn_g = ps.filters.seq_to_satn(inv_g, im=im)
+    satn_g = ps.filters.seq_to_satn(ip.im_seq, im=im)
     ani = ps.visualization.satn_to_movie(im=im, satn=satn_g)
-    ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=10)
+    # ani.save('image_based_ip_w_gravity.gif', writer='imagemagick', fps=10)
 
     # inv, pc = ibip_w_gravity(im=im, inlets=inlets, g=0)
     # ax[1][0].imshow(inv/im, origin='lower', interpolation='none')
