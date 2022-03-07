@@ -19,9 +19,33 @@ __all__ = [
 
 
 import heapq as hq
-def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=180, delta_rho=998, g=0, maxiter=10000):
+def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta_rho=998, g=0, maxiter=10000):
     r"""
     Perform image-based invasion percolation in the presence of gravity
+
+    Parameters
+    ----------
+    im : ndarray
+        A boolean image of the porous meida with ``True`` values indicating
+        the void space
+    voxel_size : float
+        The length of a voxel side, in meters
+    inlets : ndarray, optional
+        A boolean image with ``True`` values indicating the inlet locations.
+        If not provided then the beginning of the x-axis is assumed.
+    pc : ndarray, optional
+        Precomputed capillary pressure values which are used to determine
+        the invadability of each voxel, in Pa.  If not provided then it is
+        computed assuming the Washburn equation using the given values of
+        ``theta`` and ``sigma``.
+    sigma, theta: float, optional
+        The surface tension and contact angle to use when computing ``pc``.
+    delta_rho, g : float, optional
+        The phase density difference and gravitational constant. If either is
+        set to 0 the gravitational effects are neglected.  The default is to
+        disable gravity (``g=0``)
+    maxiter : int
+        The maximum number of iteration to perform.  The default is 10,000.
 
     Returns
     -------
@@ -42,14 +66,21 @@ def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=1
         swnp       1D array of non-wetting phase saturations for each applied
                    value of capillary pressure (``pc``).
         ========== ============================================================
+
+    Notes
+    -----
+    This function operates differently than the original ``ibip``.  Here a
+    heaq queue is used to maintain an up to date list of which voxels should
+    be invaded next.  This is much faster than the original approach which
+    scanned the entire image for invasion sites on each step.
+
     """
 
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
-    if dt is None:
-        dt = edt(im)
+    dt = edt(im)
 
     if pc is None:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
@@ -120,17 +151,21 @@ def invasion(im, voxel_size, inlets=None, dt=None, pc=None, sigma=0.072, theta=1
     return results
 
 
-_x = np.array([-1, -1, -1,  0,  0,  0,  1,  1,  1], dtype=int)
-_y = np.array([-1,  0,  1, -1,  0,  1, -1,  0,  1], dtype=int)
-_conn = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=int).flatten()
+_x2 = np.array([-1, -1, -1,  0,  0,  0,  1,  1,  1], dtype=int)
+_y2 = np.array([-1,  0,  1, -1,  0,  1, -1,  0,  1], dtype=int)
+_conn2 = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=int).flatten()
 
 
 def find_neighbor_coordinates(pt, shape):
-    xi = _x + pt[0]
-    yi = _y + pt[1]
+    r"""
+    Given the coordinates of a point, find the coordinates of its valid
+    neighbors (i.e. contrained by the image size)
+    """
+    xi = _x2 + pt[0]
+    yi = _y2 + pt[1]
     mask_x = (xi >= 0) * (xi < shape[0])
     mask_y = (yi >= 0) * (yi < shape[1])
-    mask = np.array(mask_x * mask_y * _conn, dtype=bool)
+    mask = np.array(mask_x * mask_y * _conn2, dtype=bool)
     return xi[mask], yi[mask]
 
 
