@@ -98,7 +98,7 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
     bd = list(zip(pc[inds], dt[inds], *inds))
     hq.heapify(bd)
     # Note which sites have been added to heap already
-    edge = np.copy(inlets)
+    edge = inlets + ~im
 
     # Initial arrays
     inv = np.zeros_like(im, dtype=int)
@@ -442,9 +442,15 @@ if __name__ == "__main__":
     import numpy as np
     ps.settings.tqdm['leave'] = True
     np.random.seed(0)
-    im = ps.generators.blobs([200, 200], porosity=0.7, blobiness=1)
+    im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
-    ip = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4, g=9.81, maxiter=10000)
-    satn_g = ps.filters.seq_to_satn(ip.im_seq, im=im)
-    ani = ps.visualization.satn_to_movie(satn=satn_g, im=im)
+    ip = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4, g=0, maxiter=10000)
+    satn_1 = ps.filters.seq_to_satn(ip.im_seq, im=im)
+    ani1 = ps.visualization.satn_to_movie(satn=satn_1, im=im)
+    ani1.save('ibip1.gif', writer='imagemagick', fps=20)
+
+    # ip2_seq, ip2_p = ps.filters.ibip(im=im, inlets=inlets)
+    # satn_2 = ps.filters.seq_to_satn(ip2_seq, im=im)
+    # ani2 = ps.visualization.satn_to_movie(satn=satn_2, im=im)
+    # ani2.save('ibip2.gif', writer='imagemagick', fps=20)
