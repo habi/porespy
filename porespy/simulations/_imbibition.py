@@ -1,39 +1,119 @@
-from porespy.filters import ibi, local_thickness, find_trapped_regions
+import numpy as np
+from porespy.filters import local_thickness, find_trapped_regions
 from porespy.filters import size_to_satn, size_to_seq, seq_to_satn
+from porespy.filters import trim_disconnected_blobs
 from porespy.metrics import pc_curve_from_ibi
 from porespy.tools import Results
 
 
-def ibsi_imbibition(im, inlets=None, outlets=None, residual=None,
-                    sigma=0.072, theta=180, voxel_size=1):
-    r"""
-    Performs a imbibition simulation using image-based sphere insertion
+__all__ = [
+    'ibi',
+]
 
-    This is a helper function that performs all the steps needed to generate
-    a imbibition curve from the image. It consists of calls to
-    ``local_thickness``, ``sizes_to_satn``, and ``pc_curve_from_mio``.
-    Optionally it also calls ``size_to_seq`` and ``find_trapped_regions``
-    to apply trapping if ``outlets`` is given.
+
+def ibi(im, inlets=None, residual=None, lt=None):
+    r"""
+    Simulate imbibition of a wetting phase into an image
 
     Parameters
     ----------
-    %(filters.local_thickness)s
-    %(metrics.pc_curve_from_ibi)s
+    im : ndarray
+        The image of the porous materials with void indicated by ``True``
+    inlets : ndarray
+        An image the same shape as ``im`` with ``True`` values indicating the
+        wetting fluid inlet(s).  If ``None`` then the wetting film is able to
+        appear anywhere within the domain.
+    residual : ndarray, optional
+        A boolean mask the same shape as ``im`` with ``True`` values
+        indicating to locations of residual wetting phase.
+    lt : ndarray, optional
+        The local thickness of the void space.  If not provided it will be
+        generated using the default values. Providing one if available saves
+        time, and allows for over the number of sizes.
+
+    Returns
+    -------
+    imbibed : ndarray
+        A numpy ndarray the same shape as ``im`` with voxel values indicating
+        the radius at which it was reached by the imbibing fluid
+
+    Notes
+    -----
+    The simulate proceeds as though the non-wetting phase pressure is very
+    high and is slowly lowered.  The imbibition occurs into the smallest
+    accessible regions.
+
+    See Also
+    --------
+    size_to_satn
+    pc_curve_from_ibi
+    ibsi_imbibition
+
+    """
+    if lt is None:
+        lt = local_thickness(im=im)
+    imb = np.zeros_like(lt)
+    sizes = np.unique(lt)[1:]
+    for i, r in enumerate(sizes):
+        imtemp = (lt <= r)*im
+        if inlets is not None:
+            if residual is not None:
+                tmp = imtemp + residual
+            else:
+                tmp = np.copy(imtemp)
+            tmp = trim_disconnected_blobs(tmp, inlets=inlets)
+            imtemp = imtemp * tmp
+        if residual is not None:
+            imtemp += residual
+        imb += (imb == 0)*(imtemp * r)
+
+
+
+def imbibition(im, inlets=None, outlets=None, residual=None,
+                    sigma=0.072, theta=180, voxel_size=1):
+    r"""
+    Performs an imbibition simulation using image-based sphere insertion
+
+    Parameters
+    ----------
+    im : ndarray
+        The image of the porous materials with void indicated by ``True``
+    inlets : ndarray
+        An image the same shape as ``im`` with ``True`` values indicating the
+        wetting fluid inlet(s).  If ``None`` then the wetting film is able to
+        appear anywhere within the domain.
+    residual : ndarray, optional
+        A boolean mask the same shape as ``im`` with ``True`` values
+        indicating to locations of residual wetting phase.
+    lt : ndarray, optional
+        The local thickness of the void space.  If not provided it will be
+        generated using the default values. Providing one if available saves
+        time.
 
     Examples
     --------
-    >>> import porespy as ps
-    >>> import numpy as np
-    >>> im = ps.generators.blobs(shape=[500, 500], porosity=0.7, blobiness=2)
-    >>> inlets = np.zeros_like(im)
-    >>> inlets[0, :] = True
-    >>> outlets = np.zeros_like(im)
-    >>> outlets[-1, :] = True
-    >>> r = ps.dns.ibsi_imbibition(im=im, inlets=inlets, outlets=outlets)
+
     """
 
     lt = local_thickness(im)
-    sizes = ibi(im=im, inlets=inlets, residual=residual, lt=lt)
+
+    if lt is None:
+        lt = local_thickness(im=im)
+    sizes = np.zeros_like(lt)
+    for i, r in enumerate(np.unique(lt)[1:]):
+        imtemp = (lt <= r)*im
+        if inlets is not None:
+            if residual is not None:
+                tmp = imtemp + residual
+            else:
+                tmp = np.copy(imtemp)
+            tmp = trim_disconnected_blobs(tmp, inlets=inlets)
+            imtemp = imtemp * tmp
+        if residual is not None:
+            imtemp += residual
+        sizes += (sizes == 0)*(imtemp * r)
+
+    # sizes = ibi(im=im, inlets=inlets, residual=residual, lt=lt)
     seq = size_to_seq(size=sizes, im=im, ascending=True)
     if outlets is not None:
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
@@ -85,3 +165,43 @@ def ibsi_imbibition(im, inlets=None, outlets=None, residual=None,
     result.snwp = d.snwp
 
     return result
+
+
+if __name__ == '__main__':
+    import porespy as ps
+    im = ps.generators.blobs([300, 300])
+    imb = imbibition(im)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
