@@ -2,71 +2,51 @@ import numpy as np
 from porespy.filters import local_thickness, find_trapped_regions
 from porespy.filters import size_to_satn, size_to_seq, seq_to_satn
 from porespy.filters import trim_disconnected_blobs
-from porespy.metrics import pc_curve_from_ibi
 from porespy.tools import Results
 
 
 __all__ = [
-    'ibi',
+
 ]
 
 
-def ibi(im, inlets=None, residual=None, lt=None):
+def pc_curve_from_ibi(sizes, im, sigma, theta, voxel_size=1):
     r"""
-    Simulate imbibition of a wetting phase into an image
+    Generate capillary pressure curve data from an imbibition simulation
 
     Parameters
     ----------
+    sizes : ndarray
+        An image containing the meniscus radii as which each voxel was invaded
     im : ndarray
-        The image of the porous materials with void indicated by ``True``
-    inlets : ndarray
-        An image the same shape as ``im`` with ``True`` values indicating the
-        wetting fluid inlet(s).  If ``None`` then the wetting film is able to
-        appear anywhere within the domain.
-    residual : ndarray, optional
-        A boolean mask the same shape as ``im`` with ``True`` values
-        indicating to locations of residual wetting phase.
-    lt : ndarray, optional
-        The local thickness of the void space.  If not provided it will be
-        generated using the default values. Providing one if available saves
-        time, and allows for over the number of sizes.
+        A boolean image of the porous media wtih ``True`` indicating the
+        void space
+    sigma : scalar
+        Surface tension of the fluid-fluid pair
+    theta : scalar
+        Contact angle
+    voxel_size : scalar
+        The resolution of the image, in units of m/voxel edge
 
     Returns
     -------
-    imbibed : ndarray
-        A numpy ndarray the same shape as ``im`` with voxel values indicating
-        the radius at which it was reached by the imbibing fluid
-
-    Notes
-    -----
-    The simulate proceeds as though the non-wetting phase pressure is very
-    high and is slowly lowered.  The imbibition occurs into the smallest
-    accessible regions.
-
-    See Also
-    --------
-    size_to_satn
-    pc_curve_from_ibi
-    ibsi_imbibition
-
+    results : dataclass
+        A dataclass-like object with ``pc`` and ``snwp`` as attributes
     """
-    if lt is None:
-        lt = local_thickness(im=im)
-    imb = np.zeros_like(lt)
-    sizes = np.unique(lt)[1:]
-    for i, r in enumerate(sizes):
-        imtemp = (lt <= r)*im
-        if inlets is not None:
-            if residual is not None:
-                tmp = imtemp + residual
-            else:
-                tmp = np.copy(imtemp)
-            tmp = trim_disconnected_blobs(tmp, inlets=inlets)
-            imtemp = imtemp * tmp
-        if residual is not None:
-            imtemp += residual
-        imb += (imb == 0)*(imtemp * r)
-
+    sz = np.unique(sizes)
+    sz = sz[sz > 0]
+    x = []
+    y = []
+    for n in sz:
+        r = n*voxel_size
+        pc = -2*sigma*np.cos(np.deg2rad(theta))/r
+        x.append(pc)
+        snwp = 1 - ((sizes <= n)*(sizes > 0)).sum()/im.sum()
+        y.append(snwp)
+    result = Results()
+    result.pc = x
+    result.snwp = y
+    return result
 
 
 def imbibition(im, inlets=None, outlets=None, residual=None,
@@ -89,6 +69,12 @@ def imbibition(im, inlets=None, outlets=None, residual=None,
         The local thickness of the void space.  If not provided it will be
         generated using the default values. Providing one if available saves
         time.
+
+    Notes
+    -----
+    The simulate proceeds as though the non-wetting phase pressure is very
+    high and is slowly lowered.  The imbibition occurs into the smallest
+    accessible regions.
 
     Examples
     --------
@@ -114,7 +100,7 @@ def imbibition(im, inlets=None, outlets=None, residual=None,
         sizes += (sizes == 0)*(imtemp * r)
 
     # sizes = ibi(im=im, inlets=inlets, residual=residual, lt=lt)
-    seq = size_to_seq(size=sizes, im=im, ascending=True)
+    seq = size_to_seq(size=-sizes, im=im)
     if outlets is not None:
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
         sizes[trapped] = -1
@@ -169,9 +155,14 @@ def imbibition(im, inlets=None, outlets=None, residual=None,
 
 if __name__ == '__main__':
     import porespy as ps
+    import matplotlib.pyplot as plt
     im = ps.generators.blobs([300, 300])
     imb = imbibition(im)
-
+    plt.imshow(imb.satn)
+    pc = pc_curve_from_ibi(imb.sizes, im, sigma=0.072, theta=160)
+    plt.plot(pc.pc, pc.snwp)
+    drn = ps.simulations.drainage(im=im, voxel_size=1)
+    plt.plot(drn.pc, drn.snwp, 'r-o')
 
 
 
