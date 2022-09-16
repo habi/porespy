@@ -2,8 +2,10 @@ import numpy as np
 from porespy.filters import local_thickness, find_trapped_regions
 from porespy.filters import size_to_satn, size_to_seq, seq_to_satn
 from porespy.filters import trim_disconnected_blobs
+from porespy.filters import find_disconnected_voxels
 from porespy.tools import Results
 from porespy.tools import get_tqdm
+from porespy import settings
 
 
 __all__ = [
@@ -15,7 +17,7 @@ tqdm = get_tqdm()
 
 
 def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
-                    sigma=0.072, theta=180, voxel_size=1):
+               sigma=0.072, theta=180, voxel_size=1):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
 
@@ -31,59 +33,72 @@ def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
         A boolean mask the same shape as ``im`` with ``True`` values
         indicating to locations of residual wetting phase.
     lt : ndarray, optional
-        The local thickness of the void space.  If not provided it will be
+        The local thickness of the void space. If not provided it will be
         generated using the default values. Providing one if available saves
-        time.
+        time and allows control over the sizes/pressure applied.
 
     Notes
     -----
-    The simulate proceeds as though the non-wetting phase pressure is very
-    high and is slowly lowered.  The imbibition occurs into the smallest
-    accessible regions.
+    The simulation proceeds as though the non-wetting phase pressure is very
+    high and is slowly lowered. The imbibition occurs into the smallest
+    accessible regions at each step. Blind or inaccessible pores are
+    assumed to be filled with wetting phase.
 
     Examples
     --------
 
     """
-
     if lt is None:
         lt = local_thickness(im=im)
     sizes = np.zeros_like(lt)
-    for i, r in tqdm(enumerate(np.unique(lt)[1:])):
+    sz = np.unique(lt)[1:]
+    for i, r in tqdm(enumerate(sz), **settings.tqdm):
         imtemp = (lt <= r)*im
+        # Trim non connecting clusters of wetting phase
         if inlets is not None:
+            # Add residual before trimming
             if residual is not None:
                 tmp = imtemp + residual
             else:
                 tmp = np.copy(imtemp)
             tmp = trim_disconnected_blobs(tmp, inlets=inlets)
             imtemp = imtemp * tmp
+        # Add residual to invaded image
+        # TODO: there is probably a way to only do this once to speed up loop
         if residual is not None:
             imtemp += residual
+        # Update sizes image with any newly invaded regions
         sizes += (sizes == 0)*(imtemp * r)
-
-    seq = size_to_seq(size=-sizes, im=im)*(sizes > 0)
+    # Analyze the sizes image to pull out invasion sequence and satn info
+    seq = size_to_seq(size=-sizes, im=im)
     if outlets is not None:
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
         sizes[trapped] = 0
         seq[trapped] = 0
+        # Reset blind pores back to seq = 1 so max snwp is correct
+        blind = find_disconnected_voxels(im)
+        if inlets is not None:
+            temp = trim_disconnected_blobs(im=im, inlets=inlets)
+            blind = blind + (~temp)*im
+        seq[blind] = 1
     else:
         trapped = None
-    satn = (1 - seq_to_satn(seq))
-    satn[sizes == 0] = np.inf
-    satn = satn*im
-    im_pc = 2*sigma*np.cos(np.deg2rad(theta))/(sizes*voxel_size)
+    satn = (1 - seq_to_satn(seq, im=im))*im
+    # im_pc = 2*sigma*np.cos(np.deg2rad(theta))/(sizes*voxel_size)
 
+    # Exract capillary curve information from images.
     sz = np.unique(sizes)[1:]
     p = []
     s = []
     for n in sz:
         r = n*voxel_size
-        pc = -2*sigma*np.cos(np.deg2rad(theta))/r
-        p.append(pc)
-        temp = 1 - ((sizes <= n)*(sizes > 0)).sum()/im.sum()
-        s.append(temp)
+        p.append(-2*sigma*np.cos(np.deg2rad(theta))/r)
+        s.append(satn[sizes == n][0])
+    # Add some points to end of lists to create plateau at low snwp
+    p.append(p[-1]/2)
+    s.append(s[-1])
 
+    # Collect data in a Results object
     result = Results()
     result.__doc__ = 'This docstring should be customized to describe attributes'
     result.im = im
