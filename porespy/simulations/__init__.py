@@ -19,4 +19,5 @@ This module contains routines for performing simulations directly on images
 """
 
 from ._drainage import *
+from ._imbibition import *
 from ._dns import *
