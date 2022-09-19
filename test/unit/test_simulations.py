@@ -33,6 +33,51 @@ class SimulationsTest():
         drn2 = ps.simulations.drainage(pc=pc, im=im, voxel_size=1e-4, g=0)
         np.testing.assert_approx_equal(drn2.im_pc[im].max(), 0.14622522289864)
 
+    def test_imbibition_primary(self):
+        np.random.seed(2)
+        im = ps.generators.blobs(shape=[100, 100], porosity=0.7)
+        inlets = np.zeros_like(im)
+        inlets[0, :] = True
+        imb1 = ps.simulations.imbibition(im=im, inlets=inlets, voxel_size=1e-4)
+        # Because there are some blind pores
+        assert max(imb1.snwp) < 1.0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     t = SimulationsTest()
