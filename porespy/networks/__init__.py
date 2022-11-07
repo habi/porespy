@@ -1,9 +1,7 @@
 r"""
 
-Networks
-########
-
-**Obtain Network Representations**
+Collection of functions for obtaining network representations of images
+#######################################################################
 
 Contains functions for analysing images as pore networks.
 
@@ -14,6 +12,7 @@ Contains functions for analysing images as pore networks.
    :toctree: generated/
 
     networks.add_boundary_regions
+    networks.diffusive_size_factor_AI
     networks.generate_voxel_image
     networks.label_boundaries
     networks.label_phases
@@ -34,3 +33,6 @@ from ._getnet import regions_to_network
 from ._snow2 import snow2
 from ._utils import _net_dict
 from ._snow2 import _parse_pad_width
+from ._size_factors import diffusive_size_factor_AI
+from ._size_factors import create_model
+from ._size_factors import find_conns

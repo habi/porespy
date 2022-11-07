@@ -38,11 +38,20 @@ def size_to_seq(size, im=None, bins=None):
     seq : ndarray
         An ndarray the same shape as ``size`` with invasion size values
         replaced by the invasion sequence.  This assumes that the invasion
-        process occurs via increasing pressure steps, such as produced by
+        process occurs via largest regions first, such as produced by
         the ``porosimetry`` function.
 
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/filters/reference/size_to_seq.html>`_
+    to view online example.
+
     """
-    solid = size == 0
+    if im is None:
+        solid = size == 0
+    else:
+        solid = im == 0
     if bins is None:
         bins = np.unique(size)
     elif isinstance(bins, int):
@@ -83,6 +92,12 @@ def size_to_satn(size, im=None, bins=None):
         by the fraction of void space invaded at or below the sequence number.
         Solid voxels and uninvaded voxels are represented by 0 and -1,
         respectively.
+
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/filters/reference/size_to_satn.html>`_
+    to view online example.
     """
     if bins is None:
         bins = np.unique(size)
@@ -122,6 +137,11 @@ def seq_to_satn(seq, im=None):
         Solid voxels and uninvaded voxels are represented by 0 and -1,
         respectively.
 
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/filters/reference/seq_to_satn.html>`_
+    to view online example.
     """
     seq = np.copy(seq).astype(int)
     if im is None:
@@ -171,6 +191,12 @@ def pc_to_satn(pc, im):
     are present the maximum saturation will be less than 1.0 since not all
     wetting phase was displaced.
 
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/filters/reference/pc_to_satn.html>`_
+    to view online example.
+
     """
     a = np.digitize(pc, bins=np.unique(pc))
     a[~im] = 0
@@ -179,7 +205,7 @@ def pc_to_satn(pc, im):
     return satn
 
 
-def satn_to_seq(satn, im):
+def satn_to_seq(satn, im=None):
     r"""
     Converts an image of nonwetting phase saturations to invasion sequence
     values
@@ -200,7 +226,15 @@ def satn_to_seq(satn, im):
         at which it was invaded. Solid voxels are indicated by 0 and
         uninvaded by -1.
 
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/filters/reference/satn_to_seq.html>`_
+    to view online example.
+
     """
+    if im is None:
+        im = satn > 0
     values = np.unique(satn)
     seq = np.digitize(satn, bins=values)
     # Set uninvaded by to -1

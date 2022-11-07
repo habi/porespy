@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 from platform import system
 from os.path import realpath
@@ -91,27 +92,7 @@ class NetworkExtractionTest():
         assert np.allclose(net1['pore.coords'][:, 1], net2['pore.coords'][:, 2])
         assert np.allclose(net1['pore.coords'][:, 0], net3['pore.coords'][:, 1])
 
-    def test_generate_voxel_image(self):
-        import openpnm as op
-        pn = op.network.Cubic(shape=[5, 5, 5], spacing=1)
-        geo = op.geometry.StickAndBall(network=pn, pores=pn.Ps, throats=pn.Ts)
-        geo.add_model(propname="pore.volume",
-                      model=op.models.geometry.pore_volume.cube)
-        geo.add_model(propname="throat.volume",
-                      model=op.models.geometry.throat_volume.cylinder)
-        im = ps.networks.generate_voxel_image(
-            network=pn,
-            pore_shape="cube",
-            throat_shape="cylinder",
-            max_dim=400,
-            rtol=0.01
-        )
-        porosity_actual = im.astype(bool).sum() / np.prod(im.shape)
-        volume_void = pn["pore.volume"].sum() + pn["throat.volume"].sum()
-        volume_total = np.prod(pn.spacing * pn.shape)
-        porosity_desired = volume_void / volume_total
-        assert_allclose(actual=porosity_actual, desired=porosity_desired, rtol=0.1)
-
+    @pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows-only!")
     def test_max_ball(self):
         path = Path(realpath(__file__), '../../fixtures/pnextract.exe')
         if system() == 'Windows':

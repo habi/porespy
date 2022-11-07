@@ -59,18 +59,53 @@ def set_mpl_style():  # pragma: no cover
 
     if ps.settings.notebook:
         import IPython
-        IPython.display.set_matplotlib_formats('svg')
+        IPython.display.set_matplotlib_formats('retina')
 
 
 def satn_to_movie(im, satn, cmap='viridis',
                   c_under='grey', c_over='white',
                   v_under=1e-3, v_over=1.0, fps=10, repeat=True):
     r"""
+    Converts a saturation map into an animation that can be saved
+
+    Parameters
+    ----------
+    im : ndarray
+        The boolean image of the porous media with ``True`` values indicating
+        the void space
+    satn : ndaray
+        The saturation map such as that produced by an invasion or drainage
+        algorithm.
+    cmap : str
+        The name of the matplotlib color map to use. These are listed on
+        matplotlib's website
+        `here <https://matplotlib.org/stable/gallery/color/colormap_reference.html>`__
+    c_under, c_over : str
+        The color to insert for values that are less than `v_under`
+        (greater than `v_over`).  The string value of colors are given on
+        matplotlib's website
+        `here <https://matplotlib.org/stable/gallery/color/named_colors.html>`__
+    v_under, v_over : scalar
+        The values in ``satn`` that should be considered the lower and upper
+        threshold, beyond which the colors given in `c_under` and `c_over`
+        are used.
+    fps : int
+        The frames per second to use when generating the movie.  A higher
+        number gives a shorter and faster-paced movie.
+    repeat : bool
+        If ``True`` the produced animation will rerun repeatedly until
+        stopped or closed.
 
     Notes
     -----
     To save animation as a file use:
     ``ani.save('image_based_ip.gif', writer='imagemagick', fps=3)``
+
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/visualization/reference/satn_to_movie.html>`_
+    to view online example.
     """
     # Define nice color map
     cmap = copy(plt.cm.get_cmap(name=cmap))
@@ -110,9 +145,8 @@ def satn_to_panels(satn, im, bins=None, axis=0, slice=None, **kwargs):
     im : ndarray
         A boolean image with ``True`` values indicating the void voxels and
         ``False`` for solid.
-    bins : int or array_like
-        Indicates for which saturations images should be made. If a ``list``
-        then each value in the list is used as a threshold. If an ``int``
+    bins : int
+        Indicates for which saturations images should be made. If an ``int``
         then a list of equally space values between 0 and 1 is generated.
         If ``None`` (default) than all saturation values in the image are used.
     axis : int, optional
@@ -124,12 +158,18 @@ def satn_to_panels(satn, im, bins=None, axis=0, slice=None, **kwargs):
         of the axis is returned.  If 2D this is ignored.
     **kwargs : various
         Additional keyword arguments are sent to the ``imshow`` function,
-        such as ``cmap`` and ``interpolation``.
+        such as ``interpolation``.
 
     Returns
     -------
     fig, ax : Matplotlib figure and axis objects
         The same things as returned by ``plt.subplots``
+
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/visualization/reference/satn_to_panels.html>`_
+    to view online example.
     """
     def factors(n):
         return sorted(list(set(
@@ -156,7 +196,7 @@ def satn_to_panels(satn, im, bins=None, axis=0, slice=None, **kwargs):
     temp_old = np.zeros_like(im)
     for i, p in enumerate(Ps):
         temp = (satn <= p)*(satn > 0)
-        im_data = prep_for_imshow(values=temp*2.0 - temp_old*1.0, im=im,
+        im_data = prep_for_imshow(im=temp*2.0 - temp_old*1.0, mask=im,
                                   axis=axis, slice=slice)
         im_data.pop('vmax')
         [im_data.pop(i) for i in kwargs]
@@ -167,34 +207,37 @@ def satn_to_panels(satn, im, bins=None, axis=0, slice=None, **kwargs):
     return fig, ax
 
 
-def prep_for_imshow(values, im, axis=0, slice=None):
+def prep_for_imshow(im, mask=None, axis=0, slice=None):
     r"""
     Adjusts the range of greyscale values in an image to improve visualization
     by ``matplotlib.pyplot.imshow``
 
     Parameters
     ----------
-    values : ndimage
-        An image with greyscale values such as capillary pressures or
-        invasion sequences.  Can include both ``+inf`` and ``-inf`` values.
     im : ndimage
-        An image of the porous material with ``True`` indicating void and
-        ``False`` indicating solid.
+        The image to show. If ``im`` includes ``+inf`` or ``-inf`` values,
+        they are converted to 1 above or below the minimum and maximum finite
+        values in ``im``, respectively.
+    mask : ndimage, optional
+        An image of the porous material with ``True`` indicating voxels of
+        interest. The ``False`` voxels are excluded from the ``vmax`` and
+        ``vmin`` calculation.
     axis : int, optional
-        If the image is 3D, a 2D image can be returned with the specified
-        ``slice`` taken along this axis.  If ``None`` then a 3D
+        If the image is 3D, a 2D image is returned with the specified
+        ``slice`` taken along this axis (default = 0).  If ``None`` then a 3D
         image is returned. If the image is 2D this is ignored.
     slice : int, optional
-        If the image is 3D, a 2D image can be returned showing this slice
+        If ``im`` is 3D, a 2D image is be returned showing this slice
         along the given ``axis``.  If ``None``, then a slice at the mid-point
-        of the axis is returned.  If 2D this is ignored.
+        of the axis is returned.  If ``axis`` is ``None`` or the image is 2D
+        this is ignored.
 
     Returns
     -------
-    data : dict
+    kwargs : dict
         A python dicionary designed to be passed directly to
-        ``matplotlib.pyplot.imshow`` using the "**kwargs" features (i.e.
-        ``plt.imshow(**data)``).  It contains the following key-value pairs:
+        ``matplotlib.pyplot.imshow`` using the "\*\*kwargs" features (i.e.
+        ``plt.imshow(\*\*data)``).  It contains the following key-value pairs:
 
         =============== =======================================================
         key               value
@@ -202,8 +245,10 @@ def prep_for_imshow(values, im, axis=0, slice=None):
         'X'             The adjusted image with ``+inf`` replaced by
                         ``vmax + 1``, and all solid voxels replacd by
                         ``np.nan`` to show as white in ``imshow``
-        'vmax'          The maximum of ``values`` not including ``+inf``
-        'vmin'          The minimum of ``values`` not including ``-inf``
+        'vmax'          The maximum of ``values`` not including ``+inf`` or
+                        values in ``False`` voxels in ``mask``.
+        'vmin'          The minimum of ``values`` not including ``-inf`` or
+                        values in ``False`` voxels in ``mask``.
         'interpolation' Set to 'none' to avoid artifacts in ``imshow``
         'origin'        Set to 'lower' to put (0, 0) on the bottom-left corner
         =============== =======================================================
@@ -213,22 +258,29 @@ def prep_for_imshow(values, im, axis=0, slice=None):
     If any of the *extra* items are unwanted they can be removed with
     ``del data['interpolation']`` or ``data.pop('interpolation')``.
 
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/visualization/reference/prep_for_imshow.html>`_
+    to view online example.
+
     """
+    # If 3D, fetch 2D slice immediately to save memory
     if (im.ndim == 3) and (axis is not None):
         if slice is None:
             slice = int(im.shape[axis]/2)
-        values = np.swapaxes(values, 0, axis)[slice, ...]
+        # Rotate image to put given axis first, then slice
         im = np.swapaxes(im, 0, axis)[slice, ...]
-    if values.dtype == bool:
-        temp = values
-        vmax = 1
-        vmin = 0
-    else:
-        temp = np.copy(values)
-        vmax = temp[temp < np.inf].max()
-        temp[temp == np.inf] = vmax + 1
-        vmin = temp[temp > -np.inf].min()
-        temp[temp == -np.inf] = vmin - 1
-    data = {'X': temp/im, 'vmin': vmin, 'vmax': vmax,
+        if mask is not None:  # Rotate mask as well, then slice
+            mask = np.swapaxes(mask, 0, axis)[slice, ...]
+    im = im.astype(float)
+    if mask is None:
+        mask = np.ones_like(im, dtype=bool)
+
+    vmax = np.amax((im*(im < np.inf))[mask])
+    im[(im == np.inf)] = vmax + 1
+    vmin = np.amin((im*(im > -np.inf))[mask])
+    im[(im == -np.inf)] = vmin - 1
+
+    return {'X': im, 'vmin': vmin, 'vmax': vmax,
             'interpolation': 'none', 'origin': 'lower'}
-    return data

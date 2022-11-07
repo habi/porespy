@@ -2,12 +2,8 @@
   <img src="https://github.com/PMEAL/porespy/raw/dev/docs/_static/images/porespy_logo.png" width="25%"></img>
 </p>
 
-[![image](https://github.com/PMEAL/porespy/workflows/Tests/badge.svg)](https://github.com/PMEAL/porespy/actions)
-[![image](https://github.com/PMEAL/porespy/workflows/Examples/badge.svg)](https://github.com/PMEAL/porespy/actions)
-[![image](https://codecov.io/gh/PMEAL/PoreSpy/branch/dev/graph/badge.svg)](https://codecov.io/gh/PMEAL/PoreSpy)
 [![image](https://img.shields.io/pypi/v/porespy.svg)](https://pypi.python.org/pypi/porespy/)
 [![Pyversions](https://img.shields.io/pypi/pyversions/porespy.svg?style=flat-square&label=Python%20Versions)](https://pypi.python.org/pypi/porespy)
-[![image](https://img.shields.io/badge/DOI-10.21105/joss.01296-blue.svg)](https://doi.org/10.21105/joss.01296)
 
 # What is PoreSpy?
 
@@ -42,6 +38,7 @@ necessary.
     image
   - `metrics`: Tools for quantifying properties of images
   - `networks`: Algorithms and tools for analyzing images as pore networks
+  - `simulations`: Physical simulations on images including drainage
   - `visualization`: Helper functions for creating useful views of the
     image
   - `io`: Functions for outputting image data in various formats for use in
@@ -76,10 +73,6 @@ and install it using the following PIP command:
 
 For information about contributing, refer to the [contributors
 guide](https://github.com/PMEAL/porespy/blob/dev/CONTRIBUTING.md)
-
-# Stay Informed
-
-It's surprizingly hard to communicate with our users, since Github doesn't allow sending out email newsletters or announcements.  To address this gap, we have created a [Substack channel](https://porespy.substack.com/p/coming-soon?r=e02s8&utm_campaign=post&utm_medium=web&utm_source=copy), where you can subscribe to our feed to receive periodic news about important events and updates.
 
 # Acknowledgements
 

@@ -6,6 +6,7 @@ from skimage import io
 from edt import edt
 from pathlib import Path
 import scipy.ndimage as spim
+from skimage.morphology import ball
 from numpy.testing import assert_allclose
 ps.settings.tqdm['disable'] = True
 
@@ -51,6 +52,14 @@ class MetricsTest():
         t = 0.2
         phi1 = ps.metrics.porosity(im=self.im3D)
         assert np.sqrt((np.mean(tpcf_fft.probability[-5:]) - phi1)**2) < t
+
+    def test_tpcf_fft_3d_scaled(self):
+        tpcf = ps.metrics.two_point_correlation(im=self.im3D)
+        phi1 = ps.metrics.porosity(im=self.im3D)
+        # The first value at r = 0 should be equal to porosity
+        assert np.abs(tpcf.probability_scaled[0] - phi1) < 0.01
+        # The function should decay to phi**2
+        assert np.abs(np.mean(tpcf.probability_scaled[-5:] - phi1**2)) < 0.01
 
     def test_pore_size_distribution(self):
         mip = ps.filters.porosimetry(self.im3D)
@@ -151,6 +160,23 @@ class MetricsTest():
         # assert np.all(ia.conns[0] == [2, 19])
         # assert np.around(ia.area[0], decimals=2) == 3.59
 
+    def test_region_volumes(self):
+        regions = self.regions[:50, :50, :50]
+        vols_march = ps.metrics.region_volumes(regions=regions)
+        vols_vox = ps.metrics.region_volumes(regions=regions, mode='voxel')
+        assert_allclose(vols_march[:5], [1498.85320453, 2597.90798652,
+                                         2158.34548652, 1281.17978573, 1172.39853573])
+        assert_allclose(vols_vox[:5], [1540., 2648., 2206., 1320., 1210.])
+        assert_allclose(np.mean(vols_march), 1907.8062788852674)
+        assert_allclose(np.mean(vols_vox), 1952.125)
+
+    def test_region_volumes_for_sphere(self):
+        region = ball(10)
+        vol_march = ps.metrics.region_volumes(regions=region)
+        vol_vox = ps.metrics.region_volumes(region, mode='voxel')
+        assert_allclose(vol_march, 4102.28678846)
+        assert_allclose(vol_vox, 4169.)
+
     def test_phase_fraction(self):
         im = np.reshape(np.random.randint(0, 10, 1000), [10, 10, 10])
         labels = np.unique(im, return_counts=True)[1]
@@ -223,10 +249,10 @@ class MetricsTest():
         assert hasattr(pc, 'pc')
         assert hasattr(pc, 'snwp')
 
-    def test_pc_curve_from_ibib(self):
+    def test_pc_curve_from_ibip(self):
         im = ps.generators.blobs(shape=[100, 100], porosity=0.7)
         seq, sizes = ps.filters.ibip(im=im)
-        pc = ps.metrics.pc_curve_from_ibip(sizes=sizes, seq=seq)
+        pc = ps.metrics.pc_curve(im=im, sizes=sizes, seq=seq)
         assert hasattr(pc, 'pc')
         assert hasattr(pc, 'snwp')
 

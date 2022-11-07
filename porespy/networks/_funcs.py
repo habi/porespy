@@ -4,7 +4,7 @@ import scipy.ndimage as spim
 from skimage.segmentation import find_boundaries
 from skimage.morphology import ball, cube, disk, square
 from porespy.tools import make_contiguous
-from porespy.tools import overlay
+from porespy.tools import overlay, extend_slice
 from porespy.tools import insert_cylinder
 from porespy.generators import borders
 from porespy import settings
@@ -143,7 +143,7 @@ def _generate_voxel_image(network, pore_shape, throat_shape, max_dim=200):
     # Distance bounding box from the network by a fixed amount
     delta = network["pore.diameter"].mean() / 2
     if isinstance(network, op.network.Cubic):
-        delta = network._spacing.mean() / 2
+        delta = op.topotools.get_spacing(network).mean() / 2
 
     # Shift everything to avoid out-of-bounds
     extra_clearance = int(max_dim * 0.05)

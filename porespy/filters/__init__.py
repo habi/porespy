@@ -1,9 +1,7 @@
 r"""
 
-Filters
-#######
-
-**Highlight Features of Interest**
+Collection of functions for altering images based on structural properties
+##########################################################################
 
 This module contains a variety of functions for altering images based on
 the structural characteristics, such as pore sizes.  A definition of a
@@ -87,11 +85,11 @@ from ._snows import find_peaks
 from ._snows import reduce_peaks
 from ._snows import trim_nearby_peaks
 from ._snows import trim_saddle_points
+from ._snows import trim_saddle_points_legacy
 from ._size_seq_satn import *
 from ._nlmeans import nl_means_layered
 from ._fftmorphology import fftmorphology
 from . import imagej
 from ._ibip import ibip
 from ._ibip import find_trapped_regions
-from ._ibip_gpu import ibip_gpu
 from ._ibip_gpu import ibip_gpu

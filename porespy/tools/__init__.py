@@ -1,12 +1,10 @@
 r"""
 
-Tools
-#####
-
-**Helper Functions**
+Collection of helper functions for manipulating images
+######################################################
 
 This module contains a variety of functions for manipulating images in
-ways do NOT return a modified version of the original image.
+ways that do NOT return a modified version of the original image.
 
 .. currentmodule:: porespy
 
@@ -51,8 +49,12 @@ from ._funcs import *
 from ._utils import *
 from ._funcs import _check_for_singleton_axes
 from ._unpad import unpad
+from ._sphere_insertions import *
 
 
 def _get_version():
-    from porespy.__version__ import __version__
-    return __version__.strip(".dev0")
+    from porespy.__version__ import __version__ as ver
+    suffix = ".dev0"
+    if ver.endswith(suffix):
+        ver = ver[:-len(suffix)]
+    return ver

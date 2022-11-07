@@ -4,7 +4,7 @@ from porespy.tools import get_tqdm, Results
 tqdm = get_tqdm()
 
 
-def boxcount(im, bins=10, d_min=1, d_max=None):
+def boxcount(im, bins=10):
     r"""
     Calculates fractal dimension of an image using the tiled box counting
     method [1]_
@@ -33,21 +33,13 @@ def boxcount(im, bins=10, d_min=1, d_max=None):
 
     References
     ----------
-    [1] See Boxcounting on `Wikipedia <https://en.wikipedia.org/wiki/Box_counting>`_
+    .. [1] See Boxcounting on `Wikipedia <https://en.wikipedia.org/wiki/Box_counting>`_
 
     Examples
     --------
-    >>> import porespy as ps
-    >>> import matplotlib.pyplot as plt
-    >>> dust = ps.generators.random_cantor_dust([1024, 1024], n=8)
-    >>> f = ps.metrics.boxcount(dust)
-    >>> fig, ax = plt.subplots(1, 2)
-    >>> ax[0].loglog(f.size, f.count, 'bo-')
-    [...]
-    >>> ax[1].semilogx(f.size, f.slope, 'ro-')
-    [...]
-    >>> ax[1].set_ylim([0, 4])
-    (0.0, 4.0)
+    `Click here
+    <https://porespy.org/examples/metrics/reference/box_counting.html>`_
+    to view online example.
 
     """
     im = np.array(im, dtype=bool)
