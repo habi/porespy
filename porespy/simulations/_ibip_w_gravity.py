@@ -1,25 +1,32 @@
 import numpy as np
 from edt import edt
+from porespy.filters import seq_to_satn
 from porespy.tools import get_tqdm
-import scipy.ndimage as spim
-from porespy.filters import trim_disconnected_blobs, seq_to_satn
-from porespy.tools import get_border, make_contiguous
+from porespy.tools import get_border, make_contiguous, ps_round, ps_rect
 from porespy.tools import Results
 import numba
 from porespy import settings
 import heapq as hq
-from random import seed
 tqdm = get_tqdm()
 
 
 __all__ = [
     'ibip_w_gravity',
     'invasion',
-    ]
+]
 
 
-import heapq as hq
-def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta_rho=998, g=0, maxiter=10000):
+def invasion(
+    im,
+    voxel_size,
+    inlets=None,
+    pc_map=None,
+    sigma=0.072,
+    theta=180,
+    delta_rho=998,
+    g=0,
+    maxiter=10000,
+):
     r"""
     Perform image-based invasion percolation in the presence of gravity
 
@@ -33,7 +40,7 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
-    pc : ndarray, optional
+    pc_map : ndarray, optional
         Precomputed capillary pressure values which are used to determine
         the invadability of each voxel, in Pa.  If not provided then it is
         computed assuming the Washburn equation using the given values of
@@ -70,9 +77,10 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
     Notes
     -----
     This function operates differently than the original ``ibip``.  Here a
-    heaq queue is used to maintain an up to date list of which voxels should
-    be invaded next.  This is much faster than the original approach which
-    scanned the entire image for invasion sites on each step.
+    binary heap (via the `heapq` module from the standard libary) is used to
+    maintain an up-to-date list of which voxels should be invaded next.  This
+    is much faster than the original approach which scanned the entire image
+    for invasion sites on each step.
 
     """
 
@@ -82,13 +90,15 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
 
     dt = edt(im)
 
-    if pc is None:
+    if pc_map is None:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
         if (g * delta_rho) != 0:
             h = np.ones_like(im)
             h[0, ...] = False
             h = edt(h) * voxel_size
             pc = pc + delta_rho * g * h
+    else:
+        pc = pc_map
 
     pc = np.around(pc, decimals=0)  # Convert the dt to nearest integer
     dt = dt.astype(int)  # Convert the dt to nearest integer
@@ -107,7 +117,7 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
     for step in tqdm(range(1, maxiter), **settings.tqdm):
         # Find sites to add spheres, which may be multiple
         try:  # pop the top item from heap to get current size
-            pts = [hq.heappop(bd)]
+            pts = [hq.heappop(bd)]  # Make pts a list so other points can be added
         except IndexError:  # bd is empty, exit
             print(f'Exiting after {step} steps')
             break
@@ -126,12 +136,20 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
                                             r=r, v=p, smooth=True)
         # Check neighborhood around coords and add new points if any
         for pt in pts:
-            # Get extended slices around each point in pts
-            x, y = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
-            for item in zip(x, y):
-                if (edge[item] == False):
-                    hq.heappush(bd, (pc[item], dt[item], *item))
-                    edge[item] = True
+            if im.ndim == 2:
+                # Get extended slices around each point in pts
+                x, y = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
+                for item in zip(x, y):
+                    if (edge[item] == False):
+                        hq.heappush(bd, (pc[item], dt[item], *item))
+                        edge[item] = True
+            else:
+                # Get extended slices around each point in pts
+                x, y, z = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
+                for item in zip(x, y, z):
+                    if (edge[item] == False):
+                        hq.heappush(bd, (pc[item], dt[item], *item))
+                        edge[item] = True
 
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
@@ -151,9 +169,14 @@ def invasion(im, voxel_size, inlets=None, pc=None, sigma=0.072, theta=180, delta
     return results
 
 
-_x2 = np.array([-1, -1, -1,  0,  0,  0,  1,  1,  1], dtype=int)
-_y2 = np.array([-1,  0,  1, -1,  0,  1, -1,  0,  1], dtype=int)
-_conn2 = np.array([[0, 1, 0], [1, 1, 1], [0, 1, 0]], dtype=int).flatten()
+# Generate some static arrays needed for the find_neighbor_coordinate function
+_x2, _y2 = np.meshgrid(range(-1, 2), range(-1, 2), indexing='ij')
+_x2, _y2 = _x2.flatten(), _y2.flatten()
+_conn2 = ps_rect(3, ndim=2).flatten()
+
+_x3, _y3, _z3 = np.meshgrid(range(-1, 2), range(-1, 2), range(-1, 2), indexing='ij')
+_x3, _y3, _z3 = _x3.flatten(), _y3.flatten(), _z3.flatten()
+_conn3 = ps_rect(3, ndim=3).flatten()
 
 
 def find_neighbor_coordinates(pt, shape):
@@ -161,12 +184,22 @@ def find_neighbor_coordinates(pt, shape):
     Given the coordinates of a point, find the coordinates of its valid
     neighbors (i.e. contrained by the image size)
     """
-    xi = _x2 + pt[0]
-    yi = _y2 + pt[1]
-    mask_x = (xi >= 0) * (xi < shape[0])
-    mask_y = (yi >= 0) * (yi < shape[1])
-    mask = np.array(mask_x * mask_y * _conn2, dtype=bool)
-    return xi[mask], yi[mask]
+    if len(shape) == 2:
+        xi = _x2 + pt[0]
+        yi = _y2 + pt[1]
+        mask_x = (xi >= 0) * (xi < shape[0])
+        mask_y = (yi >= 0) * (yi < shape[1])
+        mask = np.array(mask_x * mask_y * _conn2, dtype=bool)
+        return xi[mask], yi[mask]
+    else:
+        xi = _x3 + pt[0]
+        yi = _y3 + pt[1]
+        zi = _z3 + pt[1]
+        mask_x = (xi >= 0) * (xi < shape[0])
+        mask_y = (yi >= 0) * (yi < shape[1])
+        mask_z = (zi >= 0) * (zi < shape[2])
+        mask = np.array(mask_x * mask_y * mask_z * _conn3, dtype=bool)
+        return xi[mask], yi[mask], zi[mask]
 
 
 def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
@@ -440,17 +473,31 @@ if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
     import numpy as np
+
     ps.settings.tqdm['leave'] = True
     np.random.seed(0)
     im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
-    ip = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4, g=0, maxiter=10000)
-    satn_1 = ps.filters.seq_to_satn(ip.im_seq, im=im)
-    ani1 = ps.visualization.satn_to_movie(satn=satn_1, im=im)
-    ani1.save('ibip1.gif', writer='imagemagick', fps=20)
+    # ip = ps.simulations.invasion(im=im,
+    #                              inlets=inlets,
+    #                              voxel_size=1e-4,
+    #                              g=0,
+    #                              maxiter=10000)
+    # satn_1 = ps.filters.seq_to_satn(ip.im_seq, im=im)
+    # ani1 = ps.visualization.satn_to_movie(satn=satn_1, im=im)
+    # ani1.save('ibip1.gif', writer='imagemagick', fps=20)
 
     # ip2_seq, ip2_p = ps.filters.ibip(im=im, inlets=inlets)
     # satn_2 = ps.filters.seq_to_satn(ip2_seq, im=im)
     # ani2 = ps.visualization.satn_to_movie(satn=satn_2, im=im)
     # ani2.save('ibip2.gif', writer='imagemagick', fps=20)
+
+    # Compare speeds
+    ibip_orig = ps.filters.ibip(im=im, inlets=inlets)
+    ibip_new = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4)
+    fig, ax = plt.subplots(1, 2)
+    ax[0].imshow(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im))
+    ax[1].imshow(ibip_new.im_satn)
+    temp = abs(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im)
+                - ibip_new.im_satn)
