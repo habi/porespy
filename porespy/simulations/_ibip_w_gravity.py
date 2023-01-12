@@ -194,7 +194,7 @@ def find_neighbor_coordinates(pt, shape):
     else:
         xi = _x3 + pt[0]
         yi = _y3 + pt[1]
-        zi = _z3 + pt[1]
+        zi = _z3 + pt[2]
         mask_x = (xi >= 0) * (xi < shape[0])
         mask_y = (yi >= 0) * (yi < shape[1])
         mask_z = (zi >= 0) * (zi < shape[2])
