@@ -1,12 +1,10 @@
 r"""
 
-Tools
-#####
-
-**Helper Functions**
+Collection of helper functions for manipulating images
+######################################################
 
 This module contains a variety of functions for manipulating images in
-ways do NOT return a modified version of the original image.
+ways that do NOT return a modified version of the original image.
 
 .. currentmodule:: porespy
 
@@ -49,8 +47,6 @@ ways do NOT return a modified version of the original image.
 
 from ._funcs import *
 from ._utils import *
-from ._funcs import _check_for_singleton_axes
-from ._unpad import unpad
 from ._sphere_insertions import *
 
 

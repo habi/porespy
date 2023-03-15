@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import scipy.ndimage as spim
 import scipy.spatial as sptl
@@ -9,9 +10,102 @@ from porespy.tools import _check_for_singleton_axes
 from porespy.tools import Results
 from porespy import settings
 from porespy.tools import get_tqdm
-from loguru import logger
 from numba import njit
+
+
+__all__ = [
+    "boxcount",
+    "chord_counts",
+    "chord_length_distribution",
+    "find_h",
+    "lineal_path_distribution",
+    "pore_size_distribution",
+    "radial_density_distribution",
+    "porosity",
+    "porosity_profile",
+    "representative_elementary_volume",
+    "satn_profile",
+    "two_point_correlation",
+    "phase_fraction",
+    "pc_curve",
+    "pc_curve_from_ibip",
+    "pc_curve_from_mio",
+]
+
+
 tqdm = get_tqdm()
+logger = logging.getLogger(__name__)
+
+
+def boxcount(im, bins=10):
+    r"""
+    Calculates fractal dimension of an image using the tiled box counting
+    method [1]_
+
+    Parameters
+    ----------
+    im : ndarray
+        The image of the porous material.
+    bins : int or array_like, optional
+        The number of box sizes to use. The default is 10 sizes
+        logarithmically spaced between 1 and ``min(im.shape)``.
+        If an array is provided, this is used directly.
+
+    Returns
+    -------
+    results
+        An object possessing the following attributes:
+
+        size : ndarray
+            The box sizes used
+        count : ndarray
+            The number of boxes of each size that contain both solid and void
+        slope : ndarray
+            The gradient of ``count``. This has the same number of elements as
+            ``count`` and
+
+    References
+    ----------
+    .. [1] See Boxcounting on `Wikipedia <https://en.wikipedia.org/wiki/Box_counting>`_
+
+    Examples
+    --------
+    `Click here
+    <https://porespy.org/examples/metrics/reference/box_counting.html>`_
+    to view online example.
+
+    """
+    im = np.array(im, dtype=bool)
+
+    if (len(im.shape) != 2 and len(im.shape) != 3):
+        raise Exception('Image must be 2-dimensional or 3-dimensional')
+
+    if isinstance(bins, int):
+        Ds = np.unique(np.logspace(1, np.log10(min(im.shape)), bins).astype(int))
+    else:
+        Ds = np.array(bins).astype(int)
+
+    N = []
+    for d in tqdm(Ds, **settings.tqdm):
+        result = 0
+        for i in range(0, im.shape[0], d):
+            for j in range(0, im.shape[1], d):
+                if len(im.shape) == 2:
+                    temp = im[i:i+d, j:j+d]
+                    result += np.any(temp)
+                    result -= np.all(temp)
+                else:
+                    for k in range(0, im.shape[2], d):
+                        temp = im[i:i+d, j:j+d, k:k+d]
+                        result += np.any(temp)
+                        result -= np.all(temp)
+        N.append(result)
+    slope = -1*np.gradient(np.log(np.array(N)), np.log(Ds))
+    data = Results()
+    data.size = Ds
+    data.count = N
+    data.slope = slope
+    return data
 
 
 def representative_elementary_volume(im, npoints=1000):
@@ -53,8 +147,8 @@ def representative_elementary_volume(im, npoints=1000):
     References
     ----------
     .. [1] Bachmat and Bear. On the Concept and Size of a Representative
-    Elementary Volume (Rev), Advances in Transport Phenomena in Porous Media
-    (1987)
+       Elementary Volume (Rev), Advances in Transport Phenomena in Porous Media
+       (1987)
 
     Examples
     --------
@@ -633,14 +727,14 @@ def _radial_profile(autocorr, bins, pf=None, voxel_size=1):
     """
     if len(autocorr.shape) == 2:
         adj = np.reshape(autocorr.shape, [2, 1, 1])
-        # use np.round otherwise with odd image sizes, the mask generated can be zero,
-        # resulting in Div/0 error
+        # use np.round otherwise with odd image sizes, the mask generated can
+        # be zero, resulting in Div/0 error
         inds = np.indices(autocorr.shape) - np.round(adj / 2)
         dt = np.sqrt(inds[0]**2 + inds[1]**2)
     elif len(autocorr.shape) == 3:
         adj = np.reshape(autocorr.shape, [3, 1, 1, 1])
-        # use np.round otherwise with odd image sizes, the mask generated can be zero,
-        # resulting in Div/0 error
+        # use np.round otherwise with odd image sizes, the mask generated can
+        # be zero, resulting in Div/0 error
         inds = np.indices(autocorr.shape) - np.round(adj / 2)
         dt = np.sqrt(inds[0]**2 + inds[1]**2 + inds[2]**2)
     else:
@@ -702,9 +796,10 @@ def two_point_correlation(im, voxel_size=1, bins=100):
     Returns
     -------
     result : tpcf
-        the two - point correlation function object, with named attributes:
-        *distance*:
-            The distance between two points - equivalent to bin_centers
+        The two-point correlation function object, with named attributes:
+
+        *distance*
+            The distance between two points, equivalent to bin_centers
         *bin_centers*
             The center point of each bin. See distance
         *bin_edges*
@@ -713,19 +808,20 @@ def two_point_correlation(im, voxel_size=1, bins=100):
         *bin_widths*
             Useful for passing to the ``width`` argument of
             ``matplotlib.pyplot.bar``
-        *probability_normalized* :
+        *probability_normalized*
             The probability that two points of the stated separation distance
             are within the same phase normalized to 1 at r = 0
-        *probability* or *pdf* :
+        *probability* or *pdf*
             The probability that two points of the stated separation distance
             are within the same phase scaled to the phase fraction at r = 0
+
     Notes
     -----
     The fourier transform approach utilizes the fact that the
     autocorrelation function is the inverse FT of the power spectrum
     density. For background read the Scipy fftpack docs and for a good
     explanation `see this thesis
-    <https://www.ucl.ac.uk/~ucapikr/projects/KamilaSuankulova_BSc_Project.pdf>`_
+    <https://www.ucl.ac.uk/~ucapikr/projects/KamilaSuankulova_BSc_Project.pdf>`_.
 
     Examples
     --------
@@ -734,7 +830,7 @@ def two_point_correlation(im, voxel_size=1, bins=100):
     to view online example.
 
     """
-    # Get the number of CPUs available for parallel processing of Fourier transforms
+    # Get the number of CPUs available to parallel process Fourier transforms
     cpus = settings.ncores
     # Get the phase fraction of the image
     pf = porosity(im)
@@ -813,7 +909,7 @@ def chord_counts(im):
     """
     labels, N = spim.label(im > 0)
     props = regionprops(labels)
-    chord_lens = np.array([i.filled_area for i in props])
+    chord_lens = np.array([i.filled_area for i in props], dtype=int)
     return chord_lens
 
 

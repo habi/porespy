@@ -1,9 +1,7 @@
 r"""
 
-IO
-##
-
-**Export to and from various formats**
+Collection of functions for importing and exporting images
+##########################################################
 
 .. currentmodule:: porespy
 
@@ -30,3 +28,4 @@ from ._funcs import to_stl
 from ._funcs import to_paraview
 from ._funcs import open_paraview
 from ._funcs import spheres_to_comsol
+from ._unzipper import *
