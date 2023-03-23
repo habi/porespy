@@ -3,6 +3,7 @@ from edt import edt
 from porespy.filters import seq_to_satn
 from porespy.tools import get_tqdm
 from porespy.tools import get_border, make_contiguous, ps_round, ps_rect
+from porespy.tools import _insert_disks_at_points
 from porespy.tools import Results
 import numba
 from porespy import settings
@@ -98,9 +99,10 @@ def invasion(
             h = edt(h) * voxel_size
             pc = pc + delta_rho * g * h
     else:
-        pc = pc_map
+        pc = pc_map # This includes gr as well.
 
-    pc = np.around(pc, decimals=0)  # Convert the dt to nearest integer
+    #pc = np.around(pc, decimals=0)  # Convert the pc to nearest integer
+    #pc = pc.astype(int)
     dt = dt.astype(int)  # Convert the dt to nearest integer
 
     # Prepare heap
@@ -122,6 +124,11 @@ def invasion(
             print(f'Exiting after {step} steps')
             break
         try:  # pop any additional items with the same size
+        # if there are any points with the same pc, using heappop makes
+        # sure it's also removed from bd (this will be 
+        # already processed in this iteration and will not be considered in the next step
+        # this is similar to pt = _where(edge*pc_thresh) for example in a way, but
+        # using a different mechanism (heapq)
             while bd[0][0] == pts[0][0]:
                 pts.append(hq.heappop(bd))
         except IndexError:  # if bd gets emptied, stop popping and finish loop
@@ -130,17 +137,28 @@ def invasion(
         p = pts[0][0]
         r = pts[0][1]
         coords = np.vstack([pts[i][2:] for i in range(len(pts))]).T
+        #radii = dt[coords].astype(int)
+        radii = dt[tuple([i for i in coords])]
+        #print(radii)
         inv = _insert_disks_at_points(im=inv, coords=coords,
-                                      r=r, v=step, smooth=True)
+                                      radii=radii, v=step, smooth=True)
         pressures = _insert_disks_at_points(im=pressures, coords=coords,
-                                            r=r, v=p, smooth=True)
+                                            radii=radii, v=p, smooth=True)
         # Check neighborhood around coords and add new points if any
+        # This is as if update_pc_and_bd in ibip but with a different
+        # approach using heapq
         for pt in pts:
             if im.ndim == 2:
                 # Get extended slices around each point in pts
                 x, y = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
                 for item in zip(x, y):
                     if (edge[item] == False):
+                        # This makes sure bd is updated for next step and 
+                        # the voxels are already neighbouring voxels to
+                        # the existing edge. If these voxels are not
+                        # already part of inlet they'll be added. That's
+                        # why we have edge for saving the initial state
+                        # of inlet image for next steps.
                         hq.heappush(bd, (pc[item], dt[item], *item))
                         edge[item] = True
             else:
@@ -164,6 +182,7 @@ def invasion(
     # Create results object for collected returned values
     results = Results()
     results.im_seq = inv
+    results.im_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressures)
     results.im_pc = pressures
     results.im_satn = seq_to_satn(inv)  # convert sequence to saturation
     return results
@@ -194,7 +213,7 @@ def find_neighbor_coordinates(pt, shape):
     else:
         xi = _x3 + pt[0]
         yi = _y3 + pt[1]
-        zi = _z3 + pt[2]
+        zi = _z3 + pt[2] # changed this to pt[2]
         mask_x = (xi >= 0) * (xi < shape[0])
         mask_y = (yi >= 0) * (yi < shape[1])
         mask_z = (zi >= 0) * (zi < shape[2])
@@ -202,7 +221,10 @@ def find_neighbor_coordinates(pt, shape):
         return xi[mask], yi[mask], zi[mask]
 
 
-def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
+def ibip_w_gravity(im, voxel_size, inlets=None, dt=None, pc_map=None,        
+    sigma=0.072,
+    theta=180,
+    delta_rho=998, maxiter=10000, g=0):
     r"""
     Performs invasion percolation on given image using iterative image dilation
 
@@ -247,12 +269,23 @@ def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
         dt = edt(im)
 
     # This pc calc is still very basic, just proof-of-concept for now
-    pc = 1/(dt*1e-4)
-    h = np.ones_like(im)
-    h[0, ...] = False
-    h = edt(h)
-    pc = pc + g * h
-    pc = pc.astype(int)  # Convert the pc to nearest integer
+    if pc_map is None:
+        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
+        if (g * delta_rho) != 0:
+            h = np.ones_like(im)
+            h[0, ...] = False
+            h = edt(h) * voxel_size
+            pc = pc + delta_rho * g * h
+    else:
+        pc = pc_map # This includes gr as well.
+        
+    #pc = 1/(dt*1e-4)
+    #h = np.ones_like(im)
+    #h[0, ...] = False
+    #h = edt(h)
+    #pc = pc + g * h
+    #pc = pc.astype(int)  # Convert the pc to nearest integer
+    #pc = np.around(pc, decimals=0)
     dt = dt.astype(int)  # Convert the dt to nearest integer
 
     # Initialize inv image with -1 in the solid, and 0's in the void
@@ -262,7 +295,7 @@ def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
     for step in tqdm(range(1, maxiter), **settings.tqdm):
         pt = _where(bd)
         scratch = np.copy(bd)
-        temp = _insert_disks_at_points(im=scratch, coords=pt,
+        temp = _insert_disks_at_points_func(im=scratch, coords=pt,
                                        r=1, v=1, smooth=False)
         # Reduce to only the 'new' boundary
         edge = temp*(pc > 0)
@@ -275,11 +308,16 @@ def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
         pc_thresh = (pc <= pc_min)*im
         # Extract the actual coordinates of the insertion sites
         pt = _where(edge*pc_thresh)
-        r = dt[tuple([i[0] for i in pt])]
+        #r = dt[tuple([i[0] for i in pt])]
+        #check if this r is uniques???
+        # Add new locations to list of invaded locations
+        # Extract the local size of sphere to insert at each new location
+        radii = dt[tuple([i for i in pt])]
+        #print(radii)
         inv = _insert_disks_at_points(im=inv, coords=pt,
-                                      r=r, v=step, smooth=True)
+                                      radii=radii, v=step, smooth=True)
         pressures = _insert_disks_at_points(im=pressures, coords=pt,
-                                            r=r, v=pc_min, smooth=True)
+                                            radii=radii, v=pc_min, smooth=True)
         pc, bd = _update_pc_and_bd(pc, bd, pt)
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
@@ -292,8 +330,13 @@ def ibip_w_gravity(im, inlets=None, dt=None, maxiter=10000, g=0):
     pressures[temp] = -1
     results = Results()
     results.inv_sequence = inv
+    #inverse_p = np.ones_like(pressures)
+    results.inv_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressures)
     results.inv_pressures = pressures
     return results
+
+
+
 
 
 @numba.jit(nopython=True, parallel=False)
@@ -316,75 +359,60 @@ def _update_pc_and_bd(pc, bd, pt):
     return pc, bd
 
 
-@numba.jit(nopython=True)
-def _make_disks(r, smooth=True):  # pragma: no cover
-    r"""
-    Returns a list of disks from size 0 to ``r``
+# @numba.jit(nopython=True)
+# def _make_disks(r, smooth=True):  # pragma: no cover
+#     r"""
+#     Returns a list of disks from size 0 to ``r``
 
-    Parameters
-    ----------
-    r : int
-        The size of the largest disk to generate
-    smooth : bool
-        Indicates whether the disks should include the nibs (``False``) on
-        the surface or not (``True``).  The default is ``True``.
+#     Parameters
+#     ----------
+#     r : int
+#         The size of the largest disk to generate
+#     smooth : bool
+#         Indicates whether the disks should include the nibs (``False``) on
+#         the surface or not (``True``).  The default is ``True``.
 
-    Returns
-    -------
-    disks : list of ND-arrays
-        A list containing the disk images, with the disk of radius R at index
-        R of the list, meaning it can be accessed as ``disks[R]``.
+#     Returns
+#     -------
+#     disks : list of ND-arrays
+#         A list containing the disk images, with the disk of radius R at index
+#         R of the list, meaning it can be accessed as ``disks[R]``.
 
-    """
-    disks = []
-    for val in range(0, r+1):
-        disk = _make_disk(val, smooth)
-        disks.append(disk)
-    return disks
+#     """
+#     disks = []
+#     for val in range(0, r+1):
+#         disk = _make_disk(val, smooth)
+#         disks.append(disk)
+#     return disks
 
 
+# @numba.jit(nopython=True, parallel=False)
+# def _make_balls(r, smooth=True):  # pragma: no cover
+#     r"""
+#     Returns a list of balls from size 0 to ``r``
+
+#     Parameters
+#     ----------
+#     r : int
+#         The size of the largest ball to generate
+#     smooth : bool
+#         Indicates whether the balls should include the nibs (``False``) on
+#         the surface or not (``True``).  The default is ``True``.
+
+#     Returns
+#     -------
+#     balls : list of ND-arrays
+#         A list containing the ball images, with the ball of radius R at index
+#         R of the list, meaning it can be accessed as ``balls[R]``.
+
+#     """
+#     balls = [np.atleast_3d(np.array([]))]
+#     for val in range(1, r):
+#         ball = _make_ball(val, smooth)
+#         balls.append(ball)
+#     return balls
 @numba.jit(nopython=True, parallel=False)
-def _make_balls(r, smooth=True):  # pragma: no cover
-    r"""
-    Returns a list of balls from size 0 to ``r``
-
-    Parameters
-    ----------
-    r : int
-        The size of the largest ball to generate
-    smooth : bool
-        Indicates whether the balls should include the nibs (``False``) on
-        the surface or not (``True``).  The default is ``True``.
-
-    Returns
-    -------
-    balls : list of ND-arrays
-        A list containing the ball images, with the ball of radius R at index
-        R of the list, meaning it can be accessed as ``balls[R]``.
-
-    """
-    balls = [np.atleast_3d(np.array([]))]
-    for val in range(1, r):
-        ball = _make_ball(val, smooth)
-        balls.append(ball)
-    return balls
-
-
-def insert_disk(im, c, s, v=1):
-    r = int(s.shape[0]/2)
-    i_im = tuple([slice(c[i] - r - 1 if (c[i] - r - 1) > 0 else 0,
-                        min(c[i] + r, im.shape[i]-1))
-                  for i in range(im.ndim)])
-    i_s = tuple([slice(0 if (c[i] - r - 1) > 0 else (r - c[i] + 1),
-                       s.shape[i] if (c[i] + r) < im.shape[i]
-                       else (s.shape[i] - (c[i] + r - im.shape[i])) - 1)
-                 for i in range(im.ndim)])
-    im[i_im] += s[i_s]*(im[i_im] == 0)*v
-    return im
-
-
-@numba.jit(nopython=True, parallel=False)
-def _insert_disks_at_points(im, coords, r, v, s=None, smooth=True):  # pragma: no cover
+def _insert_disks_at_points_func(im, coords, r, v, s=None, smooth=True):  # pragma: no cover
     r"""
     Insert spheres (or disks) into the given ND-image at given locations
 
@@ -438,6 +466,21 @@ def _insert_disks_at_points(im, coords, r, v, s=None, smooth=True):  # pragma: n
                                     if (s[a, b, c] == 1) and (im[x, y, z] == 0):
                                         im[x, y, z] = v
     return im
+
+def insert_disk(im, c, s, v=1):
+    r = int(s.shape[0]/2)
+    i_im = tuple([slice(c[i] - r - 1 if (c[i] - r - 1) > 0 else 0,
+                        min(c[i] + r, im.shape[i]-1))
+                  for i in range(im.ndim)])
+    i_s = tuple([slice(0 if (c[i] - r - 1) > 0 else (r - c[i] + 1),
+                       s.shape[i] if (c[i] + r) < im.shape[i]
+                       else (s.shape[i] - (c[i] + r - im.shape[i])) - 1)
+                 for i in range(im.ndim)])
+    im[i_im] += s[i_s]*(im[i_im] == 0)*v
+    return im
+
+# difference between _sphere_insertions._insert_disks_at_points is this one uses
+# one value for r not an array
 
 
 @numba.jit(nopython=True, parallel=False)
