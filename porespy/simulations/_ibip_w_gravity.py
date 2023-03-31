@@ -135,15 +135,26 @@ def invasion(
             pass
         # Add spheres to image
         p = pts[0][0]
-        r = pts[0][1]
+        #r = pts[0][1]
         coords = np.vstack([pts[i][2:] for i in range(len(pts))]).T
         #radii = dt[coords].astype(int)
-        radii = dt[tuple([i for i in coords])]
+        #radii = dt[tuple([i for i in coords])]
+        radii = np.hstack([pts[i][1] for i in range(len(pts))]).T
         #print(radii)
         inv = _insert_disks_at_points(im=inv, coords=coords,
                                       radii=radii, v=step, smooth=True)
         pressures = _insert_disks_at_points(im=pressures, coords=coords,
                                             radii=radii, v=p, smooth=True)
+        # adding stopping criterion
+        bool_inv = inv>0
+        check_invs = im ^ bool_inv
+        #plt.figure()
+        #plt.imshow(check_invs)
+        #plt.title(str(step))
+        if ~check_invs.any():
+            print('max saturation reached at step='+str(step))
+            break
+        
         # Check neighborhood around coords and add new points if any
         # This is as if update_pc_and_bd in ibip but with a different
         # approach using heapq
