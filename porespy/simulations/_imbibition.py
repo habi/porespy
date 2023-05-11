@@ -6,6 +6,7 @@ from porespy.filters import find_disconnected_voxels
 from porespy.tools import Results
 from porespy.tools import get_tqdm
 from porespy import settings
+from edt import edt
 
 
 __all__ = [
@@ -16,7 +17,7 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
+def imbibition(im, inlets=None, outlets=None, residual=None, dt=None, npoints=25,
                sigma=0.072, theta=180, voxel_size=1):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
@@ -32,10 +33,11 @@ def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
     residual : ndarray, optional
         A boolean mask the same shape as ``im`` with ``True`` values
         indicating to locations of residual wetting phase.
-    lt : ndarray, optional
-        The local thickness of the void space. If not provided it will be
-        generated using the default values. Providing one if available saves
-        time and allows control over the sizes/pressure applied.
+    dt : ndarray, optional
+        The distance of the void space. If not provided it will be
+        generated, so providing it if available saves time.
+    npoints : int
+        The number of points to generate
 
     Notes
     -----
@@ -48,32 +50,32 @@ def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
     --------
 
     """
-    if lt is None:
-        lt = local_thickness(im=im)
-    sizes = np.zeros_like(lt)
-    sz = np.unique(lt)[1:]
+    if dt is None:
+        dt = edt(im)
+    im_sizes = np.zeros_like(dt)
+    sz = np.linspace(1, dt.max(), npoints)
     for i, r in tqdm(enumerate(sz), **settings.tqdm):
-        imtemp = (lt <= r)*im
+        im_temp = (dt <= r)*im
         # Trim non connecting clusters of wetting phase
         if inlets is not None:
             # Add residual before trimming
             if residual is not None:
-                tmp = imtemp + residual
+                tmp = im_temp + residual
             else:
-                tmp = np.copy(imtemp)
+                tmp = np.copy(im_temp)
             tmp = trim_disconnected_blobs(tmp, inlets=inlets)
-            imtemp = imtemp * tmp
+            im_temp = im_temp * tmp
         # Add residual to invaded image
         # TODO: there is probably a way to only do this once to speed up loop
         if residual is not None:
-            imtemp += residual
+            im_temp += residual
         # Update sizes image with any newly invaded regions
-        sizes += (sizes == 0)*(imtemp * r)
+        im_sizes += (im_sizes == 0)*(im_temp * r)
     # Analyze the sizes image to pull out invasion sequence and satn info
-    seq = size_to_seq(size=-sizes, im=im)
+    seq = size_to_seq(size=-im_sizes, im=im)
     if outlets is not None:
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
-        sizes[trapped] = 0
+        im_sizes[trapped] = 0
         seq[trapped] = 0
         # Reset blind pores back to seq = 1 so max snwp is correct
         blind = find_disconnected_voxels(im)
@@ -87,13 +89,13 @@ def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
     # im_pc = 2*sigma*np.cos(np.deg2rad(theta))/(sizes*voxel_size)
 
     # Exract capillary curve information from images.
-    sz = np.unique(sizes)[1:]
+    sz = np.unique(im_sizes)[1:]
     p = []
     s = []
     for n in sz:
         r = n*voxel_size
         p.append(-2*sigma*np.cos(np.deg2rad(theta))/r)
-        s.append(satn[sizes == n][0])
+        s.append(satn[im_sizes == n][0])
     # Add some points to end of lists to create plateau at low snwp
     p.append(p[-1]/2)
     s.append(s[-1])
@@ -102,7 +104,7 @@ def imbibition(im, inlets=None, outlets=None, residual=None, lt=None,
     result = Results()
     result.__doc__ = 'This docstring should be customized to describe attributes'
     result.im = im
-    result.im_sizes = sizes
+    result.im_sizes = im_sizes
     result.im_seq = seq
     result.im_snwp = satn
     result.im_trapped = trapped
@@ -152,16 +154,16 @@ if __name__ == '__main__':
     g.step(np.log10(drn1.pc), drn1.snwp, 'y-o', where='post', label='drn wo trapping')
     g.step(np.log10(drn2.pc), drn2.snwp, 'g-o', where='post', label='drn w trapping')
 
-    # Now use trapped wetting phase in imbibition
-    imb3 = imbibition(im=im, inlets=inlets, residual=drn2.im_trapped, voxel_size=vx)
-    # fig, ax = plt.subplots(1, 3)
-    # ax[0].imshow(imb3.im_sizes/im, origin='lower')
-    # ax[1].imshow(imb3.im_seq/im, origin='lower')
-    # ax[2].imshow(imb3.im_snwp/im, origin='lower')
-    g.step(np.log10(imb3.pc), imb3.snwp, 'm--o', where='post', label='2nd imb wo trapping')
+    # # Now use trapped wetting phase in imbibition
+    # imb3 = imbibition(im=im, inlets=inlets, residual=drn2.im_trapped, voxel_size=vx)
+    # # fig, ax = plt.subplots(1, 3)
+    # # ax[0].imshow(imb3.im_sizes/im, origin='lower')
+    # # ax[1].imshow(imb3.im_seq/im, origin='lower')
+    # # ax[2].imshow(imb3.im_snwp/im, origin='lower')
+    # g.step(np.log10(imb3.pc), imb3.snwp, 'm--o', where='post', label='2nd imb wo trapping')
 
-    imb4 = imbibition(im=im, inlets=inlets, outlets=outlets, residual=drn2.im_trapped, voxel_size=vx)
-    g.step(np.log10(imb4.pc), imb4.snwp, 'c--o', where='post', label='2nd imb w trapping')
+    # imb4 = imbibition(im=im, inlets=inlets, outlets=outlets, residual=drn2.im_trapped, voxel_size=vx)
+    # g.step(np.log10(imb4.pc), imb4.snwp, 'c--o', where='post', label='2nd imb w trapping')
     g.legend()
 
 
