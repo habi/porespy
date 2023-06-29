@@ -6,14 +6,17 @@ from porespy.tools import get_border, make_contiguous, ps_round, ps_rect
 from porespy.tools import _insert_disks_at_points
 from porespy.tools import Results
 import numba
+from numba import njit
 from porespy import settings
 import heapq as hq
 tqdm = get_tqdm()
 
 
 __all__ = [
-    'ibip_w_gravity',
+    # 'ibip_w_gravity',
     'invasion',
+    'pc_2D',
+    'dt_to_pc',
 ]
 
 
@@ -26,7 +29,7 @@ def invasion(
     theta=180,
     delta_rho=998,
     g=0,
-    maxiter=10000,
+    maxiter=500000,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -84,6 +87,7 @@ def invasion(
     for invasion sites on each step.
 
     """
+    maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
 
     if inlets is None:
         inlets = np.zeros_like(im)
@@ -99,87 +103,14 @@ def invasion(
             h = edt(h) * voxel_size
             pc = pc + delta_rho * g * h
     else:
-        pc = pc_map # This includes gr as well.
-
-    #pc = np.around(pc, decimals=0)  # Convert the pc to nearest integer
-    #pc = pc.astype(int)
-    dt = dt.astype(int)  # Convert the dt to nearest integer
-
-    # Prepare heap
-    inds = np.where(inlets*im)
-    bd = list(zip(pc[inds], dt[inds], *inds))
-    hq.heapify(bd)
-    # Note which sites have been added to heap already
-    edge = inlets + ~im
+        pc = pc_map  # This includes gr as well.
 
     # Initial arrays
     inv = np.zeros_like(im, dtype=int)
     pressures = np.zeros_like(im, dtype=float)
-
-    for step in tqdm(range(1, maxiter), **settings.tqdm):
-        # Find sites to add spheres, which may be multiple
-        try:  # pop the top item from heap to get current size
-            pts = [hq.heappop(bd)]  # Make pts a list so other points can be added
-        except IndexError:  # bd is empty, exit
-            print(f'Exiting after {step} steps')
-            break
-        try:  # pop any additional items with the same size
-        # if there are any points with the same pc, using heappop makes
-        # sure it's also removed from bd (this will be 
-        # already processed in this iteration and will not be considered in the next step
-        # this is similar to pt = _where(edge*pc_thresh) for example in a way, but
-        # using a different mechanism (heapq)
-            while bd[0][0] == pts[0][0]:
-                pts.append(hq.heappop(bd))
-        except IndexError:  # if bd gets emptied, stop popping and finish loop
-            pass
-        # Add spheres to image
-        p = pts[0][0]
-        #r = pts[0][1]
-        coords = np.vstack([pts[i][2:] for i in range(len(pts))]).T
-        #radii = dt[coords].astype(int)
-        #radii = dt[tuple([i for i in coords])]
-        radii = np.hstack([pts[i][1] for i in range(len(pts))]).T
-        #print(radii)
-        inv = _insert_disks_at_points(im=inv, coords=coords,
-                                      radii=radii, v=step, smooth=True)
-        pressures = _insert_disks_at_points(im=pressures, coords=coords,
-                                            radii=radii, v=p, smooth=True)
-        # adding stopping criterion
-        bool_inv = inv>0
-        check_invs = im ^ bool_inv
-        #plt.figure()
-        #plt.imshow(check_invs)
-        #plt.title(str(step))
-        if ~check_invs.any():
-            print('max saturation reached at step='+str(step))
-            break
-        
-        # Check neighborhood around coords and add new points if any
-        # This is as if update_pc_and_bd in ibip but with a different
-        # approach using heapq
-        for pt in pts:
-            if im.ndim == 2:
-                # Get extended slices around each point in pts
-                x, y = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
-                for item in zip(x, y):
-                    if (edge[item] == False):
-                        # This makes sure bd is updated for next step and 
-                        # the voxels are already neighbouring voxels to
-                        # the existing edge. If these voxels are not
-                        # already part of inlet they'll be added. That's
-                        # why we have edge for saving the initial state
-                        # of inlet image for next steps.
-                        hq.heappush(bd, (pc[item], dt[item], *item))
-                        edge[item] = True
-            else:
-                # Get extended slices around each point in pts
-                x, y, z = find_neighbor_coordinates(pt=pt[2:], shape=im.shape)
-                for item in zip(x, y, z):
-                    if (edge[item] == False):
-                        hq.heappush(bd, (pc[item], dt[item], *item))
-                        edge[item] = True
-
+    # Do some preprocessing
+    dt = dt.astype(int)  # Convert the dt to nearest integer
+    inv, pressures = _ibip_inner_loop(im=im, inlets=inlets, dt=dt, pc=pc, inv=inv, pressures=pressures, maxiter=maxiter)
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
     inv[temp] = -1
@@ -199,237 +130,57 @@ def invasion(
     return results
 
 
-# Generate some static arrays needed for the find_neighbor_coordinate function
-_x2, _y2 = np.meshgrid(range(-1, 2), range(-1, 2), indexing='ij')
-_x2, _y2 = _x2.flatten(), _y2.flatten()
-_conn2 = ps_rect(3, ndim=2).flatten()
-
-_x3, _y3, _z3 = np.meshgrid(range(-1, 2), range(-1, 2), range(-1, 2), indexing='ij')
-_x3, _y3, _z3 = _x3.flatten(), _y3.flatten(), _z3.flatten()
-_conn3 = ps_rect(3, ndim=3).flatten()
-
-
-def find_neighbor_coordinates(pt, shape):
-    r"""
-    Given the coordinates of a point, find the coordinates of its valid
-    neighbors (i.e. contrained by the image size)
-    """
-    if len(shape) == 2:
-        xi = _x2 + pt[0]
-        yi = _y2 + pt[1]
-        mask_x = (xi >= 0) * (xi < shape[0])
-        mask_y = (yi >= 0) * (yi < shape[1])
-        mask = np.array(mask_x * mask_y * _conn2, dtype=bool)
-        return xi[mask], yi[mask]
-    else:
-        xi = _x3 + pt[0]
-        yi = _y3 + pt[1]
-        zi = _z3 + pt[2] # changed this to pt[2]
-        mask_x = (xi >= 0) * (xi < shape[0])
-        mask_y = (yi >= 0) * (yi < shape[1])
-        mask_z = (zi >= 0) * (zi < shape[2])
-        mask = np.array(mask_x * mask_y * mask_z * _conn3, dtype=bool)
-        return xi[mask], yi[mask], zi[mask]
-
-
-def ibip_w_gravity(im, voxel_size, inlets=None, dt=None, pc_map=None,        
-    sigma=0.072,
-    theta=180,
-    delta_rho=998, maxiter=10000, g=0):
-    r"""
-    Performs invasion percolation on given image using iterative image dilation
-
-    Parameters
-    ----------
-    im : ND-array
-        Boolean array with ``True`` values indicating void voxels
-    inlets : ND-array
-        Boolean array with ``True`` values indicating where the invading fluid
-        is injected from.  If ``None``, all faces will be used.
-    dt : ND-array (optional)
-        The distance transform of ``im``.  If not provided it will be
-        calculated, so supplying it saves time.
-    maxiter : scalar
-        The number of steps to apply before stopping.  The default is to run
-        for 10,000 steps which is almost certain to reach completion if the
-        image is smaller than about 250-cubed.
-
-    Returns
-    -------
-    results : Results object
-        A custom object with the following two arrays as attributes:
-
-        'inv_sequence'
-            An ndarray the same shape as ``im`` with each voxel labelled by
-            the sequence at which it was invaded.
-
-        'inv_size'
-            An ndarray the same shape as ``im`` with each voxel labelled by
-            the ``inv_size`` at which was filled.
-
-    See Also
-    --------
-    porosimetry
-
-    """
-    # Process the boundary image
-    if inlets is None:
-        inlets = get_border(shape=im.shape, mode='faces')
-    bd = np.copy(inlets > 0)
-    if dt is None:  # Find dt if not given
-        dt = edt(im)
-
-    # This pc calc is still very basic, just proof-of-concept for now
-    if pc_map is None:
-        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
-        if (g * delta_rho) != 0:
-            h = np.ones_like(im)
-            h[0, ...] = False
-            h = edt(h) * voxel_size
-            pc = pc + delta_rho * g * h
-    else:
-        pc = pc_map # This includes gr as well.
-        
-    #pc = 1/(dt*1e-4)
-    #h = np.ones_like(im)
-    #h[0, ...] = False
-    #h = edt(h)
-    #pc = pc + g * h
-    #pc = pc.astype(int)  # Convert the pc to nearest integer
-    #pc = np.around(pc, decimals=0)
-    dt = dt.astype(int)  # Convert the dt to nearest integer
-
-    # Initialize inv image with -1 in the solid, and 0's in the void
-    inv = -1*(~im)
-    pressures = -1*(~im)
-    scratch = np.copy(bd)
-    for step in tqdm(range(1, maxiter), **settings.tqdm):
-        pt = _where(bd)
-        scratch = np.copy(bd)
-        temp = _insert_disks_at_points_func(im=scratch, coords=pt,
-                                       r=1, v=1, smooth=False)
-        # Reduce to only the 'new' boundary
-        edge = temp*(pc > 0)
-        if ~edge.any():
-            print('No edges found, exiting')
+# @njit
+def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter):
+    inds = np.where(inlets*im)
+    bd = []
+    for row, (i, j) in enumerate(zip(inds[0], inds[1])):
+        bd.append([pc[i, j], dt[i, j], i, j])
+    hq.heapify(bd)
+    # Note which sites have been added to heap already
+    edge = inlets + ~im
+    for step in range(1, maxiter):
+        if len(bd):
+            pt = hq.heappop(bd)
+        else:
+            print(f'no more sites to pop at step {step}')
             break
-        # Find the minimum value of the pc map underlaying the new edge
-        pc_min = pc[edge].min()
-        # Find all values of the dt with that pressure
-        pc_thresh = (pc <= pc_min)*im
-        # Extract the actual coordinates of the insertion sites
-        pt = _where(edge*pc_thresh)
-        #r = dt[tuple([i[0] for i in pt])]
-        #check if this r is uniques???
-        # Add new locations to list of invaded locations
-        # Extract the local size of sphere to insert at each new location
-        radii = dt[tuple([i for i in pt])]
-        #print(radii)
-        inv = _insert_disks_at_points(im=inv, coords=pt,
-                                      radii=radii, v=step, smooth=True)
-        pressures = _insert_disks_at_points(im=pressures, coords=pt,
-                                            radii=radii, v=pc_min, smooth=True)
-        pc, bd = _update_pc_and_bd(pc, bd, pt)
-    # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
-    temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
-    inv[~im] = 0
-    inv[temp] = -1
-    inv = make_contiguous(im=inv, mode='symmetric')
-    # Deal with invasion sizes similarly
-    temp = pressures == 0
-    pressures[~im] = 0
-    pressures[temp] = -1
-    results = Results()
-    results.inv_sequence = inv
-    #inverse_p = np.ones_like(pressures)
-    results.inv_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressures)
-    results.inv_pressures = pressures
-    return results
+        # Add disk to images
+        inv = _insert_disk_at_point(im=inv, i=pt[2], j=pt[3], r=pt[1], v=step, smooth=True)
+        pressures = _insert_disk_at_point(im=pressures, i=pt[2], j=pt[3], r=pt[1], v=pt[0], smooth=True)
+        # Add neighboring points to heap
+        neighbors = _find_valid_neighbors(pt[2], pt[3], edge)
+        for n in neighbors:
+            hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
+            edge[n] = True
+    return inv, pressures
 
 
-
-
-
-@numba.jit(nopython=True, parallel=False)
-def _where(arr):
-    inds = np.where(arr)
-    result = np.vstack(inds)
-    return result
-
-
-@numba.jit(nopython=True)
-def _update_pc_and_bd(pc, bd, pt):
-    if pc.ndim == 2:
-        for i in range(pt.shape[1]):
-            bd[pt[0, i], pt[1, i]] = True
-            pc[pt[0, i], pt[1, i]] = 0
+@njit
+def _find_valid_neighbors(i, j, im, conn=4, valid=False):
+    xlim, ylim = im.shape
+    if conn == 4:
+        mask = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
     else:
-        for i in range(pt.shape[1]):
-            bd[pt[0, i], pt[1, i], pt[2, i]] = True
-            pc[pt[0, i], pt[1, i], pt[2, i]] = 0
-    return pc, bd
+        mask = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+    neighbors = []
+    for a, x in enumerate(range(i-1, i+2)):
+        if (x >= 0) and (x < xlim):
+            for b, y in enumerate(range(j-1, j+2)):
+                if (y >= 0) and (y < ylim):
+                    if mask[a][b] == 1:
+                        if im[x, y] == valid:
+                            neighbors.append((x, y))
+    return neighbors
 
 
-# @numba.jit(nopython=True)
-# def _make_disks(r, smooth=True):  # pragma: no cover
-#     r"""
-#     Returns a list of disks from size 0 to ``r``
-
-#     Parameters
-#     ----------
-#     r : int
-#         The size of the largest disk to generate
-#     smooth : bool
-#         Indicates whether the disks should include the nibs (``False``) on
-#         the surface or not (``True``).  The default is ``True``.
-
-#     Returns
-#     -------
-#     disks : list of ND-arrays
-#         A list containing the disk images, with the disk of radius R at index
-#         R of the list, meaning it can be accessed as ``disks[R]``.
-
-#     """
-#     disks = []
-#     for val in range(0, r+1):
-#         disk = _make_disk(val, smooth)
-#         disks.append(disk)
-#     return disks
-
-
-# @numba.jit(nopython=True, parallel=False)
-# def _make_balls(r, smooth=True):  # pragma: no cover
-#     r"""
-#     Returns a list of balls from size 0 to ``r``
-
-#     Parameters
-#     ----------
-#     r : int
-#         The size of the largest ball to generate
-#     smooth : bool
-#         Indicates whether the balls should include the nibs (``False``) on
-#         the surface or not (``True``).  The default is ``True``.
-
-#     Returns
-#     -------
-#     balls : list of ND-arrays
-#         A list containing the ball images, with the ball of radius R at index
-#         R of the list, meaning it can be accessed as ``balls[R]``.
-
-#     """
-#     balls = [np.atleast_3d(np.array([]))]
-#     for val in range(1, r):
-#         ball = _make_ball(val, smooth)
-#         balls.append(ball)
-#     return balls
-@numba.jit(nopython=True, parallel=False)
-def _insert_disks_at_points_func(im, coords, r, v, s=None, smooth=True):  # pragma: no cover
+@njit
+def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # pragma: no cover
     r"""
-    Insert spheres (or disks) into the given ND-image at given locations
+    Insert spheres (or disks) of specified radii into an ND-image at given locations.
 
-    This function uses numba to accelerate the process, and does not
-    overwrite any existing values (i.e. only writes to locations containing
-    zeros).
+    This function uses numba to accelerate the process, and does not overwrite
+    any existing values (i.e. only writes to locations containing zeros).
 
     Parameters
     ----------
@@ -439,59 +190,45 @@ def _insert_disks_at_points_func(im, coords, r, v, s=None, smooth=True):  # prag
     coords : ND-array
         The center point of each sphere/disk in an array of shape
         ``ndim by npts``
-    r : int
-        The radius of all the spheres/disks to add. It is assumed that they
-        are all the same radius.
+    radii : array_like
+        The radii of the spheres/disks to add.
     v : scalar
         The value to insert
-    smooth : boolean
+    smooth : boolean, optional
         If ``True`` (default) then the spheres/disks will not have the litte
         nibs on the surfaces.
+    overwrite : boolean, optional
+        If ``True`` then the inserted spheres overwrite existing values.  The
+        default is ``False``.
 
     """
-    npts = len(coords[0])
-    if im.ndim == 2:
-        xlim, ylim = im.shape
-        if s is None:
-            s = _make_disk(r, smooth)
-        for i in range(npts):
-            pt = coords[:, i]
-            for a, x in enumerate(range(pt[0]-r, pt[0]+r+1)):
-                if (x >= 0) and (x < xlim):
-                    for b, y in enumerate(range(pt[1]-r, pt[1]+r+1)):
-                        if (y >= 0) and (y < ylim):
-                            if (s[a, b] == 1) and (im[x, y] == 0):
-                                im[x, y] = v
-    elif im.ndim == 3:
-        xlim, ylim, zlim = im.shape
-        if s is None:
-            s = _make_ball(r, smooth)
-        for i in range(npts):
-            pt = coords[:, i]
-            for a, x in enumerate(range(pt[0]-r, pt[0]+r+1)):
-                if (x >= 0) and (x < xlim):
-                    for b, y in enumerate(range(pt[1]-r, pt[1]+r+1)):
-                        if (y >= 0) and (y < ylim):
-                            for c, z in enumerate(range(pt[2]-r, pt[2]+r+1)):
-                                if (z >= 0) and (z < zlim):
-                                    if (s[a, b, c] == 1) and (im[x, y, z] == 0):
-                                        im[x, y, z] = v
+    xlim, ylim = im.shape
+    s = _make_disk(r, smooth)
+    for a, x in enumerate(range(i-r, i+r+1)):
+        if (x >= 0) and (x < xlim):
+            for b, y in enumerate(range(j-r, j+r+1)):
+                if (y >= 0) and (y < ylim):
+                    if s[a, b] == 1:
+                        if overwrite or (im[x, y] == 0):
+                            im[x, y] = v
     return im
 
-def insert_disk(im, c, s, v=1):
-    r = int(s.shape[0]/2)
-    i_im = tuple([slice(c[i] - r - 1 if (c[i] - r - 1) > 0 else 0,
-                        min(c[i] + r, im.shape[i]-1))
-                  for i in range(im.ndim)])
-    i_s = tuple([slice(0 if (c[i] - r - 1) > 0 else (r - c[i] + 1),
-                       s.shape[i] if (c[i] + r) < im.shape[i]
-                       else (s.shape[i] - (c[i] + r - im.shape[i])) - 1)
-                 for i in range(im.ndim)])
-    im[i_im] += s[i_s]*(im[i_im] == 0)*v
-    return im
 
-# difference between _sphere_insertions._insert_disks_at_points is this one uses
-# one value for r not an array
+def pc_2D(r, s, sigma, theta):
+    pc = -sigma*np.cos(np.radians(theta))*(1/r + 1/s)
+    return pc
+
+
+def dt_to_pc(f, **kwargs):
+    pc = f(**kwargs)
+    return pc
+
+
+@numba.jit(nopython=True, parallel=False)
+def _where(arr):
+    inds = np.where(arr)
+    result = np.vstack(inds)
+    return result
 
 
 @numba.jit(nopython=True, parallel=False)
@@ -530,7 +267,7 @@ if __name__ == "__main__":
 
     ps.settings.tqdm['leave'] = True
     np.random.seed(0)
-    im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
+    im = ps.generators.blobs([300, 300], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     # ip = ps.simulations.invasion(im=im,
@@ -548,10 +285,10 @@ if __name__ == "__main__":
     # ani2.save('ibip2.gif', writer='imagemagick', fps=20)
 
     # Compare speeds
-    ibip_orig = ps.filters.ibip(im=im, inlets=inlets)
+    # ibip_orig = ps.filters.ibip(im=im, inlets=inlets)
     ibip_new = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4)
     fig, ax = plt.subplots(1, 2)
-    ax[0].imshow(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im))
+    # ax[0].imshow(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im))
     ax[1].imshow(ibip_new.im_satn)
-    temp = abs(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im)
-                - ibip_new.im_satn)
+    # temp = abs(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im)
+    #             - ibip_new.im_satn)
