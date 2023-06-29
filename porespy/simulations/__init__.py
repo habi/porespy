@@ -18,4 +18,6 @@ This module contains routines for performing simulations directly on images.
 
 from ._drainage import *
 from ._dns import *
+from ._ibip import *
+from ._ibip_gpu import *
 from ._ibip_w_gravity import *

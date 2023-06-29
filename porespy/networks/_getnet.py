@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 import scipy.ndimage as spim
 from skimage.morphology import disk, ball
@@ -7,8 +8,15 @@ from porespy import settings
 from porespy.tools import get_tqdm, make_contiguous
 from porespy.metrics import region_surface_areas, region_interface_areas
 from porespy.metrics import region_volumes
-from loguru import logger
+
+
+__all__ = [
+    "regions_to_network",
+]
+
+
 tqdm = get_tqdm()
+logger = logging.getLogger(__name__)
 
 
 def regions_to_network(regions, phases=None, voxel_size=1, accuracy='standard'):
@@ -113,7 +121,7 @@ def regions_to_network(regions, phases=None, voxel_size=1, accuracy='standard'):
     to view online example.
 
     """
-    logger.trace('Extracting pore/throat information')
+    logger.info('Extracting pore/throat information')
 
     im = make_contiguous(regions)
     struc_elem = disk if im.ndim == 2 else ball
@@ -170,11 +178,11 @@ def regions_to_network(regions, phases=None, voxel_size=1, accuracy='standard'):
         p_phase[pore] = (phases[s]*pore_im).max()
         temp = np.vstack(np.where(sub_dt == sub_dt.max()))[:, 0]
         p_coords_dt_global[pore, :] = temp + s_offset
-        p_volume[pore] = np.sum(pore_im)
+        p_volume[pore] = np.sum(pore_im, dtype=np.int64)
         p_dia_local[pore] = 2*np.amax(pore_dt)
         p_dia_global[pore] = 2*np.amax(sub_dt)
         # The following is overwritten if accuracy is set to 'high'
-        p_area_surf[pore] = np.sum(pore_dt == 1)
+        p_area_surf[pore] = np.sum(pore_dt == 1, dtype=np.int64)
         im_w_throats = spim.binary_dilation(input=pore_im, structure=struc_elem(1))
         im_w_throats = im_w_throats*sub_im
         Pn = np.unique(im_w_throats)[1:] - 1
@@ -184,7 +192,7 @@ def regions_to_network(regions, phases=None, voxel_size=1, accuracy='standard'):
                 vx = np.where(im_w_throats == (j + 1))
                 t_dia_inscribed.append(2*np.amax(sub_dt[vx]))
                 # The following is overwritten if accuracy is set to 'high'
-                t_perimeter.append(np.sum(sub_dt[vx] < 2))
+                t_perimeter.append(np.sum(sub_dt[vx] < 2, dtype=np.int64))
                 # The following is overwritten if accuracy is set to 'high'
                 t_area.append(np.size(vx[0]))
                 p_area_surf[pore] -= np.size(vx[0])
@@ -230,11 +238,11 @@ def regions_to_network(regions, phases=None, voxel_size=1, accuracy='standard'):
     PT1 = PT1-p_dia_local[P12[:, 0]]/2*voxel_size
     PT2 = PT2-p_dia_local[P12[:, 1]]/2*voxel_size
     dist = (p_coords[P12[:, 0]] - p_coords[P12[:, 1]])*voxel_size
-    net['throat.direct_length'] = np.sqrt(np.sum(dist**2, axis=1))
+    net['throat.direct_length'] = np.sqrt(np.sum(dist**2, axis=1, dtype=np.int64))
     net['throat.perimeter'] = np.array(t_perimeter)*voxel_size
     if (accuracy == 'high') and (im.ndim == 2):
-        logger.warning('High accuracy mode is not available in 2D, ' +
-                       'reverting to standard accuracy')
+        msg = "accuracy='high' only available in 3D, reverting to 'standard'"
+        logger.warning(msg)
         accuracy = 'standard'
     if (accuracy == 'high'):
         net['pore.volume'] = region_volumes(regions=im, mode='marching_cubes')
