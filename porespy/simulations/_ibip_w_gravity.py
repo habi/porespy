@@ -5,7 +5,7 @@ from porespy.tools import get_tqdm
 from porespy.tools import get_border, make_contiguous, ps_round, ps_rect
 from porespy.tools import _insert_disks_at_points
 from porespy.tools import Results
-import numba
+from numba.typed import List
 from numba import njit
 from porespy import settings
 import heapq as hq
@@ -110,7 +110,9 @@ def invasion(
     pressures = np.zeros_like(im, dtype=float)
     # Do some preprocessing
     dt = dt.astype(int)  # Convert the dt to nearest integer
-    inv, pressures = _ibip_inner_loop(im=im, inlets=inlets, dt=dt, pc=pc, inv=inv, pressures=pressures, maxiter=maxiter)
+    disks = _make_disks(dt.max()+1, smooth=False)
+    inv, pressures = _ibip_inner_loop(im=im, inlets=inlets, dt=dt, pc=pc, inv=inv,
+                                      pressures=pressures, maxiter=maxiter, disks=disks)
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
     inv[temp] = -1
@@ -130,8 +132,8 @@ def invasion(
     return results
 
 
-# @njit
-def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter):
+@njit
+def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter, disks):
     inds = np.where(inlets*im)
     bd = []
     for row, (i, j) in enumerate(zip(inds[0], inds[1])):
@@ -146,8 +148,10 @@ def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter):
             print(f'no more sites to pop at step {step}')
             break
         # Add disk to images
-        inv = _insert_disk_at_point(im=inv, i=pt[2], j=pt[3], r=pt[1], v=step, smooth=True)
-        pressures = _insert_disk_at_point(im=pressures, i=pt[2], j=pt[3], r=pt[1], v=pt[0], smooth=True)
+        inv = _insert_disk_at_point(im=inv, i=pt[2], j=pt[3], r=pt[1],
+                                    v=step, disks=disks, smooth=True)
+        pressures = _insert_disk_at_point(im=pressures, i=pt[2], j=pt[3], r=pt[1],
+                                          v=pt[0], disks=disks, smooth=True)
         # Add neighboring points to heap
         neighbors = _find_valid_neighbors(pt[2], pt[3], edge)
         for n in neighbors:
@@ -173,8 +177,18 @@ def _find_valid_neighbors(i, j, im, conn=4, valid=False):
                             neighbors.append((x, y))
     return neighbors
 
+
 @njit
-def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # pragma: no cover
+def _insert_disk_at_point(
+    im,
+    i,
+    j,
+    r,
+    v,
+    disks,
+    smooth=True,
+    overwrite=False
+):  # pragma: no cover
     r"""
     Insert spheres (or disks) of specified radii into an ND-image at given locations.
 
@@ -186,10 +200,9 @@ def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # prag
     im : ND-array
         The image into which the spheres/disks should be inserted. This is an
         'in-place' operation.
-    coords : ND-array
-        The center point of each sphere/disk in an array of shape
-        ``ndim by npts``
-    radii : array_like
+    i, j : int
+        The center point of each sphere/disk given
+    r : array_like
         The radii of the spheres/disks to add.
     v : scalar
         The value to insert
@@ -201,9 +214,11 @@ def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # prag
         default is ``False``.
 
     """
+    s = disks[int(r)]
+    W = s.shape[0]
+    lo, hi = int((W-1)/2)-r, int((W-1)/2)+r+1
+    s = s[lo:hi, lo:hi]
     xlim, ylim = im.shape
-    s = _make_disk(r, smooth)
-    # s = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
     for a, x in enumerate(range(i-r, i+r+1)):
         if (x >= 0) and (x < xlim):
             for b, y in enumerate(range(j-r, j+r+1)):
@@ -224,30 +239,29 @@ def dt_to_pc(f, **kwargs):
     return pc
 
 
-@numba.jit(nopython=True, parallel=False)
+@njit
 def _where(arr):
     inds = np.where(arr)
     result = np.vstack(inds)
     return result
 
 
-@numba.jit(nopython=True, parallel=False)
+@njit
 def _make_disk(r, smooth=True):  # pragma: no cover
-    # W = int(2*r+1)
-    # s = [[0]*W]*W
-    s = np.zeros((2*r+1, 2*r+1), dtype=type(r))
+    W = int(2*r+1)
+    s = np.zeros((W, W), dtype=type(r))
     if smooth:
         thresh = r - 0.001
     else:
         thresh = r
-    for i in range(2*r+1):
-        for j in range(2*r+1):
+    for i in range(W):
+        for j in range(W):
             if ((i - r)**2 + (j - r)**2)**0.5 <= thresh:
                 s[i, j] = 1
     return s
 
 
-@numba.jit(nopython=True, parallel=False)
+@njit
 def _make_ball(r, smooth=True):  # pragma: no cover
     s = np.zeros((2*r+1, 2*r+1, 2*r+1), dtype=type(r))
     if smooth:
@@ -261,9 +275,14 @@ def _make_ball(r, smooth=True):  # pragma: no cover
                     s[i, j, k] = 1
     return s
 
-# sph = [[1]]
-# for r in range(1, 100):
-#     sph.append(_make_disk(r, smooth=False))
+
+def _make_disks(r_max, smooth=False):
+    W = int(2*r_max + 1)
+    sph = np.zeros([int(r_max) + 1, W, W], dtype=bool)
+    for r in range(1, int(r_max) + 1):
+        lo, hi = int((W-1)/2)-r, int((W-1)/2)+r+1
+        sph[r, lo:hi, lo:hi] = _make_disk(r, smooth=smooth)
+    return sph
 
 
 if __name__ == "__main__":
