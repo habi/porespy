@@ -173,7 +173,6 @@ def _find_valid_neighbors(i, j, im, conn=4, valid=False):
                             neighbors.append((x, y))
     return neighbors
 
-
 @njit
 def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # pragma: no cover
     r"""
@@ -204,6 +203,7 @@ def _insert_disk_at_point(im, i, j, r, v, smooth=True, overwrite=False):  # prag
     """
     xlim, ylim = im.shape
     s = _make_disk(r, smooth)
+    # s = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
     for a, x in enumerate(range(i-r, i+r+1)):
         if (x >= 0) and (x < xlim):
             for b, y in enumerate(range(j-r, j+r+1)):
@@ -233,6 +233,8 @@ def _where(arr):
 
 @numba.jit(nopython=True, parallel=False)
 def _make_disk(r, smooth=True):  # pragma: no cover
+    # W = int(2*r+1)
+    # s = [[0]*W]*W
     s = np.zeros((2*r+1, 2*r+1), dtype=type(r))
     if smooth:
         thresh = r - 0.001
@@ -259,6 +261,10 @@ def _make_ball(r, smooth=True):  # pragma: no cover
                     s[i, j, k] = 1
     return s
 
+# sph = [[1]]
+# for r in range(1, 100):
+#     sph.append(_make_disk(r, smooth=False))
+
 
 if __name__ == "__main__":
     import porespy as ps
@@ -267,7 +273,7 @@ if __name__ == "__main__":
 
     ps.settings.tqdm['leave'] = True
     np.random.seed(0)
-    im = ps.generators.blobs([300, 300], porosity=0.7, blobiness=1)
+    im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     # ip = ps.simulations.invasion(im=im,
