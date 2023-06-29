@@ -75,13 +75,12 @@ def invasion(
         im_seq     A numpy array with each voxel value containing the step at
                    which it was invaded.  Uninvaded voxels are set to -1.
         im_pc      A numpy array with each voxel value indicating the
-                   capillary pressure at which it was invaded. In invaded
+                   capillary pressure at which it was invaded. Uninvaded
                    voxels have value of ``np.inf``.
+        im_sizes   A numpy array with each voxel value indicating the radii
+                   of the spheres inserted.
         im_satn    A numpy array with each voxel value indicating the global
                    saturation value at the point it was invaded
-        pc         1D array of capillary pressure values that were applied
-        swnp       1D array of non-wetting phase saturations for each applied
-                   value of capillary pressure (``pc``).
         ========== ============================================================
 
     Notes
@@ -126,13 +125,13 @@ def invasion(
         disks=disks,
     )
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
-    temp = sequence == 0  # Uninvaded voxels are set to -1 after _ibip
+    temp = sequence == 0
     sequence[temp] = -1
     sequence[~im] = 0
     sequence = make_contiguous(im=sequence, mode='symmetric')
     # Deal with invasion pressures similarly
     temp = pressure == 0
-    # pressures[temp] = np.inf
+    pressure[sequence < 0] = np.inf
     pressure[~im] = 0
 
     # Create results object for collected returned values
