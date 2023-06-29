@@ -1,19 +1,19 @@
+import heapq as hq
 import numpy as np
 from edt import edt
-from porespy.filters import seq_to_satn
-from porespy.tools import get_tqdm
-from porespy.tools import get_border, make_contiguous, ps_round, ps_rect
-from porespy.tools import _insert_disks_at_points
-from porespy.tools import Results
-from numba.typed import List
 from numba import njit
-from porespy import settings
-import heapq as hq
+from porespy.filters import seq_to_satn
+from porespy.tools import (
+    get_tqdm,
+    make_contiguous,
+    Results,
+)
+
+
 tqdm = get_tqdm()
 
 
 __all__ = [
-    # 'ibip_w_gravity',
     'invasion',
     'pc_2D',
     'dt_to_pc',
@@ -24,12 +24,13 @@ def invasion(
     im,
     voxel_size,
     inlets=None,
-    pc_map=None,
+    pc=None,
+    dt=None,
     sigma=0.072,
     theta=180,
     delta_rho=998,
     g=0,
-    maxiter=500000,
+    maxiter=-1,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -37,18 +38,22 @@ def invasion(
     Parameters
     ----------
     im : ndarray
-        A boolean image of the porous meida with ``True`` values indicating
+        A boolean image of the porous media with ``True`` values indicating
         the void space
     voxel_size : float
         The length of a voxel side, in meters
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
-    pc_map : ndarray, optional
+    pc : ndarray, optional
         Precomputed capillary pressure values which are used to determine
         the invadability of each voxel, in Pa.  If not provided then it is
         computed assuming the Washburn equation using the given values of
         ``theta`` and ``sigma``.
+    dt : ndarray, optional
+        The distance transform of the void space is necessary to know the size of
+        spheres to draw. If not provided it will be computed but some time can be
+        saved by providing it if available.
     sigma, theta: float, optional
         The surface tension and contact angle to use when computing ``pc``.
     delta_rho, g : float, optional
@@ -56,7 +61,8 @@ def invasion(
         set to 0 the gravitational effects are neglected.  The default is to
         disable gravity (``g=0``)
     maxiter : int
-        The maximum number of iteration to perform.  The default is 10,000.
+        The maximum number of iteration to perform.  The default is equal to the
+        number of void pixels `im`.
 
     Returns
     -------
@@ -87,7 +93,8 @@ def invasion(
     for invasion sites on each step.
 
     """
-    maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
+    if maxiter < 0:
+        maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
 
     if inlets is None:
         inlets = np.zeros_like(im)
@@ -95,45 +102,60 @@ def invasion(
 
     dt = edt(im)
 
-    if pc_map is None:
+    if pc is None:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
         if (g * delta_rho) != 0:
             h = np.ones_like(im)
             h[0, ...] = False
             h = edt(h) * voxel_size
             pc = pc + delta_rho * g * h
-    else:
-        pc = pc_map  # This includes gr as well.
 
-    # Initial arrays
-    inv = np.zeros_like(im, dtype=int)
-    pressures = np.zeros_like(im, dtype=float)
-    # Do some preprocessing
-    dt = dt.astype(int)  # Convert the dt to nearest integer
+    # Initialize arrays and do some preprocessing
+    sequence = np.zeros_like(im, dtype=int)
+    pressure = np.zeros_like(im, dtype=float)
+    dt = dt.astype(int)
     disks = _make_disks(dt.max()+1, smooth=False)
-    inv, pressures = _ibip_inner_loop(im=im, inlets=inlets, dt=dt, pc=pc, inv=inv,
-                                      pressures=pressures, maxiter=maxiter, disks=disks)
+    sequence, pressure = _ibip_inner_loop(
+        im=im,
+        inlets=inlets,
+        dt=dt,
+        pc=pc,
+        seq=sequence,
+        pressure=pressure,
+        maxiter=maxiter,
+        disks=disks,
+    )
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
-    temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
-    inv[temp] = -1
-    inv[~im] = 0
-    inv = make_contiguous(im=inv, mode='symmetric')
-    # Deal with invasion sizes similarly
-    temp = pressures == 0
+    temp = sequence == 0  # Uninvaded voxels are set to -1 after _ibip
+    sequence[temp] = -1
+    sequence[~im] = 0
+    sequence = make_contiguous(im=sequence, mode='symmetric')
+    # Deal with invasion pressures similarly
+    temp = pressure == 0
     # pressures[temp] = np.inf
-    pressures[~im] = 0
+    pressure[~im] = 0
 
     # Create results object for collected returned values
     results = Results()
-    results.im_seq = inv
-    results.im_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressures)
-    results.im_pc = pressures
-    results.im_satn = seq_to_satn(inv)  # convert sequence to saturation
+    results.im_seq = sequence
+    results.im_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressure)
+    results.im_pc = pressure
+    results.im_satn = seq_to_satn(sequence)  # convert sequence to saturation
     return results
 
 
 @njit
-def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter, disks):
+def _ibip_inner_loop(
+    im,
+    inlets,
+    dt,
+    pc,
+    seq,
+    pressure,
+    maxiter,
+    disks
+):  # pragma: no cover
+    # Initialize the binary heap
     inds = np.where(inlets*im)
     bd = []
     for row, (i, j) in enumerate(zip(inds[0], inds[1])):
@@ -141,27 +163,30 @@ def _ibip_inner_loop(im, inlets, dt, pc, inv, pressures, maxiter, disks):
     hq.heapify(bd)
     # Note which sites have been added to heap already
     edge = inlets + ~im
-    for step in range(1, maxiter):
+    step = 1
+    for _ in range(1, maxiter):
         if len(bd):
             pt = hq.heappop(bd)
         else:
-            print(f'no more sites to pop at step {step}')
             break
-        # Add disk to images
-        inv = _insert_disk_at_point(im=inv, i=pt[2], j=pt[3], r=pt[1],
-                                    v=step, disks=disks, smooth=True)
-        pressures = _insert_disk_at_point(im=pressures, i=pt[2], j=pt[3], r=pt[1],
-                                          v=pt[0], disks=disks, smooth=True)
+        # Insert discs of invadign fluid to images
+        seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
+                                    v=step, disks=disks)
+        pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
+                                          v=pt[0], disks=disks)
         # Add neighboring points to heap
         neighbors = _find_valid_neighbors(pt[2], pt[3], edge)
         for n in neighbors:
             hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
             edge[n] = True
-    return inv, pressures
+        # Ensures multiple spheres of same size in a row have same step number
+        if len(bd) and (pt[0] < bd[0][0]):
+            step += 1
+    return seq, pressure
 
 
 @njit
-def _find_valid_neighbors(i, j, im, conn=4, valid=False):
+def _find_valid_neighbors(i, j, im, conn=4, valid=False):  # pragma: no cover
     xlim, ylim = im.shape
     if conn == 4:
         mask = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
@@ -186,7 +211,6 @@ def _insert_disk_at_point(
     r,
     v,
     disks,
-    smooth=True,
     overwrite=False
 ):  # pragma: no cover
     r"""
@@ -206,9 +230,9 @@ def _insert_disk_at_point(
         The radii of the spheres/disks to add.
     v : scalar
         The value to insert
-    smooth : boolean, optional
-        If ``True`` (default) then the spheres/disks will not have the litte
-        nibs on the surfaces.
+    disks : ndarray
+        An array containing the disk to insert. It is faster to pre-generate these
+        and pass in the desired one than the generate it using `r` each time.
     overwrite : boolean, optional
         If ``True`` then the inserted spheres overwrite existing values.  The
         default is ``False``.
@@ -290,30 +314,9 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import numpy as np
 
-    ps.settings.tqdm['leave'] = True
-    np.random.seed(0)
     im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
-    # ip = ps.simulations.invasion(im=im,
-    #                              inlets=inlets,
-    #                              voxel_size=1e-4,
-    #                              g=0,
-    #                              maxiter=10000)
-    # satn_1 = ps.filters.seq_to_satn(ip.im_seq, im=im)
-    # ani1 = ps.visualization.satn_to_movie(satn=satn_1, im=im)
-    # ani1.save('ibip1.gif', writer='imagemagick', fps=20)
-
-    # ip2_seq, ip2_p = ps.filters.ibip(im=im, inlets=inlets)
-    # satn_2 = ps.filters.seq_to_satn(ip2_seq, im=im)
-    # ani2 = ps.visualization.satn_to_movie(satn=satn_2, im=im)
-    # ani2.save('ibip2.gif', writer='imagemagick', fps=20)
-
-    # Compare speeds
-    # ibip_orig = ps.filters.ibip(im=im, inlets=inlets)
     ibip_new = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4)
-    fig, ax = plt.subplots(1, 2)
-    # ax[0].imshow(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im))
-    ax[1].imshow(ibip_new.im_satn)
-    # temp = abs(ps.filters.seq_to_satn(ibip_orig.inv_sequence, im=im)
-    #             - ibip_new.im_satn)
+    fig, ax = plt.subplots()
+    ax.imshow(ibip_new.im_satn)
