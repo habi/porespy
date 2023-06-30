@@ -12,7 +12,7 @@ from skimage.morphology import ball, disk, square, cube, diamond, octahedron
 from porespy.tools import _check_for_singleton_axes
 from porespy.tools import get_border, subdivide, recombine, make_contiguous
 from porespy.tools import unpad, extract_subsection
-from porespy.tools import ps_disk, ps_ball, ps_round
+from porespy.tools import ps_disk, ps_ball, ps_round, ps_rect
 from porespy import settings
 from porespy.tools import get_tqdm
 
@@ -111,31 +111,37 @@ def find_trapped_regions(seq, outlets=None, bins=25, return_mask=True):
     to view online example.
 
     """
+    im = ~(seq == 0)
     seq = np.copy(seq)
     if outlets is None:
         outlets = get_border(seq.shape, mode='faces')
-    trapped = np.zeros_like(outlets)
+    # First remove all "obviously" trapped regions
+    if seq[outlets].min() == -1:  # if uninvaded pixels in outlet, redefine outlet
+        mask = (seq == -1)
+        mask = mask*1.0 + mask*outlets
+        mask = flood(mask, spim.label(mask > 0)[0]) == 2
+        mask[outlets] = 0
+        new_out = spim.binary_dilation(mask, structure=ps_rect(3, seq.ndim))
+        new_out[mask] = 0
+        new_out[~im] = 0
+        outlets += new_out
+        outlets[seq == -1] = False
+    # Now remove all trivially trapped regions (i.e. invaded after last outlet)
+    Lmax = seq[outlets].max()
+    seq[seq > Lmax] = -1
+    outlets = np.where(outlets)
+    trapped = np.zeros_like(seq, dtype=bool)
     if bins is None:
         bins = np.unique(seq)[-1::-1]
         bins = bins[bins > 0]
     elif isinstance(bins, int):
-        # starting the max_bin at: minimum sequence at outlets
-        # This means soon as the fluid reaches the outlets
-        # outlet_seq = np.setdiff1d(seq[outlets], np.array([0]))
-        # bins_start = outlet_seq.min()
-        # starting the max_bin at: maximum sequence available
-        # in the image. No matter if it's after percolation
-        # threshold (reaching the outlets):
         bins_start = seq.max()
         bins = np.linspace(bins_start, 1, bins)
-    for i in tqdm(bins, **settings.tqdm):
-        temp = seq >= i
+    for i in tqdm(range(len(bins)), **settings.tqdm):
+        s = bins[i]
+        temp = seq >= s
         labels = spim.label(temp)[0]
         keep = np.unique(labels[outlets])
-        # In cases where entire outlet is filled, the
-        # first indice is not necessarily the
-        # void space. Only the element with value
-        # of zero needs to be removed, if it's in keep.
         keep = np.setdiff1d(keep, np.array([0]))
         trapped += temp*np.isin(labels, keep, invert=True)
     if return_mask:
