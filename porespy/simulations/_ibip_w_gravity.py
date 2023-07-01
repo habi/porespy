@@ -1,7 +1,7 @@
 import heapq as hq
 import numpy as np
 from edt import edt
-from numba import njit
+from numba import njit, prange
 from porespy.filters import seq_to_satn
 from porespy.tools import (
     get_tqdm,
@@ -124,13 +124,11 @@ def invasion(
         maxiter=maxiter,
         disks=disks,
     )
-    # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
-    temp = sequence == 0
-    sequence[temp] = -1
+    # Convert invasion image so that uninvaded voxels are set to -1 and solid to 0
+    sequence[sequence == 0] = -1
     sequence[~im] = 0
     sequence = make_contiguous(im=sequence, mode='symmetric')
     # Deal with invasion pressures similarly
-    temp = pressure == 0
     pressure[sequence < 0] = np.inf
     pressure[~im] = 0
 
@@ -179,8 +177,9 @@ def _ibip_inner_loop(
             hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
             edge[n] = True
         # Ensures multiple spheres of same size in a row have same step number
-        if len(bd) and (pt[0] < bd[0][0]):
-            step += 1
+        # if len(bd) and (pt[0] < bd[0][0]):
+        #     step += 1
+        step += 1
     return seq, pressure
 
 
@@ -312,10 +311,25 @@ if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
     import numpy as np
+    import scipy.ndimage as spim
 
-    im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=1)
+    # im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=2, seed=2)
+    im = ps.generators.overlapping_spheres([800, 800], porosity=0.55, r=20, seed=2)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     ibip_new = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4)
-    fig, ax = plt.subplots()
-    ax.imshow(ibip_new.im_satn)
+    # fig, ax = plt.subplots()
+    # ax.imshow(ibip_new.im_satn)
+
+    seq = np.copy(ibip_new.im_seq)
+    seq_orig = np.copy(ibip_new.im_seq)
+    outlets = np.zeros_like(inlets)
+    outlets[-1, :] = True
+    outlets *= im
+
+# %%
+    fig, ax = plt.subplots(1, 3)
+    ax[0].imshow(seq_orig/im)
+    # seq = ps.filters.find_trapped_regions(seq, outlets=outlets, bins=None, return_mask=False)
+    ax[1].imshow(seq/im/~outlets)
+
