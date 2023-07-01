@@ -115,18 +115,13 @@ def find_trapped_regions(seq, outlets=None, bins=25, return_mask=True):
     seq = np.copy(seq)
     if outlets is None:
         outlets = get_border(seq.shape, mode='faces')
-    # First remove all "obviously" trapped regions
-    if seq[outlets].min() == -1:  # if uninvaded pixels in outlet, redefine outlet
-        mask = (seq == -1)
-        mask = mask*1.0 + mask*outlets
-        mask = flood(mask, spim.label(mask > 0)[0]) == 2
-        mask[outlets] = 0
-        new_out = spim.binary_dilation(mask, structure=ps_rect(3, seq.ndim))
-        new_out[mask] = 0
-        new_out[~im] = 0
-        outlets += new_out
-        outlets[seq == -1] = False
-    # Now remove all trivially trapped regions (i.e. invaded after last outlet)
+    # All uninvaded regions should be given sequence number of lowest nearby fluid
+    mask = seq < 0  # This is used again at the end of the function to fix seq
+    mask_dil = spim.binary_dilation(mask, structure=ps_rect(w=3, ndim=im.ndim))*im
+    tmp = seq*mask_dil
+    new_seq = flood(im=tmp, labels=spim.label(mask_dil)[0], mode='maximum')
+    seq = seq*~mask + new_seq*mask
+    # Remove all trivially trapped regions (i.e. invaded after last outlet)
     Lmax = seq[outlets].max()
     seq[seq > Lmax] = -1
     outlets = np.where(outlets)
@@ -144,6 +139,9 @@ def find_trapped_regions(seq, outlets=None, bins=25, return_mask=True):
         keep = np.unique(labels[outlets])
         keep = np.setdiff1d(keep, np.array([0]))
         trapped += temp*np.isin(labels, keep, invert=True)
+    # Set uninvaded locations back to -1, and set to untrapped
+    seq[mask] = -1
+    trapped[mask] = False
     if return_mask:
         return trapped
     else:
@@ -657,7 +655,7 @@ def flood(im, labels, mode="max"):
     to view online example.
 
     """
-    mask = im > 0
+    mask = im != 0
     N = labels.max()
     mode = "sum" if mode == "size" else mode
     mode = "maximum" if mode == "max" else mode
