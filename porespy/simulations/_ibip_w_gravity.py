@@ -165,8 +165,9 @@ def _ibip_inner_loop(
         if len(bd):
             pt = hq.heappop(bd)
         else:
+            print(f"Exiting after {step} steps")
             break
-        # Insert discs of invadign fluid to images
+        # Insert discs of invading fluid to images
         seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
                                     v=step, disks=disks)
         pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
@@ -305,31 +306,3 @@ def _make_disks(r_max, smooth=False):
         lo, hi = int((W-1)/2)-r, int((W-1)/2)+r+1
         sph[r, lo:hi, lo:hi] = _make_disk(r, smooth=smooth)
     return sph
-
-
-if __name__ == "__main__":
-    import porespy as ps
-    import matplotlib.pyplot as plt
-    import numpy as np
-    import scipy.ndimage as spim
-
-    # im = ps.generators.blobs([800, 800], porosity=0.7, blobiness=2, seed=2)
-    im = ps.generators.overlapping_spheres([800, 800], porosity=0.55, r=20, seed=2)
-    inlets = np.zeros_like(im)
-    inlets[0, :] = True
-    ibip_new = ps.simulations.invasion(im=im, inlets=inlets, voxel_size=1e-4)
-    # fig, ax = plt.subplots()
-    # ax.imshow(ibip_new.im_satn)
-
-    seq = np.copy(ibip_new.im_seq)
-    seq_orig = np.copy(ibip_new.im_seq)
-    outlets = np.zeros_like(inlets)
-    outlets[-1, :] = True
-    outlets *= im
-
-# %%
-    fig, ax = plt.subplots(1, 3)
-    ax[0].imshow(seq_orig/im)
-    # seq = ps.filters.find_trapped_regions(seq, outlets=outlets, bins=None, return_mask=False)
-    ax[1].imshow(seq/im/~outlets)
-
