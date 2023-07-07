@@ -22,15 +22,15 @@ __all__ = [
 
 def invasion(
     im,
+    pc,
     voxel_size,
     inlets=None,
-    pc=None,
     dt=None,
     sigma=0.072,
     theta=180,
     delta_rho=998,
     g=0,
-    maxiter=-1,
+    maxiter=None,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -77,10 +77,6 @@ def invasion(
         im_pc      A numpy array with each voxel value indicating the
                    capillary pressure at which it was invaded. Uninvaded
                    voxels have value of ``np.inf``.
-        im_sizes   A numpy array with each voxel value indicating the radii
-                   of the spheres inserted.
-        im_satn    A numpy array with each voxel value indicating the global
-                   saturation value at the point it was invaded
         ========== ============================================================
 
     Notes
@@ -92,35 +88,32 @@ def invasion(
     for invasion sites on each step.
 
     """
-    if maxiter < 0:
+    if maxiter is None:
         maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
 
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
-    dt = edt(im)
-
-    if pc is None:
-        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
-        if (g * delta_rho) != 0:
-            h = np.ones_like(im)
-            h[0, ...] = False
-            h = edt(h) * voxel_size
-            pc = pc + delta_rho * g * h
+    if dt is None:
+        dt = edt(im)
+    dt = np.around(dt, decimals=0).astype(int)
 
     # Initialize arrays and do some preprocessing
-    sequence = np.zeros_like(im, dtype=int)
+    inv = np.zeros_like(im, dtype=int)
     pressure = np.zeros_like(im, dtype=float)
-    dt = dt.astype(int)
-    disks = _make_disks(dt.max()+1, smooth=False)
-    sequence, pressure = _ibip_inner_loop(
+    size = np.zeros_like(im, dtype=float)
+    disks = _make_disks(dt.max()+1, smooth=True)
+
+    # Call numba'd inner loop
+    sequence, pressure, size = _ibip_inner_loop(
         im=im,
         inlets=inlets,
         dt=dt,
         pc=pc,
-        seq=sequence,
+        seq=inv,
         pressure=pressure,
+        size=size,
         maxiter=maxiter,
         disks=disks,
     )
@@ -135,8 +128,8 @@ def invasion(
     # Create results object for collected returned values
     results = Results()
     results.im_seq = sequence
-    results.im_sizes = -2*sigma*np.cos(np.deg2rad(theta))/(pressure)
     results.im_pc = pressure
+    results.im_size = size
     results.im_satn = seq_to_satn(sequence)  # convert sequence to saturation
     return results
 
@@ -149,6 +142,7 @@ def _ibip_inner_loop(
     pc,
     seq,
     pressure,
+    size,
     maxiter,
     disks
 ):  # pragma: no cover
@@ -159,29 +153,31 @@ def _ibip_inner_loop(
         bd.append([pc[i, j], dt[i, j], i, j])
     hq.heapify(bd)
     # Note which sites have been added to heap already
-    edge = inlets + ~im
+    edge = inlets*im + ~im
     step = 1
     for _ in range(1, maxiter):
         if len(bd):
-            pt = hq.heappop(bd)
+            pts = [hq.heappop(bd)]
         else:
             print(f"Exiting after {step} steps")
             break
-        # Insert discs of invading fluid to images
-        seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
-                                    v=step, disks=disks)
-        pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
-                                          v=pt[0], disks=disks)
-        # Add neighboring points to heap
-        neighbors = _find_valid_neighbors(pt[2], pt[3], edge)
-        for n in neighbors:
-            hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
-            edge[n] = True
-        # Ensures multiple spheres of same size in a row have same step number
-        # if len(bd) and (pt[0] < bd[0][0]):
-        #     step += 1
+        while len(bd) and (bd[0][0] == pts[0][0]):
+            pts.append(hq.heappop(bd))
+        for pt in pts:
+            # Insert discs of invading fluid to images
+            seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
+                                        v=step, disks=disks, overwrite=False)
+            pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
+                                              v=pt[0], disks=disks, overwrite=False)
+            size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3], r=pt[1],
+                                         v=pt[1], disks=disks, overwrite=False)
+            # Add neighboring points to heap and edge
+            neighbors = _find_valid_neighbors(pt[2], pt[3], edge, conn=8)
+            for n in neighbors:
+                hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
+                edge[n[0], n[1]] = True
         step += 1
-    return seq, pressure
+    return seq, pressure, size
 
 
 @njit
