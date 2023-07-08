@@ -1,7 +1,7 @@
 import heapq as hq
 import numpy as np
 from edt import edt
-from numba import njit, prange
+from numba import njit
 from porespy.filters import seq_to_satn
 from porespy.tools import (
     get_tqdm,
@@ -15,21 +15,14 @@ tqdm = get_tqdm()
 
 __all__ = [
     'invasion',
-    'pc_2D',
-    'dt_to_pc',
 ]
 
 
 def invasion(
     im,
     pc,
-    voxel_size,
     inlets=None,
     dt=None,
-    sigma=0.072,
-    theta=180,
-    delta_rho=998,
-    g=0,
     maxiter=None,
 ):
     r"""
@@ -40,26 +33,16 @@ def invasion(
     im : ndarray
         A boolean image of the porous media with ``True`` values indicating
         the void space
-    voxel_size : float
-        The length of a voxel side, in meters
+    pc : ndarray
+        Precomputed capillary pressure values which are used to determine
+        the invadability of each voxel, in Pa.
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
-    pc : ndarray, optional
-        Precomputed capillary pressure values which are used to determine
-        the invadability of each voxel, in Pa.  If not provided then it is
-        computed assuming the Washburn equation using the given values of
-        ``theta`` and ``sigma``.
     dt : ndarray, optional
         The distance transform of the void space is necessary to know the size of
         spheres to draw. If not provided it will be computed but some time can be
         saved by providing it if available.
-    sigma, theta: float, optional
-        The surface tension and contact angle to use when computing ``pc``.
-    delta_rho, g : float, optional
-        The phase density difference and gravitational constant. If either is
-        set to 0 the gravitational effects are neglected.  The default is to
-        disable gravity (``g=0``)
     maxiter : int
         The maximum number of iteration to perform.  The default is equal to the
         number of void pixels `im`.
@@ -100,10 +83,9 @@ def invasion(
     dt = np.around(dt, decimals=0).astype(int)
 
     # Initialize arrays and do some preprocessing
-    inv = np.zeros_like(im, dtype=int)
-    pressure = np.zeros_like(im, dtype=float)
+    inv_seq = np.zeros_like(im, dtype=int)
+    inv_pc = np.zeros_like(im, dtype=float)
     size = np.zeros_like(im, dtype=float)
-    disks = _make_disks(dt.max()+1, smooth=True)
 
     # Call numba'd inner loop
     sequence, pressure, size = _ibip_inner_loop(
@@ -111,11 +93,10 @@ def invasion(
         inlets=inlets,
         dt=dt,
         pc=pc,
-        seq=inv,
-        pressure=pressure,
+        seq=inv_seq,
+        pressure=inv_pc,
         size=size,
         maxiter=maxiter,
-        disks=disks,
     )
     # Convert invasion image so that uninvaded voxels are set to -1 and solid to 0
     sequence[sequence == 0] = -1
@@ -144,7 +125,6 @@ def _ibip_inner_loop(
     pressure,
     size,
     maxiter,
-    disks
 ):  # pragma: no cover
     # Initialize the binary heap
     inds = np.where(inlets*im)
@@ -166,11 +146,11 @@ def _ibip_inner_loop(
         for pt in pts:
             # Insert discs of invading fluid to images
             seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
-                                        v=step, disks=disks, overwrite=False)
+                                        v=step, overwrite=False)
             pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
-                                              v=pt[0], disks=disks, overwrite=False)
+                                              v=pt[0], overwrite=False)
             size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3], r=pt[1],
-                                         v=pt[1], disks=disks, overwrite=False)
+                                         v=pt[1], overwrite=False)
             # Add neighboring points to heap and edge
             neighbors = _find_valid_neighbors(pt[2], pt[3], edge, conn=8)
             for n in neighbors:
@@ -199,15 +179,7 @@ def _find_valid_neighbors(i, j, im, conn=4, valid=False):  # pragma: no cover
 
 
 @njit
-def _insert_disk_at_point(
-    im,
-    i,
-    j,
-    r,
-    v,
-    disks,
-    overwrite=False
-):  # pragma: no cover
+def _insert_disk_at_point(im, i, j, r, v, overwrite=False):  # pragma: no cover
     r"""
     Insert spheres (or disks) of specified radii into an ND-image at given locations.
 
@@ -220,42 +192,29 @@ def _insert_disk_at_point(
         The image into which the spheres/disks should be inserted. This is an
         'in-place' operation.
     i, j : int
-        The center point of each sphere/disk given
+        The center point of each sphere/disk
     r : array_like
-        The radii of the spheres/disks to add.
+        The radius of the sphere/disk to insert
     v : scalar
         The value to insert
-    disks : ndarray
-        An array containing the disk to insert. It is faster to pre-generate these
-        and pass in the desired one than the generate it using `r` each time.
     overwrite : boolean, optional
         If ``True`` then the inserted spheres overwrite existing values.  The
         default is ``False``.
+    smooth : boolean
+        If `True` (default) then the small bumps on the outer perimeter of each
+        face is not present.
 
     """
-    s = disks[int(r)]
-    W = s.shape[0]
-    lo, hi = int((W-1)/2)-r, int((W-1)/2)+r+1
-    s = s[lo:hi, lo:hi]
     xlim, ylim = im.shape
     for a, x in enumerate(range(i-r, i+r+1)):
         if (x >= 0) and (x < xlim):
             for b, y in enumerate(range(j-r, j+r+1)):
                 if (y >= 0) and (y < ylim):
-                    if s[a, b] == 1:
+                    R = ((a - r)**2 + (b - r)**2)**0.5
+                    if R < r:
                         if overwrite or (im[x, y] == 0):
                             im[x, y] = v
     return im
-
-
-def pc_2D(r, s, sigma, theta):
-    pc = -sigma*np.cos(np.radians(theta))*(1/r + 1/s)
-    return pc
-
-
-def dt_to_pc(f, **kwargs):
-    pc = f(**kwargs)
-    return pc
 
 
 @njit
@@ -263,42 +222,3 @@ def _where(arr):
     inds = np.where(arr)
     result = np.vstack(inds)
     return result
-
-
-@njit
-def _make_disk(r, smooth=True):  # pragma: no cover
-    W = int(2*r+1)
-    s = np.zeros((W, W), dtype=type(r))
-    if smooth:
-        thresh = r - 0.001
-    else:
-        thresh = r
-    for i in range(W):
-        for j in range(W):
-            if ((i - r)**2 + (j - r)**2)**0.5 <= thresh:
-                s[i, j] = 1
-    return s
-
-
-@njit
-def _make_ball(r, smooth=True):  # pragma: no cover
-    s = np.zeros((2*r+1, 2*r+1, 2*r+1), dtype=type(r))
-    if smooth:
-        thresh = r - 0.001
-    else:
-        thresh = r
-    for i in range(2*r+1):
-        for j in range(2*r+1):
-            for k in range(2*r+1):
-                if ((i - r)**2 + (j - r)**2 + (k - r)**2)**0.5 <= thresh:
-                    s[i, j, k] = 1
-    return s
-
-
-def _make_disks(r_max, smooth=False):
-    W = int(2*r_max + 1)
-    sph = np.zeros([int(r_max) + 1, W, W], dtype=bool)
-    for r in range(1, int(r_max) + 1):
-        lo, hi = int((W-1)/2)-r, int((W-1)/2)+r+1
-        sph[r, lo:hi, lo:hi] = _make_disk(r, smooth=smooth)
-    return sph
