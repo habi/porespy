@@ -24,6 +24,8 @@ def invasion(
     inlets=None,
     dt=None,
     maxiter=None,
+    return_sizes=False,
+    return_pressures=False,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -43,6 +45,12 @@ def invasion(
         The distance transform of the void space is necessary to know the size of
         spheres to draw. If not provided it will be computed but some time can be
         saved by providing it if available.
+    return_sizes : bool
+        If `True` then array containing the size of the sphere which first
+        overlapped each pixel is returned.
+    return_pressures : bool
+        If `True` then array containing the capillary pressure at which
+        each pixels was first invaded is returned.
     maxiter : int
         The maximum number of iteration to perform.  The default is equal to the
         number of void pixels `im`.
@@ -52,15 +60,21 @@ def invasion(
     results : Results object
         A dataclass-like object with the following attributes:
 
-        ========== ============================================================
+        ========== =================================================================
         Attribute  Description
-        ========== ============================================================
+        ========== =================================================================
         im_seq     A numpy array with each voxel value containing the step at
                    which it was invaded.  Uninvaded voxels are set to -1.
-        im_pc      A numpy array with each voxel value indicating the
-                   capillary pressure at which it was invaded. Uninvaded
-                   voxels have value of ``np.inf``.
-        ========== ============================================================
+        im_satn    A numpy array with each voxel value indicating the saturation
+                   present in the domain it was invaded. Solids are given 0, and
+                   uninvaded regions are given -1.
+        im_pc      If `return_pressures` was set to `True`, then a numpy array with
+                   each voxel value indicating the capillary pressure at which it
+                   was invaded. Uninvaded voxels have value of ``np.inf``.
+        im_size    If `return_sizes` was set to `True`, then a numpy array with
+                   each voxel containing the radius of the sphere, in voxels, that
+                   first overlapped it.
+        ========== =================================================================
 
     Notes
     -----
@@ -85,7 +99,11 @@ def invasion(
     # Initialize arrays and do some preprocessing
     inv_seq = np.zeros_like(im, dtype=int)
     inv_pc = np.zeros_like(im, dtype=float)
-    size = np.zeros_like(im, dtype=float)
+    if return_pressures is False:
+        inv_pc *= -np.inf
+    inv_size = np.zeros_like(im, dtype=float)
+    if return_sizes is False:
+        inv_size *= -np.inf
 
     # Call numba'd inner loop
     sequence, pressure, size = _ibip_inner_loop(
@@ -95,7 +113,7 @@ def invasion(
         pc=pc,
         seq=inv_seq,
         pressure=inv_pc,
-        size=size,
+        size=inv_size,
         maxiter=maxiter,
     )
     # Convert invasion image so that uninvaded voxels are set to -1 and solid to 0
@@ -103,15 +121,21 @@ def invasion(
     sequence[~im] = 0
     sequence = make_contiguous(im=sequence, mode='symmetric')
     # Deal with invasion pressures similarly
-    pressure[sequence < 0] = np.inf
-    pressure[~im] = 0
+    if return_pressures:
+        pressure[sequence < 0] = np.inf
+        pressure[~im] = 0
+    if return_sizes:
+        size[sequence < 0] = np.inf
+        size[~im] = 0
 
     # Create results object for collected returned values
     results = Results()
     results.im_seq = sequence
-    results.im_pc = pressure
-    results.im_size = size
     results.im_satn = seq_to_satn(sequence)  # convert sequence to saturation
+    if return_pressures:
+        results.im_pc = pressure
+    if return_sizes:
+        results.im_size = size
     return results
 
 
@@ -147,10 +171,12 @@ def _ibip_inner_loop(
             # Insert discs of invading fluid to images
             seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
                                         v=step, overwrite=False)
-            pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], r=pt[1],
-                                              v=pt[0], overwrite=False)
-            size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3], r=pt[1],
-                                         v=pt[1], overwrite=False)
+            if pressure[0, 0] > -np.inf:
+                pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3],
+                                                 r=pt[1], v=pt[0], overwrite=False)
+            if size[0, 0] > -np.inf:
+                size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3],
+                                             r=pt[1], v=pt[1], overwrite=False)
             # Add neighboring points to heap and edge
             neighbors = _find_valid_neighbors(pt[2], pt[3], edge, conn=8)
             for n in neighbors:
