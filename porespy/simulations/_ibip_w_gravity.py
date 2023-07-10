@@ -26,6 +26,7 @@ def invasion(
     maxiter=None,
     return_sizes=False,
     return_pressures=False,
+    mask=None,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -91,6 +92,8 @@ def invasion(
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
+    if mask is None:
+        mask = np.copy(im)
 
     if dt is None:
         dt = edt(im)
@@ -107,7 +110,7 @@ def invasion(
 
     # Call numba'd inner loop
     sequence, pressure, size = _ibip_inner_loop(
-        im=im,
+        im=mask,
         inlets=inlets,
         dt=dt,
         pc=pc,
