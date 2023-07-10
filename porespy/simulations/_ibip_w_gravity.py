@@ -120,7 +120,7 @@ def invasion(
     sequence[sequence == 0] = -1
     sequence[~im] = 0
     sequence = make_contiguous(im=sequence, mode='symmetric')
-    # Deal with invasion pressures similarly
+    # Deal with invasion pressures and sizes similarly
     if return_pressures:
         pressure[sequence < 0] = np.inf
         pressure[~im] = 0
@@ -168,7 +168,7 @@ def _ibip_inner_loop(
         while len(bd) and (bd[0][0] == pts[0][0]):
             pts.append(hq.heappop(bd))
         for pt in pts:
-            # Insert discs of invading fluid to images
+            # Insert discs of invading fluid into images
             seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
                                         v=step, overwrite=False)
             if pressure[0, 0] > -np.inf:
