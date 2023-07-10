@@ -162,6 +162,7 @@ def _ibip_inner_loop(
     # Note which sites have been added to heap already
     edge = inlets*im + ~im
     step = 1
+    delta_step = 0
     for _ in range(1, maxiter):
         if len(bd):
             pts = [hq.heappop(bd)]
@@ -185,7 +186,9 @@ def _ibip_inner_loop(
             for n in neighbors:
                 hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
                 edge[n[0], n[1]] = True
-        step += 1
+                delta_step = 1
+        step += delta_step
+        delta_step = 0
     return seq, pressure, size
 
 
