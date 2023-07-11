@@ -30,6 +30,7 @@ __all__ = [
     "pc_curve",
     "pc_curve_from_ibip",
     "pc_curve_from_mio",
+    "pc_map_to_pc_curve",
 ]
 
 
@@ -1055,10 +1056,14 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
             for n in seqs:
                 pbar.update()
                 mask = seq == n
-                # The following assumes only one size found, which was confirmed
-                r = sizes[mask][0]*voxel_size
-                pc = -2*sigma*np.cos(np.deg2rad(theta))/r
-                x.append(pc)
+                if (pc is not None) and (sizes is not None):
+                    raise Exception("Only one of pc or sizes can be specified")
+                elif pc is not None:
+                    pressure = pc[mask][0]
+                elif sizes is not None:
+                    r = sizes[mask][0]*voxel_size
+                    pressure = -2*sigma*np.cos(np.deg2rad(theta))/r
+                x.append(pressure)
                 snwp = ((seq <= n)*(seq > 0) *
                         (im == 1)).sum(dtype=np.int64)/im.sum(dtype=np.int64)
                 y.append(snwp)
@@ -1104,7 +1109,63 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
     return pc_curve
 
 
-def satn_profile(satn, s, axis=0, span=10, mode='tile'):
+def pc_map_to_pc_curve(pc, im, seq=None):
+    r"""
+    Converts a pc map into a capillary pressure curve
+
+    Parameters
+    ----------
+    pc : ndarray
+        A numpy array with each voxel containing the capillary pressure at which
+        it was invaded. `-inf` indicates voxels which are already filled with
+        non-wetting fluid, and `+inf` indicates voxels that are not invaded by
+        non-wetting fluid (e.g., trapped wetting phase). Solids should be
+        noted by `+inf` but this is also enforced inside the function using `im`.
+    im : ndarray
+        A numpy array with `True` values indicating the void space and `False`
+        elsewhere. This is necessary to define the total void volume of the domain
+        for computing the saturation.
+    seq : ndarray, optional
+        A numpy array with each voxel containing the sequence at which it was
+        invaded. This is required when analyzing results from invasion percolation
+        since the pressures in `pc` do not correspond to the sequence in which
+        they were filled.
+
+    Returns
+    -------
+    results : dataclass-like
+        A dataclass like object with the following attributes:
+
+        ================== =========================================================
+        Attribute          Description
+        ================== =========================================================
+        pc                 The capillary pressure
+        snwp               The fraction of void space filled by non-wetting
+                           phase at each pressure in ``pc``
+        ================== =========================================================
+
+    Notes
+    -----
+    To use this function with the results of `porosimetry` or `ibip` the sizes map
+    must be converted to a capillary pressure map first.  `drainage` and `invasion`
+    both return capillary pressure maps which can be passed directly as `pc`.
+    """
+    pc[~im] = np.inf  # Ensure solid voxels are set to inf invasion pressure
+    if seq is None:
+        pcs, counts = np.unique(pc, return_counts=True)
+    else:
+        vals, index, counts = np.unique(seq, return_index=True, return_counts=True)
+        pcs = pc.flatten()[index]
+    snwp = np.cumsum(counts[pcs < np.inf])/im.sum()
+    pcs = pcs[pcs < np.inf]
+
+    results = Results()
+    results.pc = pcs
+    results.snwp = snwp
+    return results
+
+
+def satn_profile(satn, s=None, im=None, axis=0, span=10, mode='tile'):
     r"""
     Computes a saturation profile from an image of fluid invasion
 
@@ -1115,7 +1176,12 @@ def satn_profile(satn, s, axis=0, span=10, mode='tile'):
         invasion.  0's are treated as solid and -1's are treated as uninvaded
         void space.
     s : scalar
-        The global saturation value for which the profile is desired
+        The global saturation value for which the profile is desired. If `satn` is
+        a pre-thresholded boolean image then this is ignored, `im` is required.
+    im : ndarray
+        A boolean image with `True` values indicating the void phase. This is used
+        to compute the void volume if `satn` is given as a pre-thresholded boolean
+        mask.
     axis : int
         The axis along which to profile should be measured
     span : int
@@ -1153,46 +1219,41 @@ def satn_profile(satn, s, axis=0, span=10, mode='tile'):
     <https://porespy.org/examples/metrics/reference/satn_profile.html>`_
     to view online example.
     """
-    # @numba.njit()
-    def func(satn, s, axis, span, mode):
-        span = max(1, span)
-        satn = np.swapaxes(satn, 0, axis)
-        if mode == 'tile':
-            y = np.zeros(int(satn.shape[0]/span))
-            z = np.zeros_like(y)
-            for i in range(int(satn.shape[0]/span)):
-                void = satn[i*span:(i+1)*span, ...] != 0
-                nwp = (satn[i*span:(i+1)*span, ...] < s) \
-                    *(satn[i*span:(i+1)*span, ...] > 0)
-                y[i] = nwp.sum(dtype=np.int64)/void.sum(dtype=np.int64)
-                z[i] = i*span + (span-1)/2
-        if mode == 'slide':
-            y = np.zeros(int(satn.shape[0]-span))
-            z = np.zeros_like(y)
-            for i in range(int(satn.shape[0]-span)):
-                void = satn[i:i+span, ...] != 0
-                nwp = (satn[i:i+span, ...] < s)*(satn[i:i+span, ...] > 0)
-                y[i] = nwp.sum(dtype=np.int64)/void.sum(dtype=np.int64)
-                z[i] = i + (span-1)/2
-        return z, y
+    span = max(1, span)
+    if s is None:
+        if satn.dtype != bool:
+            msg = 'Must specify a target saturation if saturation map is provided'
+            raise Exception(msg)
+        s = 2  # Will find ALL voxels, then > 0 will limit to only True ones
+        satn = satn.astype(int)
+        satn[satn == 0] = -1
+        satn[~im] = 0
+    else:
+        msg = 'The maximum saturation in the image is less than the given threshold'
+        if satn.max() < s:
+            raise Exception(msg)
 
-    z, y = func(satn=satn, s=s, axis=axis, span=span, mode=mode)
-
-    class results(Results):
-        r"""
-
-        Attributes
-        ----------
-        position : ndarray
-            The position along the given axis at which saturation values are
-            computed.  The units are in voxels.
-        saturation : ndarray
-            The computed saturation value at each position
-
-        """
-        position = z
-        saturation = y
-
+    satn = np.swapaxes(satn, 0, axis)
+    if mode == 'tile':
+        y = np.zeros(int(satn.shape[0]/span))
+        z = np.zeros_like(y)
+        for i in range(int(satn.shape[0]/span)):
+            void = satn[i*span:(i+1)*span, ...] != 0
+            nwp = (satn[i*span:(i+1)*span, ...] <= s) \
+                *(satn[i*span:(i+1)*span, ...] > 0)
+            y[i] = nwp.sum(dtype=np.int64)/void.sum(dtype=np.int64)
+            z[i] = i*span + (span-1)/2
+    if mode == 'slide':
+        y = np.zeros(int(satn.shape[0]-span))
+        z = np.zeros_like(y)
+        for i in range(int(satn.shape[0]-span)):
+            void = satn[i:i+span, ...] != 0
+            nwp = (satn[i:i+span, ...] <= s)*(satn[i:i+span, ...] > 0)
+            y[i] = nwp.sum(dtype=np.int64)/void.sum(dtype=np.int64)
+            z[i] = i + (span-1)/2
+    results = Results()
+    results.position = z
+    results.saturation = y
     return results
 
 
