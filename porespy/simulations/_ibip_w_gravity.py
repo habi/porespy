@@ -22,11 +22,9 @@ def invasion(
     im,
     pc,
     inlets=None,
-    dt=None,
     maxiter=None,
     return_sizes=False,
     return_pressures=False,
-    mask=None,
 ):
     r"""
     Perform image-based invasion percolation in the presence of gravity
@@ -42,10 +40,6 @@ def invasion(
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
-    dt : ndarray, optional
-        The distance transform of the void space is necessary to know the size of
-        spheres to draw. If not provided it will be computed but some time can be
-        saved by providing it if available.
     return_sizes : bool
         If `True` then array containing the size of the sphere which first
         overlapped each pixel is returned.
@@ -89,14 +83,16 @@ def invasion(
     if maxiter is None:
         maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
 
+    im = np.atleast_3d(im)
+    pc = np.atleast_3d(pc)
+
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
-    if mask is None:
-        mask = np.copy(im)
+    else:
+        inlets = np.atleast_3d(inlets)
 
-    if dt is None:
-        dt = edt(im)
+    dt = edt(im)
     dt = np.around(dt, decimals=0).astype(int)
 
     # Initialize arrays and do some preprocessing
@@ -110,7 +106,7 @@ def invasion(
 
     # Call numba'd inner loop
     sequence, pressure, size = _ibip_inner_loop(
-        im=mask,
+        im=im,
         inlets=inlets,
         dt=dt,
         pc=pc,
@@ -119,6 +115,13 @@ def invasion(
         size=inv_size,
         maxiter=maxiter,
     )
+    # Reduce back to 2D if necessary
+    sequence = sequence.squeeze()
+    pressure = pressure.squeeze()
+    size = size.squeeze()
+    pc = pc.squeeze()
+    im = im.squeeze()
+
     # Convert invasion image so that uninvaded voxels are set to -1 and solid to 0
     sequence[sequence == 0] = -1
     sequence[~im] = 0
@@ -156,8 +159,8 @@ def _ibip_inner_loop(
     # Initialize the binary heap
     inds = np.where(inlets*im)
     bd = []
-    for row, (i, j) in enumerate(zip(inds[0], inds[1])):
-        bd.append([pc[i, j], dt[i, j], i, j])
+    for row, (i, j, k) in enumerate(zip(inds[0], inds[1], inds[2])):
+        bd.append([pc[i, j, k], dt[i, j, k], i, j, k])
     hq.heapify(bd)
     # Note which sites have been added to heap already
     edge = inlets*im + ~im
@@ -173,19 +176,19 @@ def _ibip_inner_loop(
             pts.append(hq.heappop(bd))
         for pt in pts:
             # Insert discs of invading fluid into images
-            seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], r=pt[1],
+            seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], k=pt[4], r=pt[1],
                                         v=step, overwrite=False)
-            if pressure[0, 0] > -np.inf:
-                pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3],
+            if pressure[0, 0, 0] > -np.inf:
+                pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], k=pt[4],
                                                  r=pt[1], v=pt[0], overwrite=False)
-            if size[0, 0] > -np.inf:
-                size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3],
+            if size[0, 0, 0] > -np.inf:
+                size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3], k=pt[4],
                                              r=pt[1], v=pt[1], overwrite=False)
             # Add neighboring points to heap and edge
-            neighbors = _find_valid_neighbors(pt[2], pt[3], edge, conn=8)
+            neighbors = _find_valid_neighbors(i=pt[2], j=pt[3], k=pt[4], im=edge, conn=26)
             for n in neighbors:
-                hq.heappush(bd, [pc[n], dt[n], n[0], n[1]])
-                edge[n[0], n[1]] = True
+                hq.heappush(bd, [pc[n], dt[n], n[0], n[1], n[2]])
+                edge[n[0], n[1], n[2]] = True
                 delta_step = 1
         step += delta_step
         delta_step = 0
@@ -193,25 +196,46 @@ def _ibip_inner_loop(
 
 
 @njit
-def _find_valid_neighbors(i, j, im, conn=4, valid=False):  # pragma: no cover
-    xlim, ylim = im.shape
-    if conn == 4:
-        mask = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
+def _find_valid_neighbors(i, j, im, k=0, conn=4, valid=False):  # pragma: no cover
+    if im.ndim == 2:
+        xlim, ylim = im.shape
+        if conn == 4:
+            mask = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
+        else:
+            mask = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
+        neighbors = []
+        for a, x in enumerate(range(i-1, i+2)):
+            if (x >= 0) and (x < xlim):
+                for b, y in enumerate(range(j-1, j+2)):
+                    if (y >= 0) and (y < ylim):
+                        if mask[a][b] == 1:
+                            if im[x, y] == valid:
+                                neighbors.append((x, y))
     else:
-        mask = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
-    neighbors = []
-    for a, x in enumerate(range(i-1, i+2)):
-        if (x >= 0) and (x < xlim):
-            for b, y in enumerate(range(j-1, j+2)):
-                if (y >= 0) and (y < ylim):
-                    if mask[a][b] == 1:
-                        if im[x, y] == valid:
-                            neighbors.append((x, y))
+        xlim, ylim, zlim = im.shape
+        if conn == 6:
+            mask = [[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
+                    [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
+                    [[0, 0, 0], [0, 1, 0], [0, 0, 0]]]
+        else:
+            mask = [[[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+                    [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
+                    [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]
+        neighbors = []
+        for a, x in enumerate(range(i-1, i+2)):
+            if (x >= 0) and (x < xlim):
+                for b, y in enumerate(range(j-1, j+2)):
+                    if (y >= 0) and (y < ylim):
+                        for c, z in enumerate(range(k-1, k+2)):
+                            if (z >= 0) and (z < zlim):
+                                if mask[a][b][c] == 1:
+                                    if im[x, y, z] == valid:
+                                        neighbors.append((x, y, z))
     return neighbors
 
 
 @njit
-def _insert_disk_at_point(im, i, j, r, v, overwrite=False):  # pragma: no cover
+def _insert_disk_at_point(im, i, j, r, v, k=0, overwrite=False):  # pragma: no cover
     r"""
     Insert spheres (or disks) of specified radii into an ND-image at given locations.
 
@@ -223,8 +247,9 @@ def _insert_disk_at_point(im, i, j, r, v, overwrite=False):  # pragma: no cover
     im : ND-array
         The image into which the spheres/disks should be inserted. This is an
         'in-place' operation.
-    i, j : int
-        The center point of each sphere/disk
+    i, j, k: int
+        The center point of each sphere/disk.  If the image is 2D then `k` can be
+        omitted.
     r : array_like
         The radius of the sphere/disk to insert
     v : scalar
@@ -237,15 +262,28 @@ def _insert_disk_at_point(im, i, j, r, v, overwrite=False):  # pragma: no cover
         face is not present.
 
     """
-    xlim, ylim = im.shape
-    for a, x in enumerate(range(i-r, i+r+1)):
-        if (x >= 0) and (x < xlim):
-            for b, y in enumerate(range(j-r, j+r+1)):
-                if (y >= 0) and (y < ylim):
-                    R = ((a - r)**2 + (b - r)**2)**0.5
-                    if R < r:
-                        if overwrite or (im[x, y] == 0):
-                            im[x, y] = v
+    if im.ndim == 2:
+        xlim, ylim = im.shape
+        for a, x in enumerate(range(i-r, i+r+1)):
+            if (x >= 0) and (x < xlim):
+                for b, y in enumerate(range(j-r, j+r+1)):
+                    if (y >= 0) and (y < ylim):
+                        R = ((a - r)**2 + (b - r)**2)**0.5
+                        if R < r:
+                            if overwrite or (im[x, y] == 0):
+                                im[x, y] = v
+    else:
+        xlim, ylim, zlim = im.shape
+        for a, x in enumerate(range(i-r, i+r+1)):
+            if (x >= 0) and (x < xlim):
+                for b, y in enumerate(range(j-r, j+r+1)):
+                    if (y >= 0) and (y < ylim):
+                        for c, z in enumerate(range(k-r, k+r+1)):
+                            if (z >= 0) and (z < zlim):
+                                R = ((a - r)**2 + (b - r)**2 + (c - r)**2)**0.5
+                                if R < r:
+                                    if overwrite or (im[x, y, z] == 0):
+                                        im[x, y, z] = v
     return im
 
 
