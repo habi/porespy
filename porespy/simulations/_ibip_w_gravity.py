@@ -78,8 +78,7 @@ def invasion(
     This function operates differently than the original ``ibip``.  Here a
     binary heap (via the `heapq` module from the standard libary) is used to
     maintain an up-to-date list of which voxels should be invaded next.  This
-    is much faster than the original approach which scanned the entire image
-    for invasion sites on each step.
+    is much faster than the original approach.
 
     """
     if maxiter is None:
@@ -161,13 +160,11 @@ def _ibip_inner_loop(
     maxiter,
 ):  # pragma: no cover
     step = 1
-    step_q = 1
     # Initialize the binary heap
     inds = np.where(inlets*im)
     bd = []
     for row, (i, j, k) in enumerate(zip(inds[0], inds[1], inds[2])):
-        bd.append([pc[i, j, k], dt[i, j, k], i, j, k, step_q])
-        step_q += 1
+        bd.append([pc[i, j, k], dt[i, j, k], i, j, k])
     hq.heapify(bd)
     # Note which sites have been added to heap already
     edge = inlets*im + ~im
@@ -180,12 +177,6 @@ def _ibip_inner_loop(
             break
         while len(bd) and (bd[0][0] == pts[0][0]):
             pts.append(hq.heappop(bd))
-        if 1 < len(pts) < 50:
-            s_min = min([pt[-1] for pt in pts])  # Find 'oldest' site among list
-            keep = [i for i in range(len(pts)) if pts[i][-1] == s_min]
-            pt = [pts.pop(keep[0])]  # Keep it for processing
-            for pt in pts:  # Put rest of sits back on heap
-                hq.heappush(bd, pt)
         for pt in pts:
             # Insert discs of invading fluid into images
             seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], k=pt[4], r=pt[1],
@@ -199,8 +190,7 @@ def _ibip_inner_loop(
             # Add neighboring points to heap and edge
             neighbors = _find_valid_neighbors(i=pt[2], j=pt[3], k=pt[4], im=edge, conn=26)
             for n in neighbors:
-                hq.heappush(bd, [pc[n], dt[n], n[0], n[1], n[2], step_q])
-                step_q += 1
+                hq.heappush(bd, [pc[n], dt[n], n[0], n[1], n[2]])
                 edge[n[0], n[1], n[2]] = True
                 delta_step = 1
         step += delta_step

@@ -6,6 +6,12 @@ import heapq as hq
 from numba import njit
 
 
+__all__ = [
+    "capillary_transform",
+    "find_trapped_regions",
+]
+
+
 def capillary_transform(
     im,
     dt=None,
@@ -25,6 +31,13 @@ def capillary_transform(
     im : ndarray
         A boolean image describing the porous medium with ``True`` values indicating
         the phase of interest.
+    dt : ndarray
+        The distance transform of the void phase. If not provided it will be
+        calculated, so some time can be save if a pre-computed array is already
+        available.
+    sigma : scalar
+        The surface tension of the fluid-fluid interface. The units should be
+
     """
     if dt is None:
         dt = edt(im)
