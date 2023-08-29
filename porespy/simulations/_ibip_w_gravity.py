@@ -15,6 +15,8 @@ tqdm = get_tqdm()
 
 __all__ = [
     'invasion',
+    "capillary_transform",
+    "find_trapped_regions",
 ]
 
 
@@ -41,11 +43,11 @@ def invasion(
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
     return_sizes : bool
-        If `True` then array containing the size of the sphere which first
+        If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
         so requesting it increases computation time.
     return_pressures : bool
-        If `True` then array containing the capillary pressure at which
+        If `True` then an array containing the capillary pressure at which
         each pixels was first invaded is returned. This array is not computed by
         default so requesting it increases computation time.
     maxiter : int
@@ -301,3 +303,180 @@ def _where(arr):
     inds = np.where(arr)
     result = np.vstack(inds)
     return result
+
+
+def capillary_transform(
+    im,
+    dt=None,
+    sigma=0.01,
+    theta=180,
+    g=9.81,
+    rho=0,
+    voxelsize=1e-6,
+    spacing=100e-6
+):
+    r"""
+    Uses the Washburn equation to convert distance transform values to capillary
+    space
+
+    Parameters
+    ----------
+    im : ndarray
+        A boolean image describing the porous medium with ``True`` values indicating
+        the phase of interest.
+    dt : ndarray
+        The distance transform of the void phase. If not provided it will be
+        calculated, so some time can be save if a pre-computed array is already
+        available.
+    sigma : scalar
+        The surface tension of the fluid-fluid interface.
+    theta : scalar
+        The contact angle of the fluid-fluid-solid system, in degrees.
+    g : scalar
+        The gravitational constant acting on the fluids.
+    rho : scalar
+        The density difference between the fluids.
+    voxelsize : scalar
+        The resolution of the image
+    spacing : scalar
+        If a 2D image is provided, this value is used to compute the second
+        radii of curvature.
+
+    Notes
+    -----
+    All physical properties should be in self-consistent units, and it is strongly
+    recommended to use SI for everything.
+
+    """
+    if dt is None:
+        dt = edt(im)
+    if im.ndim == 2:
+        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 1/spacing)
+    else:
+        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
+    return pc
+
+
+def find_trapped_regions(seq, im, outlets, return_mask=True):
+    r"""
+    Finds clusters of trapped voxels using a reverse site-based invasion percolation
+    algorithm.
+
+    Parameters
+    ----------
+    seq : ndarray
+        The image containing the invasion sequence values from the drainage or
+        invasion simulation.
+    im : ndarray
+        The boolean image of the porous material with `True` indicating the phase
+        of interest.
+    outlets : ndarray
+        A boolean image the same shape as `seq` with `True` values indicating the
+        outlet locations for the defending phase.
+    return_mask : boolean
+        If `True` (default) a boolean image is returned with `True` values indicating
+        which voxels were trapped. If `False`, then an image containing updated
+        invasion sequence values is returned, with -1 indicating the trapped
+        voxels.
+
+    Returns
+    -------
+    Depending on the value of `return_mask` this function either returns a
+    boolean image with `True` value indicating trapped voxels, or a image
+    containing updated invasion sequence values with trapped voxels given a
+    value of -1.
+
+    Notes
+    -----
+    This currently only works if the image has been completely filled to the outlets
+    so needs to get the special case treatment that I added to the original
+    function.
+    """
+    # Make sure outlets are masked correctly and convert to 3d
+    out_temp = np.atleast_3d(outlets*(seq > 0))
+    # Initialize im_trapped array
+    im_trapped = np.ones_like(out_temp, dtype=bool)
+    # Convert seq to negative numbers and convert ot 3d
+    seq_temp = np.atleast_3d(-1*seq)
+    # Note which sites have been added to heap already
+    edge = out_temp*np.atleast_3d(im) + np.atleast_3d(~im)
+    trapped = _trapped_regions_inner_loop(
+        seq=seq_temp,
+        edge=edge,
+        trapped=im_trapped,
+        outlets=out_temp,
+    )
+    trapped = trapped.squeeze()
+    if return_mask:
+        return trapped
+    else:
+        seq = np.copy(seq)
+        seq[trapped] = -1
+        seq[~im] = 0
+        seq = make_contiguous(im=seq, mode='symmetric')
+        return seq
+
+
+@njit
+def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cover
+    # Initialize the binary heap
+    inds = np.where(outlets)
+    bd = []
+    for row, (i, j, k) in enumerate(zip(inds[0], inds[1], inds[2])):
+        bd.append([seq[i, j, k], i, j, k])
+    hq.heapify(bd)
+    minseq = np.amin(seq)
+    step = 1
+    maxiter = np.sum(seq < 0)
+    for _ in range(1, maxiter):
+        if len(bd):  # Put next site into pts list
+            pts = [hq.heappop(bd)]
+        else:
+            print(f"Exiting after {step} steps")
+            break
+        # Also pop any other points in list with same value
+        while len(bd) and (bd[0][0] == pts[0][0]):
+            pts.append(hq.heappop(bd))
+        while len(pts):
+            pt = pts.pop()
+            if (pt[0] >= minseq) and (pt[0] < 0):
+                trapped[pt[1], pt[2], pt[3]] = False
+                minseq = pt[0]
+            # Add neighboring points to heap and edge
+            neighbors = _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn=26)
+            for n in neighbors:
+                hq.heappush(bd, [seq[n], n[0], n[1], n[2]])
+                edge[n[0], n[1], n[2]] = True
+        step += 1
+    return trapped
+
+
+if __name__ == "__main__":
+    import porespy as ps
+    import matplotlib.pyplot as plt
+
+    # %%
+    im = ~ps.generators.random_spheres([400, 200], r=20, seed=0, clearance=10)
+
+    inlets = np.zeros_like(im)
+    inlets[0, :] = True
+    inlets = inlets*im
+    pc = capillary_transform(im)
+    ip = invasion(im, pc=pc, inlets=inlets)
+
+    outlets = np.zeros_like(im)
+    outlets[-1, :] = True
+    outlets = outlets*im
+    ps.tools.tic()
+    trapped_new = find_trapped_regions(seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
+    ps.tools.toc()
+    ps.tools.tic()
+    trapped = ps.filters.find_trapped_regions(seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
+    ps.tools.toc()
+
+
+    # %%
+    fig, ax = plt.subplots(1, 3)
+    ax[0].imshow(ip.im_seq/im, origin='lower', interpolation='none')
+    ax[1].imshow(trapped/im, origin='lower', interpolation='none')
+    ax[2].imshow(trapped_new/im, origin='lower', interpolation='none')

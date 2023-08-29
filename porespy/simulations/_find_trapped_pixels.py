@@ -57,7 +57,11 @@ def find_trapped_regions(seq, outlets, bins=None, return_mask=True):
     im_trapped = np.ones_like(out_temp, dtype=bool)
     # Convert seq to negative numbers and convert ot 3d
     seq_temp = np.atleast_3d(-1*seq)
-    trapped = _ibip_inner_loop(seq=seq_temp, trapped=im_trapped, outlets=out_temp)
+    trapped = _trapped_regions_inner_loop(
+        seq=seq_temp,
+        trapped=im_trapped,
+        outlets=out_temp,
+    )
     trapped = trapped.squeeze()
     if return_mask:
         return trapped
@@ -69,7 +73,7 @@ def find_trapped_regions(seq, outlets, bins=None, return_mask=True):
 
 
 @njit
-def _ibip_inner_loop(seq, trapped, outlets):  # pragma: no cover
+def _trapped_regions_inner_loop(seq, trapped, outlets):  # pragma: no cover
     # Initialize the binary heap
     inds = np.where(outlets)
     bd = []
