@@ -143,9 +143,11 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
             new_seeds = (pc <= p)*im
             # Find residual connected to invading fluid
             temp = trim_disconnected_blobs((inv_pc > 0) + (nwpr > 0), inlets=inlets)
-            # Find locations connected to surviving blobs of nwp
-            new_seeds = trim_disconnected_blobs(new_seeds, inlets=temp)
-            inv_pc, old_seeds = _apply(inv_pc, new_seeds, old_seeds)
+            temp = temp * (nwpr > 0)
+            if np.any(temp):
+                # Find locations connected to surviving blobs of nwp
+                new_seeds = trim_disconnected_blobs(new_seeds, inlets=temp)
+                inv_pc, old_seeds = _apply(inv_pc, new_seeds, old_seeds)
         count += 1
 
     # Set uninvaded voxels to inf
@@ -249,7 +251,7 @@ if __name__ == "__main__":
     seeds = seeds * ~ps.filters.trim_disconnected_blobs(seeds, inlets=inlets)
     nwpr = (edt(~seeds) < r).astype(float)
     pc = 1/dt
-    bins = [0.051]
+    bins = [0.035, 0.048, 0.055]
     drn1 = drainage(im=im, pc=pc, residual=nwpr > 0, bins=bins)
     drn2 = drainage(im=im, pc=pc, bins=bins)
     fig, ax = plt.subplots(1, 2)
