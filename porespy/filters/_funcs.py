@@ -655,13 +655,13 @@ def flood(im, labels, mode="max"):
     to view online example.
 
     """
-    mask = im != 0
+    mask = labels > 0
     N = labels.max()
     mode = "sum" if mode == "size" else mode
     mode = "maximum" if mode == "max" else mode
     mode = "minimum" if mode == "min" else mode
     f = getattr(spim, mode)
-    vals = f(input=im, labels=labels, index=range(0, N + 1))
+    vals = f(input=im*mask, labels=labels, index=range(0, N + 1))
     flooded = vals[labels]
     flooded = flooded * mask
     return flooded
