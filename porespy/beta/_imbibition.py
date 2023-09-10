@@ -144,7 +144,7 @@ if __name__ == '__main__':
     cm.set_over('k')
 
     # %%
-    im = ~ps.generators.random_spheres([400, 400], r=25, clearance=25, seed=0, edges='extended')
+    im = ~ps.generators.random_spheres([800, 800], r=25, clearance=25, seed=0, edges='extended')
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     inlets[-1, :] = True
@@ -170,7 +170,7 @@ if __name__ == '__main__':
     ax[0][1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
 
     seq = ps.filters.pc_to_seq(pc=imb1.im_pc, im=im, mode='imbibition')
-    np.all(seq == imb1.im_seq)
+    np.sum(seq != imb1.im_seq)
     seq = ps.filters.find_trapped_regions(imb1.im_seq, outlets=outlets, return_mask=False)
     satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
     satn[satn < 0] = 2
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     ax[1][0].imshow(satn, origin='lower', interpolation='none', cmap=cm, vmin=-0.01, vmax=1.0)
 
     seq = ps.filters.pc_to_seq(pc=imb2.im_pc, im=im, mode='imbibition')
-    np.all(seq == imb2.im_seq)
+    np.sum(seq != imb2.im_seq)
     seq = ps.filters.find_trapped_regions(imb2.im_seq, outlets=outlets, return_mask=False)
     satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
     satn[satn < 0] = 2
@@ -189,24 +189,24 @@ if __name__ == '__main__':
     fig, ax = plt.subplots()
 
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb1.im_pc, im=im, seq=imb1.im_seq, mode='imbibition')
-    ax.plot(pccurve.pc, pccurve.snwp, c='tab:blue', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:blue', marker='o')
 
     seq = ps.filters.find_trapped_regions(imb1.im_seq, outlets=outlets, return_mask=False)
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb1.im_pc, im=im, seq=seq, mode='imbibition')
-    ax.plot(pccurve.pc, pccurve.snwp, c='tab:green', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:green', marker='o')
 
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb2.im_pc, im=im, seq=imb2.im_seq, mode='imbibition')
-    ax.plot(pccurve.pc, pccurve.snwp, c='tab:red', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:red', marker='o')
 
     seq = ps.filters.find_trapped_regions(imb2.im_seq, outlets=outlets, return_mask=False)
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb2.im_pc, im=im, seq=seq, mode='imbibition')
-    ax.plot(pccurve.pc, pccurve.snwp, c='tab:orange', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:orange', marker='o')
 
     from porespy import beta
     drn = beta.drainage(im=im, pc=pc, inlets=inlets)
     seq = ps.filters.pc_to_seq(drn.im_pc, im=im, mode='drainage')
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=drn.im_pc, im=im, mode='drainage')
-    ax.plot(pccurve.pc, pccurve.snwp, c='k', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='k', marker='o')
 
 
 
