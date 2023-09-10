@@ -129,7 +129,7 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
         radii = dt[coords]
         # Insert spheres at new locations of given radii
         inv_pc = _insert_disks_npoints_nradii_1value_parallel(
-            im=inv_pc, coords=coords, radii=radii, v=bins[count])
+            im=inv_pc, coords=coords, radii=radii, v=p)
         return inv_pc, old_seeds
 
     count = 0
@@ -142,8 +142,8 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
         if residual is not None:
             new_seeds = (pc <= p)*im
             # Find residual connected to invading fluid
-            temp = trim_disconnected_blobs((inv_pc > 0) + (nwpr > 0), inlets=inlets)
-            temp = temp * (nwpr > 0)
+            temp = trim_disconnected_blobs((inv_pc > 0) + (residual > 0), inlets=inlets)
+            temp = temp * (residual > 0)
             if np.any(temp):
                 # Find locations connected to surviving blobs of nwp
                 new_seeds = trim_disconnected_blobs(new_seeds, inlets=temp)
@@ -154,7 +154,7 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
     inv_pc[(inv_pc == 0)*im] = np.inf
 
     if residual is not None:
-        inv_pc[residual] = -np.inf
+        inv_pc[residual] = np.amin(inv_pc)
 
     # Initialize results object and attached arrays
     results = Results()
@@ -214,7 +214,7 @@ if __name__ == "__main__":
     cm.set_under('darkgrey')
     cm.set_over('k')
 
-    # %%
+    # %% Add gravity
     im = ps.generators.blobs(
         shape=[200, 200, 200], porosity=0.7, blobiness=1.5, seed=0)
     inlets = np.zeros_like(im)
@@ -241,17 +241,18 @@ if __name__ == "__main__":
     ax.set_xlabel('log(Capillary Pressure [Pa])')
     ax.set_ylabel('Non-wetting Phase Saturation')
 
-    # %%
+    # %% Add residual nwp
     im = ~ps.generators.random_spheres(
         [400, 400], r=25, clearance=25, seed=1, edges='extended')
     dt = edt(im)
-    r = 30
-    seeds = dt >= r
-    inlets = ps.generators.borders(shape=im.shape, mode='faces')
-    seeds = seeds * ~ps.filters.trim_disconnected_blobs(seeds, inlets=inlets)
-    nwpr = (edt(~seeds) < r).astype(float)
-    pc = 1/dt
-    bins = [0.035, 0.048, 0.055]
+    voxel_size = 1e-4
+    sigma = 0.072
+    pc = 2*sigma/(dt*voxel_size)
+
+    lt = ps.filters.local_thickness(im, sizes=10)
+    nwpr = lt >= (np.unique(lt)[-2])
+    nwpr = nwpr * ~ps.filters.fill_blind_pores(nwpr)
+    bins = np.linspace(0, 1000, 50)
     drn1 = drainage(im=im, pc=pc, residual=nwpr > 0, bins=bins)
     drn2 = drainage(im=im, pc=pc, bins=bins)
     fig, ax = plt.subplots(1, 2)
@@ -266,3 +267,20 @@ if __name__ == "__main__":
     tmp[~im] = -1
     ax[1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=0, vmax=1)
     ax[1].axis(False)
+
+    # seq = ps.filters.satn_to_seq(drn1.im_snwp)
+    # pc_curve1 = ps.metrics.pc_curve(im=im, pc=drn1.im_pc, seq=seq)
+    pc_curve1 = ps.metrics.pc_map_to_pc_curve(drn1.im_pc, im=im)
+
+    # seq = ps.filters.satn_to_seq(drn2.im_snwp)
+    # pc_curve2 = ps.metrics.pc_curve(im=im, pc=drn2.im_pc, seq=seq)
+    pc_curve2 = ps.metrics.pc_map_to_pc_curve(drn2.im_pc, im=im)
+
+    fig, ax = plt.subplots(figsize=[5.5, 5])
+    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, marker='o', color='tab:blue', label='with residual')
+    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, marker='o', color='tab:red', label='no residual')
+    ax.set_ylim([0, 1.05])
+    ax.set_xlim([10, 1000])
+    ax.set_xlabel('$P_C [Pa]$')
+    ax.set_ylabel('Non-Wetting Phase Saturation')
+    ax.legend(loc='lower right');
