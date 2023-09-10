@@ -1049,7 +1049,8 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
     """
     tqdm = get_tqdm()
     if seq is not None:
-        seqs = np.unique(seq)[1:]
+        seqs = np.unique(seq)
+        seqs = seqs[seqs > 0]
         x = []
         y = []
         with tqdm(seqs, **settings.tqdm) as pbar:
