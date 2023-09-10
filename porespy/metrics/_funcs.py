@@ -1113,7 +1113,7 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
     return pc_curve
 
 
-def pc_map_to_pc_curve(pc, im, seq=None):
+def pc_map_to_pc_curve(pc, im, seq=None, mode='drainage'):
     r"""
     Converts a pc map into a capillary pressure curve
 
@@ -1123,8 +1123,8 @@ def pc_map_to_pc_curve(pc, im, seq=None):
         A numpy array with each voxel containing the capillary pressure at which
         it was invaded. `-inf` indicates voxels which are already filled with
         non-wetting fluid, and `+inf` indicates voxels that are not invaded by
-        non-wetting fluid (e.g., trapped wetting phase). Solids should be
-        noted by `+inf` but this is also enforced inside the function using `im`.
+        non-wetting fluid (e.g., trapped wetting phase). Values in the solid
+        phase are masked by `im` so are ignored.
     im : ndarray
         A numpy array with `True` values indicating the void space and `False`
         elsewhere. This is necessary to define the total void volume of the domain
@@ -1154,14 +1154,18 @@ def pc_map_to_pc_curve(pc, im, seq=None):
     must be converted to a capillary pressure map first.  `drainage` and `invasion`
     both return capillary pressure maps which can be passed directly as `pc`.
     """
+    pc = np.copy(pc)
     pc[~im] = np.inf  # Ensure solid voxels are set to inf invasion pressure
     if seq is None:
         pcs, counts = np.unique(pc, return_counts=True)
     else:
+        pc[seq == -1] = np.inf
         vals, index, counts = np.unique(seq, return_index=True, return_counts=True)
         pcs = pc.flatten()[index]
     snwp = np.cumsum(counts[pcs < np.inf])/im.sum()
     pcs = pcs[pcs < np.inf]
+    if mode.startswith('im'):
+        snwp = 1 - snwp
 
     results = Results()
     results.pc = pcs
