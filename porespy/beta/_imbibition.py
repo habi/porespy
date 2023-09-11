@@ -59,19 +59,22 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, re
 
     pc[~im] = -np.inf
     if isinstance(bins, int):
-        bins = np.logspace(1, np.log10(pc.max()), bins)
-    bins = np.unique(bins)[::-1]
+        bins = np.logspace(1, np.log10(pc[im].max()), bins)
+    bins = np.unique(bins)[::-1]  # Sort from highest to lowest
 
     im_pc = np.zeros_like(im, dtype=float)
     if return_seq:
         im_seq = np.zeros_like(im, dtype=int)
     if return_sizes:
-        im_sizes = np.zeros_like(im, dtype=int)
-    for i, p in tqdm(enumerate(bins), **settings.tqdm):
-        seeds = (pc <= p)*im
+        im_size = np.zeros_like(im, dtype=int)
+    for i in tqdm(range(len(bins)-1), **settings.tqdm):
+        p = bins[i]
+        # The following "bracketed" threshold produces exactly the same result
+        # as a single threshold `seeds = (pc <= bins[i])*im` without any extra
+        # consideration like filling in the missing bits later. Using a bracket
+        # is much faster since there are less spheres to insert.
+        seeds = (pc <= bins[i])*(pc > bins[i+1])*im
         coords = np.where(seeds)
-        # Reduce number of insert sites by
-        # seeds += new_seeds
         # Extract the local size of sphere to insert at each new location
         radii = dt[coords]
         # Insert spheres at new locations of given radii
@@ -81,15 +84,19 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, re
             im_seq = _insert_disks_npoints_nradii_1value_parallel(
                 im=im_seq, coords=coords, radii=radii, v=i+1, overwrite=True)
         if return_sizes:
-            im_sizes = _insert_disks_npoints_nradii_1value_parallel(
-                im=im_sizes, coords=coords, radii=radii, v=radii[0], overwrite=True)
+            try:
+                r = radii[0]
+            except IndexError:
+                r = 0
+            im_size = _insert_disks_npoints_nradii_1value_parallel(
+                im=im_size, coords=coords, radii=radii, v=r, overwrite=True)
         if inlets is not None:
             tmp = trim_disconnected_blobs(im*(im_pc > p), inlets=inlets)
             im_pc[~tmp] = p
             if return_seq:
                 im_seq[~tmp] = i + 1
             if return_sizes:
-                im_sizes[~tmp] = radii[0]
+                im_size[~tmp] = r
 
     # Collect data in a Results object
     result = Results()
@@ -100,8 +107,8 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, re
         im_seq = make_contiguous(im_seq)
         result.im_seq = im_seq
     if return_sizes:
-        im_sizes[~im] = 0
-        result.im_sizes = im_sizes
+        im_size[~im] = 0
+        result.im_size = im_size
     return result
 
 
@@ -157,69 +164,85 @@ if __name__ == '__main__':
     cm.set_over('k')
 
     # %%
-    im = ~ps.generators.random_spheres([800, 800], r=25, clearance=25, seed=0, edges='extended')
+    # im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
+    im = ps.generators.blobs([200, 200, 200], porosity=0.65, blobiness=1.5)
     inlets = np.zeros_like(im)
-    inlets[0, :] = True
-    inlets[-1, :] = True
+    inlets[0, ...] = True
     outlets = np.zeros_like(im)
-    outlets[:, 0] = True
-    outlets[:, -1] = True
+    outlets[-1, ...] = True
     vx = 1e-5
     pc = 2*0.072/(edt(im)*vx)
+    pc[~im] = np.inf
 
     # Perform imbibition with no trapping
-    imb1 = imbibition(im=im, pc=pc)
-    imb2 = imbibition(im=im, pc=pc, inlets=inlets)
+    imb1 = imbibition(im=im, pc=pc, return_seq=True, return_sizes=True)
+    imb2 = imbibition(im=im, pc=pc, inlets=inlets, return_seq=True, return_sizes=True)
 
+    # %%
+    if im.ndim == 2:
+        fig, ax = plt.subplots(3, 2)
 
-    fig, ax = plt.subplots(2, 2)
+        tmp = np.copy(imb1.im_size)
+        tmp[~im] = -1
+        ax[0][0].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        ax[0][0].set_title("Size")
 
-    tmp = np.copy(imb1.im_seq)
-    tmp[~im] = -1
-    ax[0][0].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        tmp = np.copy(imb2.im_size)
+        tmp[~im] = -1
+        ax[0][1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        ax[0][1].set_title("Size")
 
-    tmp = np.copy(imb2.im_seq)
-    tmp[~im] = -1
-    ax[0][1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        tmp = np.copy(imb1.im_seq)
+        tmp[~im] = -1
+        ax[1][0].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        ax[1][0].set_title("Sequence")
 
-    seq = ps.filters.pc_to_seq(pc=imb1.im_pc, im=im, mode='imbibition')
-    np.sum(seq != imb1.im_seq)
-    seq = ps.filters.find_trapped_regions(imb1.im_seq, outlets=outlets, return_mask=False)
-    satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
-    satn[satn < 0] = 2
-    satn[~im] = -1
-    ax[1][0].imshow(satn, origin='lower', interpolation='none', cmap=cm, vmin=-0.01, vmax=1.0)
+        tmp = np.copy(imb2.im_seq)
+        tmp[~im] = -1
+        ax[1][1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=-0.01)
+        ax[1][1].set_title("Sequence")
 
-    seq = ps.filters.pc_to_seq(pc=imb2.im_pc, im=im, mode='imbibition')
-    np.sum(seq != imb2.im_seq)
-    seq = ps.filters.find_trapped_regions(imb2.im_seq, outlets=outlets, return_mask=False)
-    satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
-    satn[satn < 0] = 2
-    satn[~im] = -1
-    ax[1][1].imshow(satn, origin='lower', interpolation='none', cmap=cm, vmin=-0.01, vmax=1.0)
+        seq = ps.filters.pc_to_seq(pc=imb1.im_pc, im=im, mode='imbibition')
+        np.sum(seq != imb1.im_seq)
+        seq = ps.filters.find_trapped_regions(imb1.im_seq, outlets=outlets, return_mask=False)
+        satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
+        satn[satn < 0] = 2
+        satn[~im] = -1
+        ax[2][0].imshow(satn, origin='lower', interpolation='none', cmap=cm, vmin=-0.01, vmax=1.0)
+        ax[2][0].set_title("Saturation after Trapping")
+
+        seq = ps.filters.pc_to_seq(pc=imb2.im_pc, im=im, mode='imbibition')
+        np.sum(seq != imb2.im_seq)
+        seq = ps.filters.find_trapped_regions(imb2.im_seq, outlets=outlets, return_mask=False)
+        satn = ps.filters.seq_to_satn(seq=seq, im=im, mode='imbibition')
+        satn[satn < 0] = 2
+        satn[~im] = -1
+        ax[2][1].imshow(satn, origin='lower', interpolation='none', cmap=cm, vmin=-0.01, vmax=1.0)
+        ax[2][1].set_title("Saturation after Trapping")
 
     # %%
     fig, ax = plt.subplots()
 
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb1.im_pc, im=im, seq=imb1.im_seq, mode='imbibition')
-    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:blue', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:blue', marker='o', label='no access limitations, no trapping')
 
     seq = ps.filters.find_trapped_regions(imb1.im_seq, outlets=outlets, return_mask=False)
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb1.im_pc, im=im, seq=seq, mode='imbibition')
-    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:green', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:green', marker='s', label='no access limitations, with trapping')
 
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb2.im_pc, im=im, seq=imb2.im_seq, mode='imbibition')
-    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:red', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:red', marker='d', label='with access limitations, no trapping')
 
     seq = ps.filters.find_trapped_regions(imb2.im_seq, outlets=outlets, return_mask=False)
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=imb2.im_pc, im=im, seq=seq, mode='imbibition')
-    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:orange', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='tab:orange', marker='^', label='with access limitations, with trapping')
 
     from porespy import beta
-    drn = beta.drainage(im=im, pc=pc, inlets=inlets)
+    drn = beta.drainage(im=im, pc=pc, inlets=outlets)
     seq = ps.filters.pc_to_seq(drn.im_pc, im=im, mode='drainage')
     pccurve = ps.metrics.pc_map_to_pc_curve(pc=drn.im_pc, im=im, mode='drainage')
-    ax.semilogx(pccurve.pc, pccurve.snwp, c='k', marker='o')
+    ax.semilogx(pccurve.pc, pccurve.snwp, c='k', marker='o', label='drainage')
+    ax.legend()
 
 
 
