@@ -203,11 +203,15 @@ def seq_to_satn(seq, im=None, mode='drainage'):
     else:
         solid_mask = im == 0
     uninvaded_mask = seq == -1  # Store uninvaded locations
-    seq[seq <= 0] = 0  # Set uninvaded to solid for next steps
     if mode.startswith('im'):
+        seq[seq < 0] = 0
         seq = seq.max() - seq + 1
         seq[solid_mask] = 0
-        seq[uninvaded_mask] = 0
+        seq[uninvaded_mask] = 1
+    elif mode.startswith('drain'):
+        seq[seq <= 0] = 0  # Set uninvaded to solid for next steps
+    else:
+        raise Exception('Unrecognized mode')
     seq = rankdata(seq, method='dense') - 1
     b = np.bincount(seq)
     if (solid_mask.sum(dtype=np.int64) > 0) or \
@@ -259,7 +263,7 @@ def pc_to_seq(pc, im, mode='drainage'):
     seq : ndarray
         A Numpy array the same shape as `pc`, with each voxel value indicating
         the sequence at which it was invaded, according to the specified `mode`.
-        Uninvaded voxels are set to -1.
+        Uninvaded voxels are set to -1 and solids are 0.
 
     Notes
     -----
@@ -274,15 +278,17 @@ def pc_to_seq(pc, im, mode='drainage'):
     <https://porespy.org/examples/filters/reference/pc_to_seq.html>`_
     to view online example.
     """
+    pc = np.copy(pc)
     inf = pc == np.inf  # save for later
     if mode == 'drainage':
         bins = np.unique(pc)
+        a = np.digitize(pc, bins=bins, right=False)
     elif mode == 'imbibition':
         pc[pc == -np.inf] = np.inf
-        bins = np.unique(pc)[-1::-1]
-    a = np.digitize(pc, bins=bins)
-    a[~im] = 0
+        bins = np.unique(pc)[::-1]
+        a = np.digitize(pc, bins=bins, right=True)
     a[np.where(inf)] = -1
+    a[~im] = 0
     a = make_contiguous(a, mode='symmetric')
     return a
 
