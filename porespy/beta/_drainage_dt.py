@@ -3,6 +3,13 @@ from edt import edt
 from porespy.filters import trim_disconnected_blobs
 from porespy import settings
 from porespy.tools import get_tqdm, Results
+
+
+__all__ = [
+    'drainage_dt',
+]
+
+
 tqdm = get_tqdm()
 
 
@@ -86,25 +93,3 @@ if __name__ == '__main__':
     if im.ndim == 2:
         fig, ax = plt.subplots()
         ax.imshow(np.log10(pc))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
