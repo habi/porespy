@@ -64,12 +64,42 @@ def drainage_dt(im, inlets, residual=None):
     r"""
     This is a reference implementation of drainage using distance transforms
 
+    Parameters
+    ----------
+    im : ndarray
+        A boolean image of the material with `True` values indicating the phase
+        of interest.
+    inlets : ndarray
+        A boolean image the same shape as `im` with `True` values indicating the
+        locations of the invading fluid inlets.
+    residual : ndarray
+        A boolean image the same shape as `im` with `True` values indicating
+        voxels which are pre-filled filled with non-wetting (invading) phase.
+
+    Returns
+    -------
+    results : Results object
+        A dataclass-like object with the following attributes:
+
+        ========== =================================================================
+        Attribute  Description
+        ========== =================================================================
+        im_seq     A numpy array with each voxel value indicating the sequence
+                   at which it was invaded.  Values of -1 indicate that it was
+                   not invaded.
+        im_size    A numpy array with each voxel value indicating the radius of
+                   spheres being inserted when it was invaded.
+        ========== =================================================================
+
     Notes
     -----
     This function is purely geometric using only distance transforms to find
     insertion sites. The point is to provide a straightforward function for
     validating other implementations. It can also be used for speed comparisons
-    since it uses the `edt` package with parallelization enabled.
+    since it uses the `edt` package with parallelization enabled. It cannot operate
+    on the capillary pressure transform so cannot do gravity or other physics. The
+    capillary pressure must be calculated afterwards using the `results.im_pc`
+    array, like `pc = -2*sigma*cos(theta)/(results.im_pc*voxel_size)`.
 
     """
     im = np.array(im, dtype=bool)
@@ -101,7 +131,15 @@ def drainage_dt(im, inlets, residual=None):
     return results
 
 
-def drainage(im, pc, inlets=None, residual=None, bins=25, return_seq=False, return_snwp=False):
+def drainage(
+    im,
+    pc,
+    inlets=None,
+    residual=None,
+    bins=25,
+    return_seq=False,
+    return_snwp=False,
+):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
