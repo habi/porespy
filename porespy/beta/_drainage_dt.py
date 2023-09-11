@@ -6,30 +6,36 @@ from porespy.tools import get_tqdm, Results
 tqdm = get_tqdm()
 
 
-def drainage_dt(im, pc, inlets):
+def drainage_dt(im, inlets, residual=None):
     r"""
-    This is a reference implementation of IBSI drainage using distance transforms
+    This is a reference implementation of drainage using distance transforms
     """
     im = np.array(im, dtype=bool)
     dt = np.around(edt(im), decimals=0).astype(int)
     bins = np.unique(dt[im])[::-1]
-    im_pc = np.zeros_like(im, dtype=float)
     im_seq = -np.ones_like(im, dtype=int)
-    im_size = np.zeros_like(im, dtype=int)
+    im_size = np.zeros_like(im, dtype=float)
     for i, r in enumerate(tqdm(bins, **settings.tqdm)):
         seeds = dt >= r
         seeds = trim_disconnected_blobs(seeds, inlets=inlets)
-        if np.any(seeds):
+        if not np.any(seeds):
+            continue
+        nwp = edt(~seeds, parallel=settings.ncores) < r
+        if residual is not None:
+            blobs = trim_disconnected_blobs(residual, inlets=nwp)
+            seeds = dt >= r
+            seeds = trim_disconnected_blobs(seeds, inlets=blobs + inlets)
             nwp = edt(~seeds, parallel=settings.ncores) < r
-            mask = nwp*(im_pc == 0)
-            p = np.amin(pc[dt == r])
-            im_pc[mask] = p
-            im_size[mask] = r
-            im_seq[mask] = i + 1
+        mask = nwp*(im_seq == -1)
+        im_size[mask] = r
+        im_seq[mask] = i + 1
+    if residual is not None:
+        im_seq[im_seq > 0] += 1
+        im_seq[residual] = 1
+        im_size[residual] = -np.inf
     results = Results()
-    results.im_pc = im_pc
-    results.im_seq = im_seq
-    results.im_size = im_size
+    results.im_seq = im_seq*im
+    results.im_size = im_size*im
     return results
 
 
@@ -46,24 +52,40 @@ if __name__ == '__main__':
 
     # %%
     im = ps.generators.blobs(
-        shape=[300, 300, 300], porosity=0.7, blobiness=1.5, seed=0)
+        shape=[200, 200, 200], porosity=0.7, blobiness=2, seed=1)
     im = ps.filters.fill_blind_pores(im)
     inlets = np.zeros_like(im)
     inlets[0, ...] = True
-    dt = edt(im)
+    outlets = np.zeros_like(im)
+    outlets[-1, ...] = True
     voxel_size = 1e-4
     sigma = 0.072
     theta = 180
-    pc = -2*sigma*np.cos(np.radians(theta))/(dt*voxel_size)
 
-    drn = drainage_dt(im=im, pc=pc, inlets=inlets)
-    pc_curve = ps.metrics.pc_map_to_pc_curve(drn.im_pc, im=im)
+    drn = drainage_dt(im=im, inlets=inlets)
+    pc = -2*sigma*np.cos(np.radians(theta))/(drn.im_size*voxel_size)
+    pc_curve1 = ps.metrics.pc_map_to_pc_curve(pc, im=im)
 
+    trapped = ps.filters.find_trapped_regions(drn.im_seq, outlets=outlets)
+    pc[trapped] = np.inf
+    pc_curve2 = ps.metrics.pc_map_to_pc_curve(pc, im=im)
+
+    lt = ps.filters.local_thickness(im)
+    nwpr = lt > np.unique(lt)[-7]
+    drn = drainage_dt(im=im, inlets=inlets, residual=nwpr)
+    pc = -2*sigma*np.cos(np.radians(theta))/(drn.im_size*voxel_size)
+    pc_curve3 = ps.metrics.pc_map_to_pc_curve(pc, im=im)
+
+    # %%
     fig, ax = plt.subplots()
-    ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b-o')
+    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, 'b-o', label='No Trapping')
+    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, 'r-o', label='With Trapping')
+    ax.semilogx(pc_curve3.pc, pc_curve3.snwp, 'g-o', label='With Residual')
+    ax.semilogx([0, pc_curve3.pc.max()], [nwpr.sum()/im.sum(), nwpr.sum()/im.sum()], 'k-')
+    ax.legend(loc='lower right')
     if im.ndim == 2:
         fig, ax = plt.subplots()
-        ax.imshow(np.log10(drn.im_pc))
+        ax.imshow(np.log10(pc))
 
 
 
