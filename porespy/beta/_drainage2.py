@@ -1,7 +1,11 @@
 import numpy as np
 from edt import edt
 from numba import njit, prange
-from porespy.filters import trim_disconnected_blobs, pc_to_satn
+from porespy.filters import (
+    trim_disconnected_blobs,
+    pc_to_satn,
+    pc_to_seq,
+)
 from porespy import settings
 from porespy.tools import get_tqdm, Results
 tqdm = get_tqdm()
@@ -10,6 +14,7 @@ tqdm = get_tqdm()
 __all__ = [
     'drainage',
     'elevation_map',
+    'drainage_dt',
 ]
 
 
@@ -55,7 +60,40 @@ def elevation_map(im_or_shape, voxel_size=1, axis=0):
     return h
 
 
-def drainage(im, pc, inlets=None, residual=None, bins=25):
+def drainage_dt(im, inlets, residual=None):
+    r"""
+    This is a reference implementation of drainage using distance transforms
+    """
+    im = np.array(im, dtype=bool)
+    dt = np.around(edt(im), decimals=0).astype(int)
+    bins = np.unique(dt[im])[::-1]
+    im_seq = -np.ones_like(im, dtype=int)
+    im_size = np.zeros_like(im, dtype=float)
+    for i, r in enumerate(tqdm(bins, **settings.tqdm)):
+        seeds = dt >= r
+        seeds = trim_disconnected_blobs(seeds, inlets=inlets)
+        if not np.any(seeds):
+            continue
+        nwp = edt(~seeds, parallel=settings.ncores) < r
+        if residual is not None:
+            blobs = trim_disconnected_blobs(residual, inlets=nwp)
+            seeds = dt >= r
+            seeds = trim_disconnected_blobs(seeds, inlets=blobs + inlets)
+            nwp = edt(~seeds, parallel=settings.ncores) < r
+        mask = nwp*(im_seq == -1)
+        im_size[mask] = r
+        im_seq[mask] = i + 1
+    if residual is not None:
+        im_seq[im_seq > 0] += 1
+        im_seq[residual] = 1
+        im_size[residual] = -np.inf
+    results = Results()
+    results.im_seq = im_seq*im
+    results.im_size = im_size*im
+    return results
+
+
+def drainage(im, pc, inlets=None, residual=None, bins=25, return_seq=False, return_snwp=True):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
@@ -66,14 +104,16 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
         The image of the porous media with ``True`` values indicating the
         void space.
     pc : ndarray
-        An array containing capillary pressure map.
+        An array containing the capillary pressure space.
     inlets : ndarray (default = x0)
         A boolean image the same shape as ``im``, with ``True`` values
         indicating the inlet locations. See Notes. If not specified it is
         assumed that the invading phase enters from the bottom (x=0).
     residual : ndarray
         A boolean array the same shape a `im` with `True` values indicating the
-        location of trapped non-wetting phase (i.e. invading phase).
+        location of trapped non-wetting phase (i.e. invading phase).  Note that
+        any values of `-inf` in `pc` will also be treated as residual non-wetting
+        phase.
     bins : int or array_like (default =  `None`)
         The range of pressures to apply. If an integer is given
         then bins will be created between the lowest and highest pressures
@@ -90,8 +130,9 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
         ========== =================================================================
         im_pc      A numpy array with each voxel value indicating the
                    capillary pressure at which it was invaded
-        im_snwp    A numpy array with each voxel value indicating the global
-                   non-wetting phase saturation value at the point it was invaded
+        im_snwp    if `return_snwp` is try, a numpy array with each voxel value
+                   indicating the global non-wetting phase saturation value at the
+                   point it was invaded.
         ========== =================================================================
 
     """
@@ -108,58 +149,56 @@ def drainage(im, pc, inlets=None, residual=None, bins=25):
         vals = vals[~np.isinf(vals)]
         bins = np.logspace(np.log10(vals.min()), np.log10(vals.max()), bins)
 
-    # Digitize pc (I forget why I do this?)
-    # pc_dig = np.digitize(pc, bins=bins)
-    # pc_dig[~im] = 0
-    # Ps = np.unique(pc_dig[im])
-    # Ps = Ps[Ps != 0]
+    if len(bins) == 1:
+        bins = [bins[0], bins[0]]
 
-    # Initialize empty arrays to accumulate results of each loop
-    old_seeds = np.zeros_like(im, dtype=bool)
+    # Digitize pc
+    pc_vals = np.copy(pc)
+    pc = np.digitize(pc, bins=bins)
+    pc[~im] = 0
+    bins = np.unique(pc[im])
+
     inv_pc = np.zeros_like(im, dtype=float)
 
-    def _apply(inv_pc, new_seeds, old_seeds):
-        # Isolate only newly found locations to speed up inserting
-        temp = new_seeds*(~old_seeds)
-        # Find i,j,k coordinates of new locations
-        coords = np.where(temp)
-        # Add new locations to list of invaded locations
-        old_seeds += new_seeds
-        # Extract the local size of sphere to insert at each new location
-        radii = dt[coords]
-        # Insert spheres at new locations of given radii
-        inv_pc = _insert_disks_npoints_nradii_1value_parallel(
-            im=inv_pc, coords=coords, radii=radii, v=p)
-        return inv_pc, old_seeds
-
     count = 0
-    for p in tqdm(bins, **settings.tqdm):
-        # Find all locations in image invadable at current pressure
-        new_seeds = (pc <= p)*im
+    for i in tqdm(range(1, len(bins)), **settings.tqdm):
+        p = bins[i]
+        seeds = (pc <= bins[i])*im  # Find all locations invadable at current pc
         # Trim locations not connected to the inlets
-        new_seeds = trim_disconnected_blobs(new_seeds, inlets=inlets)
-        inv_pc, old_seeds = _apply(inv_pc, new_seeds, old_seeds)
-        if residual is not None:
-            new_seeds = (pc <= p)*im
-            # Find residual connected to invading fluid
-            temp = trim_disconnected_blobs((inv_pc > 0) + (residual > 0), inlets=inlets)
-            temp = temp * (residual > 0)
-            if np.any(temp):
-                # Find locations connected to surviving blobs of nwp
-                new_seeds = trim_disconnected_blobs(new_seeds, inlets=temp)
-                inv_pc, old_seeds = _apply(inv_pc, new_seeds, old_seeds)
+        seeds = trim_disconnected_blobs(seeds, inlets=inlets)
+        # shell = seeds*(pc >= bins[i-1])  # Isolate shell to reduce number of insertions
+        coords = np.where(seeds)  # Find i,j,k coordinates of new locations
+        radii = dt[coords]  # Extract the local size of sphere to insert
+        inv_pc = _insert_disks_npoints_nradii_1value_parallel(  # Insert spheres
+            im=inv_pc, coords=coords, radii=radii, v=p)
+        # core = seeds*(~shell)*(inv_pc == 0)  # Fill any core not overlapped by spheres
+        # inv_pc[core] = p
+        if residual is not None:  # Add residual and check for newly connected seeds
+            seeds = (pc <= bins[i])*im  # Find all seeds again
+            # Find residual clusters connected to invading fluid
+            temp = trim_disconnected_blobs((inv_pc > 0)+(residual > 0), inlets=inlets)
+            temp = temp*(residual > 0)  # Keep residual connected to invasion front
+            if np.any(temp):  # temp can be empty, so this should be skipped
+                # Find seeds connected to clusters of surviving residual
+                seeds = trim_disconnected_blobs(seeds, inlets=temp)
+                coords = np.where(seeds)  # Find i,j,k coordinates of new locations
+                radii = dt[coords]  # Extract the local size of sphere to insert
+                inv_pc = _insert_disks_npoints_nradii_1value_parallel(  # Insert spheres
+                    im=inv_pc, coords=coords, radii=radii, v=p)
         count += 1
 
-    # Set uninvaded voxels to inf
-    inv_pc[(inv_pc == 0)*im] = np.inf
+    inv_pc[(inv_pc == 0)*im] = np.inf  # Set uninvaded voxels to inf
 
     if residual is not None:
-        inv_pc[residual] = np.amin(inv_pc)
+        inv_pc[residual] = -np.inf
 
-    # Initialize results object and attached arrays
-    results = Results()
-    satn = pc_to_satn(pc=inv_pc, im=im)
-    results.im_snwp = satn
+    results = Results()  # Initialize results object and attach arrays
+    if return_snwp:
+        satn = pc_to_satn(pc=inv_pc, im=im)
+        results.im_snwp = satn
+    if return_seq:
+        seq = pc_to_seq(inv_pc, im=im, mode='drainage')
+        results.im_seq = seq
     results.im_pc = inv_pc
     return results
 
@@ -236,37 +275,43 @@ if __name__ == "__main__":
     pc_curve2 = ps.metrics.pc_map_to_pc_curve(drn2.im_pc, im=im)
 
     fig, ax = plt.subplots()
-    ax.step(np.log10(pc_curve1.pc), pc_curve1.snwp, where='post')
-    ax.step(np.log10(pc_curve2.pc), pc_curve2.snwp, where='post')
+    ax.step(np.log10(pc_curve1.pc), pc_curve1.snwp, where='post', label='No Gravity')
+    ax.step(np.log10(pc_curve2.pc), pc_curve2.snwp, where='post', label='With Gravity')
     ax.set_xlabel('log(Capillary Pressure [Pa])')
     ax.set_ylabel('Non-wetting Phase Saturation')
+    ax.legend(loc='lower right')
 
     # %% Add residual nwp
-    im = ~ps.generators.random_spheres(
-        [400, 400], r=25, clearance=25, seed=1, edges='extended')
+    # im = ~ps.generators.random_spheres(
+    #     [400, 400], r=25, clearance=25, seed=1, edges='extended')
+    im = ps.generators.blobs(
+        shape=[400, 400], porosity=0.7, blobiness=1.5, seed=0)
+    inlets = np.zeros_like(im)
+    inlets[0, ...] = True
+    outlets = np.zeros_like(im)
+    outlets[-1, ...] = True
     dt = edt(im)
     voxel_size = 1e-4
     sigma = 0.072
     pc = 2*sigma/(dt*voxel_size)
 
-    lt = ps.filters.local_thickness(im, sizes=10)
-    nwpr = lt >= (np.unique(lt)[-2])
-    nwpr = nwpr * ~ps.filters.fill_blind_pores(nwpr)
-    bins = np.linspace(0, 1000, 50)
-    drn1 = drainage(im=im, pc=pc, residual=nwpr > 0, bins=bins)
-    drn2 = drainage(im=im, pc=pc, bins=bins)
-    fig, ax = plt.subplots(1, 2)
-    tmp = np.copy(drn2.im_snwp)
-    tmp[tmp == -1] = 2
-    tmp[~im] = -1
-    ax[0].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=0, vmax=1)
-    ax[0].axis(False)
+    # Generate some residual blobs of nwp
+    drn1 = drainage(im=im, pc=pc, bins=np.logspace(1, 4, 50), return_seq=True)
+    trapped = ps.filters.find_trapped_regions(seq=drn1.im_seq, outlets=outlets)
+    drn2 = drainage(im=im, pc=pc, residual=trapped, bins=np.logspace(1, 4, 50))
+    if im.ndim == 2:
+        fig, ax = plt.subplots(1, 2)
+        tmp = np.copy(drn1.im_snwp)
+        tmp[tmp == -1] = 2
+        tmp[~im] = -1
+        ax[0].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=0, vmax=1)
+        ax[0].axis(False)
 
-    tmp = np.copy(drn1.im_snwp)
-    tmp[tmp == -1] = 2
-    tmp[~im] = -1
-    ax[1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=0, vmax=1)
-    ax[1].axis(False)
+        tmp = np.copy(drn2.im_snwp)
+        tmp[tmp == -1] = 2
+        tmp[~im] = -1
+        ax[1].imshow(tmp, origin='lower', interpolation='none', cmap=cm, vmin=0, vmax=1)
+        ax[1].axis(False)
 
     # seq = ps.filters.satn_to_seq(drn1.im_snwp)
     # pc_curve1 = ps.metrics.pc_curve(im=im, pc=drn1.im_pc, seq=seq)
@@ -277,8 +322,8 @@ if __name__ == "__main__":
     pc_curve2 = ps.metrics.pc_map_to_pc_curve(drn2.im_pc, im=im)
 
     fig, ax = plt.subplots(figsize=[5.5, 5])
-    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, marker='o', color='tab:blue', label='with residual')
-    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, marker='o', color='tab:red', label='no residual')
+    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, marker='o', color='tab:red', label='No residual')
+    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, marker='o', color='tab:blue', label='With residual')
     ax.set_ylim([0, 1.05])
     ax.set_xlim([10, 1000])
     ax.set_xlabel('$P_C [Pa]$')
