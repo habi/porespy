@@ -5,6 +5,7 @@ from porespy.filters import (
     size_to_satn,
     size_to_seq,
     seq_to_satn,
+    pc_to_satn,
     trim_disconnected_blobs,
     find_disconnected_voxels,
 )
@@ -26,7 +27,16 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, return_sizes=False):
+def imbibition(
+    im,
+    pc,
+    inlets=None,
+    residual=None,
+    bins=25,
+    return_seq=False,
+    return_sizes=False,
+    return_snwp=False,
+):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
 
@@ -102,6 +112,9 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, re
     result = Results()
     im_pc[~im] = 0
     result.im_pc = im_pc
+    if return_snwp:
+        satn = pc_to_satn(pc=im_pc, im=im, mode='imbibition')
+        result.im_snwp = satn
     if return_seq:
         im_seq[~im] = 0
         im_seq = make_contiguous(im_seq)
