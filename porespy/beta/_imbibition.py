@@ -26,7 +26,7 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def imbibition(im, pc, inlets=None, residual=None, bins=25):
+def imbibition(im, pc, inlets=None, residual=None, bins=25, return_seq=False, return_sizes=False):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
 
@@ -63,7 +63,10 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25):
     bins = np.unique(bins)[::-1]
 
     im_pc = np.zeros_like(im, dtype=float)
-    im_seq = np.zeros_like(im, dtype=int)
+    if return_seq:
+        im_seq = np.zeros_like(im, dtype=int)
+    if return_sizes:
+        im_sizes = np.zeros_like(im, dtype=int)
     for i, p in tqdm(enumerate(bins), **settings.tqdm):
         seeds = (pc <= p)*im
         coords = np.where(seeds)
@@ -74,21 +77,31 @@ def imbibition(im, pc, inlets=None, residual=None, bins=25):
         # Insert spheres at new locations of given radii
         im_pc = _insert_disks_npoints_nradii_1value_parallel(
             im=im_pc, coords=coords, radii=radii, v=p, overwrite=True)
-        im_seq = _insert_disks_npoints_nradii_1value_parallel(
-            im=im_seq, coords=coords, radii=radii, v=i+1, overwrite=True)
+        if return_seq:
+            im_seq = _insert_disks_npoints_nradii_1value_parallel(
+                im=im_seq, coords=coords, radii=radii, v=i+1, overwrite=True)
+        if return_sizes:
+            im_sizes = _insert_disks_npoints_nradii_1value_parallel(
+                im=im_sizes, coords=coords, radii=radii, v=radii[0], overwrite=True)
         if inlets is not None:
             tmp = trim_disconnected_blobs(im*(im_pc > p), inlets=inlets)
             im_pc[~tmp] = p
-            im_seq[~tmp] = i + 1
+            if return_seq:
+                im_seq[~tmp] = i + 1
+            if return_sizes:
+                im_sizes[~tmp] = radii[0]
 
     # Collect data in a Results object
     result = Results()
-    im_seq[~im] = 0
     im_pc[~im] = 0
-    im_seq = make_contiguous(im_seq)
     result.im_pc = im_pc
-    result.im_seq = im_seq
-
+    if return_seq:
+        im_seq[~im] = 0
+        im_seq = make_contiguous(im_seq)
+        result.im_seq = im_seq
+    if return_sizes:
+        im_sizes[~im] = 0
+        result.im_sizes = im_sizes
     return result
 
 
