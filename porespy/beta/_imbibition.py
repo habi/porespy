@@ -57,7 +57,6 @@ def imbibition(
     inlets=None,
     residual=None,
     bins=25,
-    return_seq=False,
     return_snwp=False,
 ):
     r"""
@@ -99,8 +98,7 @@ def imbibition(
                            bins)
     # bins = np.unique(bins)[::-1]
 
-    if return_seq:
-        im_seq = -np.ones_like(im, dtype=int)
+    im_seq = -np.ones_like(im, dtype=int)
     im_pc = np.zeros_like(im, dtype=float)
 
     for i, p in enumerate(tqdm(bins, **settings.tqdm)):
@@ -119,16 +117,15 @@ def imbibition(
 
     # Collect data in a Results object
     result = Results()
-    im_pc[im_pc == 0] = np.inf
+    im_pc[im_pc == 0] = -np.inf
     im_pc[~im] = 0
     result.im_pc = im_pc
+    im_seq[~im] = 0
+    im_seq = make_contiguous(im_seq)
+    result.im_seq = im_seq
     if return_snwp:
         satn = pc_to_satn(pc=im_pc, im=im, mode='imbibition')
         result.im_snwp = satn
-    if return_seq:
-        im_seq[~im] = 0
-        im_seq = make_contiguous(im_seq)
-        result.im_seq = im_seq
     return result
 
 
@@ -186,7 +183,6 @@ if __name__ == '__main__':
     cm.set_under('grey')
     cm.set_over('k')
 
-
     # %% Compare imbibition_dt with drainage_dt
     if 0:
         # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
@@ -196,7 +192,7 @@ if __name__ == '__main__':
         outlets = np.zeros_like(im)
         outlets[-1, ...] = True
 
-        imb = imbibition_dt(im=im, inlets=outlets)  # Outlets trigger trimming of disconnected wp
+        imb = imbibition_dt(im=im, inlets=outlets)  # Inlets trigger trimming of disconnected wp
         pc = 2*0.072/(imb.im_size*1e-5)
         pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im, seq=imb.im_seq, mode='imbibition')
         plt.semilogx(pc_curve.pc, pc_curve.snwp, 'b-v', label='imbibition')
@@ -208,7 +204,7 @@ if __name__ == '__main__':
         plt.legend(loc='lower right')
 
     # %% Compare imbibition with imbibition_dt
-    if 1:
+    if 0:
         # im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
         im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
         inlets = np.zeros_like(im)
@@ -220,7 +216,7 @@ if __name__ == '__main__':
         pc[~im] = np.inf
 
         fig, ax = plt.subplots()
-        imb = imbibition(im=im, pc=pc, inlets=inlets, return_seq=True, bins=None)
+        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
         pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r->', label='imbibition')
 
@@ -230,9 +226,29 @@ if __name__ == '__main__':
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b-<', label='imbibition_dt')
         ax.legend(loc='lower right')
 
+    # %% Compare imbibition with and without trapping
+    if 1:
+        # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
+        im = ps.filters.fill_blind_pores(im)
+        inlets = np.zeros_like(im)
+        inlets[0, ...] = True
+        outlets = np.zeros_like(im)
+        outlets[-1, ...] = True
+        vx = 1e-5
+        pc = 2*0.072/(np.around(edt(im))*vx)
+        pc[~im] = np.inf
 
-
-
+        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
+        fig, ax = plt.subplots()
+        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
+        mask = ps.filters.find_trapped_regions(imb.im_seq, outlets=outlets)
+        imb.im_pc[mask] = np.inf
+        imb.im_seq[mask] = -1
+        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r-<', label='imbibition with trapping')
+        ax.legend(loc='lower right')
 
 
 

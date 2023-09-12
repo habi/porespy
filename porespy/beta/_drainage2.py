@@ -228,13 +228,12 @@ def drainage(
         inv_pc[residual] = -np.inf
 
     results = Results()  # Initialize results object and attach arrays
+    results.im_pc = inv_pc
+    seq = pc_to_seq(inv_pc, im=im, mode='drainage')
+    results.im_seq = seq
     if return_snwp:
         satn = pc_to_satn(pc=inv_pc, im=im)
         results.im_snwp = satn
-    if return_seq:
-        seq = pc_to_seq(inv_pc, im=im, mode='drainage')
-        results.im_seq = seq
-    results.im_pc = inv_pc
     return results
 
 
