@@ -27,6 +27,26 @@ __all__ = [
 tqdm = get_tqdm()
 
 
+def imbibition_dt(im, inlets):
+    im = np.array(im, dtype=bool)
+    dt = np.around(edt(im), decimals=0).astype(int)
+    bins = np.unique(dt[im])
+    im_seq = -np.ones_like(im, dtype=int)
+    im_size = np.zeros_like(im, dtype=float)
+    for i, r in enumerate(tqdm(bins, **settings.tqdm)):
+        seeds = (dt >= r)*im
+        if not np.any(seeds):
+            continue
+        wp = im*(~(edt(~seeds, parallel=settings.ncores) < r))
+        if im.ndim == 3:
+            wp = trim_disconnected_blobs(wp, inlets=inlets)
+        mask = wp*(im_seq == -1)
+        im_size[mask] = r
+        im_seq[mask] = i + 1
+
+    plt.imshow(im_seq/im)
+
+
 def imbibition(
     im,
     pc,
@@ -178,7 +198,7 @@ if __name__ == '__main__':
 
     # %%
     # im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
-    im = ps.generators.blobs([200, 200, 200], porosity=0.65, blobiness=1.5)
+    im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5)
     inlets = np.zeros_like(im)
     inlets[0, ...] = True
     outlets = np.zeros_like(im)
