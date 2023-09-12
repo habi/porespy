@@ -161,8 +161,8 @@ def drainage(
         any values of `-inf` in `pc` will also be treated as residual non-wetting
         phase.
     bins : int or array_like (default =  `None`)
-        The range of pressures to apply. If an integer is given
-        then bins will be created between the lowest and highest pressures
+        The range of pressures to apply. If an integer is given then tha many
+        bins will be created between the lowest and highest pressures
         in the ``pc``.  If a list is given, each value in the list is used
         directly *in order*.
 
@@ -197,6 +197,7 @@ def drainage(
         vals = np.unique(pc)
         vals = vals[~np.isinf(vals)]
         bins = np.logspace(np.log10(vals.min()), np.log10(vals.max()), bins)
+    # bins = np.unique(bins)
 
     inv_pc = np.zeros_like(im, dtype=float)
     for i in tqdm(range(0, len(bins)-1), **settings.tqdm):
