@@ -28,7 +28,7 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def imbibition_dt(im, inlets=None):
+def imbibition_dt(im, inlets=None, residual=None):
     r"""
     This is a reference implementation of imbibition using distance transforms
     """
@@ -38,13 +38,22 @@ def imbibition_dt(im, inlets=None):
     im_seq = -np.ones_like(im, dtype=int)
     im_size = np.zeros_like(im, dtype=float)
     for i, r in enumerate(tqdm(bins, **settings.tqdm)):
-        seeds = (dt >= r)
+        seeds = dt >= r
         wp = im*~(edt(~seeds, parallel=settings.ncores) < r)
         if inlets is not None:
             wp = trim_disconnected_blobs(wp, inlets=inlets)
+        if residual is not None:
+            blobs = trim_disconnected_blobs(residual, inlets=wp)
+            seeds = dt >= r
+            seeds = trim_disconnected_blobs(seeds, inlets=blobs + inlets)
+            wp = im*~(edt(~seeds, parallel=settings.ncores) < r)
         mask = wp*(im_seq == -1)
         im_size[mask] = r
         im_seq[mask] = i+1
+    if residual is not None:
+        im_seq[im_seq > 0] += 1
+        im_seq[residual] = 1
+        im_size[residual] = np.inf
     results = Results()
     results.im_seq = im_seq
     results.im_size = im_size
@@ -227,7 +236,7 @@ if __name__ == '__main__':
         ax.legend(loc='lower right')
 
     # %% Compare imbibition with and without trapping
-    if 1:
+    if 0:
         # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
         im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         im = ps.filters.fill_blind_pores(im)
@@ -250,7 +259,26 @@ if __name__ == '__main__':
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r-<', label='imbibition with trapping')
         ax.legend(loc='lower right')
 
+    # %% Compare imbibition and imbibition_dt with residual wp
+    if 1:
+        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
+        im = ps.filters.fill_blind_pores(im)
+        inlets = np.zeros_like(im)
+        inlets[0, ...] = True
+        outlets = np.zeros_like(im)
+        outlets[-1, ...] = True
+        vx = 1e-5
+        pc = 2*0.072/(np.around(edt(im))*vx)
+        pc[~im] = np.inf
 
+        imb = imbibition(im=im, pc=pc, inlets=outlets, bins=None)
+        fig, ax = plt.subplots()
+        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
+
+        drn = beta.drainage_dt(im=im, inlets=inlets)
+        wpr = ps.filters.find_trapped_regions(drn.im_seq, outlets=outlets)
 
 
 
