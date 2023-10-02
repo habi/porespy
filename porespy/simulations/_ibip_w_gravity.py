@@ -333,14 +333,20 @@ def capillary_transform(
     theta : scalar
         The contact angle of the fluid-fluid-solid system, in degrees.
     g : scalar
-        The gravitational constant acting on the fluids.
+        The gravitational constant acting on the fluids. Gravity is assumed to act
+        toward the x=0 axis.  To have gravity act in different directions just
+        use `np.swapaxes(im, 0, ax)` where `ax` is the desired direction. If gravity
+        is not acting directly along one of the principle axes, then use the
+        component that is.
     rho : scalar
         The density difference between the fluids.
     voxelsize : scalar
         The resolution of the image
     spacing : scalar
         If a 2D image is provided, this value is used to compute the second
-        radii of curvature.
+        radii of curvature.  Setting it to `inf` will make the calculation truly
+        2D since only one radii of curvature is considered.  Setting it to `None`
+        will force the calculation to be 3D.
 
     Notes
     -----
@@ -350,7 +356,7 @@ def capillary_transform(
     """
     if dt is None:
         dt = edt(im)
-    if im.ndim == 2:
+    if (im.ndim == 2) and (spacing is not None):
         pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 1/spacing)
     else:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
