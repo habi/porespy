@@ -197,6 +197,7 @@ def drainage(
         vals = np.unique(pc)
         vals = vals[~np.isinf(vals)]
         bins = np.logspace(np.log10(vals.min()), np.log10(vals.max()), bins)
+        bins = np.hstack((bins[0]/2, bins))
     # bins = np.unique(bins)
 
     inv_pc = np.zeros_like(im, dtype=float)

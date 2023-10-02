@@ -105,18 +105,25 @@ def imbibition(
         bins = np.logspace(np.log10(pc[im * np.isfinite(pc)].max()),
                            np.log10(pc[im * np.isfinite(pc)].min()),
                            bins)
-    # bins = np.unique(bins)[::-1]
+
+    # Digitize pc
+    pc_digitized = np.digitize(pc[im], bins[:-1])
+    pc2 = bins[pc_digitized]
+    pc[im] = pc2
+    bins = np.unique(pc[im])[::-1]
+    # Add an extra bin to the end so lowest pc is invaded
+    bins = np.hstack((bins, bins[-1]/2))
 
     im_seq = -np.ones_like(im, dtype=int)
     im_pc = np.zeros_like(im, dtype=float)
-
     for i, p in enumerate(tqdm(bins, **settings.tqdm)):
         nwp = np.zeros_like(im, dtype=bool)
-        seeds = pc <= p
+        seeds = pc == p
         coords = np.where(seeds)
         radii = dt[coords]
         nwp = _insert_disks_npoints_nradii_1value_parallel(
-            im=nwp, coords=coords, radii=radii, v=True, smooth=True)
+            im=nwp, coords=coords, radii=radii, v=True, smooth=False)
+        nwp += (pc <= p)
         wp = im*~nwp
         if inlets is not None:
             wp = trim_disconnected_blobs(wp, inlets=inlets)
@@ -194,8 +201,8 @@ if __name__ == '__main__':
 
     # %% Compare imbibition_dt with drainage_dt
     if 0:
-        # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
-        im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
+        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
         outlets = np.zeros_like(im)
@@ -203,7 +210,12 @@ if __name__ == '__main__':
 
         imb = imbibition_dt(im=im, inlets=outlets)  # Inlets trigger trimming of disconnected wp
         pc = 2*0.072/(imb.im_size*1e-5)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im, seq=imb.im_seq, mode='imbibition')
+        pc_curve = ps.metrics.pc_map_to_pc_curve(
+            pc=pc,
+            im=im,
+            seq=imb.im_seq,
+            mode='imbibition',
+        )
         plt.semilogx(pc_curve.pc, pc_curve.snwp, 'b-v', label='imbibition')
 
         drn = beta.drainage_dt(im=im, inlets=inlets)
@@ -214,8 +226,8 @@ if __name__ == '__main__':
 
     # %% Compare imbibition with imbibition_dt
     if 0:
-        # im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
-        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
+        # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=1)
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
         outlets = np.zeros_like(im)
@@ -226,19 +238,19 @@ if __name__ == '__main__':
 
         fig, ax = plt.subplots()
         imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im)
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r->', label='imbibition')
 
         imb_dt = imbibition_dt(im=im, inlets=inlets)
-        pc = 2*0.072/(imb_dt.im_size*1e-5)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im, seq=imb_dt.im_seq, mode='imbibition')
+        pc = 2*0.072/(imb_dt.im_size*vx)
+        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im)
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b-<', label='imbibition_dt')
         ax.legend(loc='lower right')
 
     # %% Compare imbibition with and without trapping
-    if 0:
-        # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
-        im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
+    if 1:
+        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         im = ps.filters.fill_blind_pores(im)
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
@@ -250,17 +262,27 @@ if __name__ == '__main__':
 
         imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
         fig, ax = plt.subplots()
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        pc_curve = ps.metrics.pc_map_to_pc_curve(
+            pc=imb.im_pc,
+            im=im,
+            seq=imb.im_seq,
+            mode='imbibition',
+        )
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
         mask = ps.filters.find_trapped_regions(imb.im_seq, outlets=outlets)
         imb.im_pc[mask] = np.inf
         imb.im_seq[mask] = -1
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        pc_curve = ps.metrics.pc_map_to_pc_curve(
+            pc=imb.im_pc,
+            im=im,
+            seq=imb.im_seq,
+            mode='imbibition',
+        )
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r-<', label='imbibition with trapping')
         ax.legend(loc='lower right')
 
     # %% Compare imbibition and imbibition_dt with residual wp
-    if 1:
+    if 0:
         im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
         # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         im = ps.filters.fill_blind_pores(im)
@@ -274,7 +296,12 @@ if __name__ == '__main__':
 
         imb = imbibition(im=im, pc=pc, inlets=outlets, bins=None)
         fig, ax = plt.subplots()
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im, seq=imb.im_seq, mode='imbibition')
+        pc_curve = ps.metrics.pc_map_to_pc_curve(
+            pc=imb.im_pc,
+            im=im,
+            seq=imb.im_seq,
+            mode='imbibition',
+        )
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
 
         drn = beta.drainage_dt(im=im, inlets=inlets)
