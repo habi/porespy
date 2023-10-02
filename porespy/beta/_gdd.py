@@ -1,5 +1,5 @@
 import time
-from porespy import simulations, tools, settings
+from porespy import simulations, settings
 from porespy.tools import Results
 import numpy as np
 import openpnm as op
@@ -8,7 +8,13 @@ import dask.delayed
 import dask
 import edt
 
-__all__ = ['tortuosity_gdd', 'chunks_to_dataframe']
+
+__all__ = [
+    'tortuosity_gdd',
+    'chunks_to_dataframe',
+]
+
+
 settings.loglevel=50
 
 
