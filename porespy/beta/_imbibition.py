@@ -97,38 +97,29 @@ def imbibition(
 
     """
     dt = np.around(edt(im), decimals=0).astype(int)
-
     pc[~im] = -np.inf
-    if bins is None:
-        bins = np.unique(pc[im * np.isfinite(pc)])[::-1]
-    elif isinstance(bins, int):
-        bins = np.logspace(np.log10(pc[im * np.isfinite(pc)].max()),
-                           np.log10(pc[im * np.isfinite(pc)].min()),
-                           bins)
 
-    # Digitize pc
-    pc_digitized = np.digitize(pc[im], bins[:-1])
-    pc2 = bins[pc_digitized]
-    pc[im] = pc2
+    bins = np.logspace(np.log10(pc[im * np.isfinite(pc)].max()),
+                       np.log10(pc[im * np.isfinite(pc)].min()),
+                       bins)
+    pc2 = np.digitize(pc[im], bins)
+    pc[im] = bins[pc2]
     bins = np.unique(pc[im])[::-1]
-    # Add an extra bin to the end so lowest pc is invaded
     bins = np.hstack((bins, bins[-1]/2))
 
     im_seq = -np.ones_like(im, dtype=int)
     im_pc = np.zeros_like(im, dtype=float)
-    for i, p in enumerate(tqdm(bins, **settings.tqdm)):
-        nwp = np.zeros_like(im, dtype=bool)
-        seeds = pc == p
+    for i, p in enumerate(tqdm(bins[:-1], **settings.tqdm)):
+        wp = pc >= bins[i]
+        seeds = (pc >= bins[i + 1])*(~wp)
         coords = np.where(seeds)
         radii = dt[coords]
-        nwp = _insert_disks_npoints_nradii_1value_parallel(
-            im=nwp, coords=coords, radii=radii, v=True, smooth=False)
-        nwp += (pc <= p)
-        wp = im*~nwp
+        wp = _insert_disks_npoints_nradii_1value_parallel(
+            im=wp, coords=coords, radii=radii, v=False, smooth=False, overwrite=True)
         if inlets is not None:
             wp = trim_disconnected_blobs(wp, inlets=inlets)
         mask = wp*(im_seq == -1)
-        im_pc[mask] = p
+        im_pc[mask] = bins[i]
         im_seq[mask] = i+1
 
     # Collect data in a Results object
@@ -225,7 +216,7 @@ if __name__ == '__main__':
         plt.legend(loc='lower right')
 
     # %% Compare imbibition with imbibition_dt
-    if 0:
+    if 1:
         im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
         # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=1)
         inlets = np.zeros_like(im)
@@ -237,7 +228,7 @@ if __name__ == '__main__':
         pc[~im] = np.inf
 
         fig, ax = plt.subplots()
-        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
+        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=25)
         pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im)
         ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r->', label='imbibition')
 
@@ -248,7 +239,7 @@ if __name__ == '__main__':
         ax.legend(loc='lower right')
 
     # %% Compare imbibition with and without trapping
-    if 1:
+    if 0:
         im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
         # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         im = ps.filters.fill_blind_pores(im)
@@ -260,7 +251,7 @@ if __name__ == '__main__':
         pc = 2*0.072/(np.around(edt(im))*vx)
         pc[~im] = np.inf
 
-        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=None)
+        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=25)
         fig, ax = plt.subplots()
         pc_curve = ps.metrics.pc_map_to_pc_curve(
             pc=imb.im_pc,
