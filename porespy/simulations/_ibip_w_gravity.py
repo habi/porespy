@@ -414,6 +414,7 @@ def find_trapped_regions2(seq, im, outlets, return_mask=True):
     )
     trapped = trapped.squeeze()
     if return_mask:
+        trapped[~im] = 0
         return trapped
     else:
         seq = np.copy(seq)
