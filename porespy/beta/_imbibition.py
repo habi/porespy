@@ -96,6 +96,7 @@ def imbibition(
     --------
 
     """
+    raise Exception("This doesn't work!")
     dt = np.around(edt(im), decimals=0).astype(int)
     pc[~im] = -np.inf
 
@@ -103,6 +104,7 @@ def imbibition(
                        np.log10(pc[im * np.isfinite(pc)].min()),
                        bins)
     pc2 = np.digitize(pc[im], bins)
+    pc2 = np.clip(pc2, 0, len(bins)-1)
     pc[im] = bins[pc2]
     bins = np.unique(pc[im])[::-1]
     bins = np.hstack((bins, bins[-1]/2))
@@ -216,7 +218,7 @@ if __name__ == '__main__':
         plt.legend(loc='lower right')
 
     # %% Compare imbibition with imbibition_dt
-    if 1:
+    if 0:
         im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
         # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=1)
         inlets = np.zeros_like(im)
@@ -239,8 +241,8 @@ if __name__ == '__main__':
         ax.legend(loc='lower right')
 
     # %% Compare imbibition with and without trapping
-    if 0:
-        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+    if 1:
+        im = ps.generators.blobs([750, 750], porosity=0.65, blobiness=1.5, seed=1)
         # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         im = ps.filters.fill_blind_pores(im)
         inlets = np.zeros_like(im)
@@ -251,25 +253,28 @@ if __name__ == '__main__':
         pc = 2*0.072/(np.around(edt(im))*vx)
         pc[~im] = np.inf
 
-        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=25)
-        fig, ax = plt.subplots()
-        pc_curve = ps.metrics.pc_map_to_pc_curve(
+        imb = imbibition_dt(im=im, inlets=inlets)
+        imb.im_pc = (im.ndim-1)*0.01/(imb.im_size*1e-6)
+        pc_curve1 = ps.metrics.pc_map_to_pc_curve(
             pc=imb.im_pc,
             im=im,
             seq=imb.im_seq,
             mode='imbibition',
         )
-        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
+
         mask = ps.filters.find_trapped_regions(imb.im_seq, outlets=outlets)
         imb.im_pc[mask] = np.inf
         imb.im_seq[mask] = -1
-        pc_curve = ps.metrics.pc_map_to_pc_curve(
+        pc_curve2 = ps.metrics.pc_map_to_pc_curve(
             pc=imb.im_pc,
             im=im,
             seq=imb.im_seq,
             mode='imbibition',
         )
-        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r-<', label='imbibition with trapping')
+
+        fig, ax = plt.subplots()
+        ax.semilogx(pc_curve1.pc, pc_curve1.snwp, 'b->', label='imbibition')
+        ax.semilogx(pc_curve2.pc, pc_curve2.snwp, 'r-<', label='imbibition with trapping')
         ax.legend(loc='lower right')
 
     # %% Compare imbibition and imbibition_dt with residual wp

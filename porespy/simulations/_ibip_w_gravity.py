@@ -16,7 +16,7 @@ tqdm = get_tqdm()
 __all__ = [
     'invasion',
     "capillary_transform",
-    "find_trapped_regions",
+    "find_trapped_regions2",
 ]
 
 
@@ -363,7 +363,7 @@ def capillary_transform(
     return pc
 
 
-def find_trapped_regions(seq, im, outlets, return_mask=True):
+def find_trapped_regions2(seq, im, outlets, return_mask=True):
     r"""
     Finds clusters of trapped voxels using a reverse site-based invasion percolation
     algorithm.
@@ -453,6 +453,8 @@ def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cove
             for n in neighbors:
                 hq.heappush(bd, [seq[n], n[0], n[1], n[2]])
                 edge[n[0], n[1], n[2]] = True
+        if step % 1000 == 0:
+            print(f'completed {str(step)} steps')
         step += 1
     return trapped
 
@@ -474,7 +476,7 @@ if __name__ == "__main__":
     outlets[-1, :] = True
     outlets = outlets*im
     ps.tools.tic()
-    trapped_new = find_trapped_regions(seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
+    trapped_new = find_trapped_regions2(seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
     ps.tools.toc()
     ps.tools.tic()
     trapped = ps.filters.find_trapped_regions(seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)

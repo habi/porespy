@@ -8,7 +8,7 @@ from numba import njit
 
 __all__ = [
     "capillary_transform",
-    "find_trapped_regions",
+    "find_trapped_regions2",
 ]
 
 
@@ -48,7 +48,7 @@ def capillary_transform(
     return pc
 
 
-def find_trapped_regions(seq, outlets, bins=None, return_mask=True):
+def find_trapped_regions2(seq, outlets, return_mask=True):
     r"""
     """
     # Make sure outlets are masked correctly and convert to 3d
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     outlets[-1, :] = True
     outlets = outlets*im
     ps.tools.tic()
-    trapped_new = find_trapped_regions(seq=ip.im_seq, outlets=outlets, return_mask=False)
+    trapped_new = find_trapped_regions2(seq=ip.im_seq, outlets=outlets, return_mask=False)
     ps.tools.toc()
     ps.tools.tic()
     trapped = ps.filters.find_trapped_regions(seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
