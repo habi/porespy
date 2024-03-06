@@ -4,6 +4,12 @@ import psutil
 from typing import Literal
 
 
+__all__ = [
+    'fractal_noise',
+]
+
+
+
 def fractal_noise(
     shape,
     frequency: float = 0.05,

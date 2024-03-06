@@ -19,9 +19,9 @@ def ramp(shape, inlet=1.0, outlet=0.0, axis=0):
     shape : list
         The [X, Y, Z] dimension of the desired image. Z is optional.
     inlet : scalar
-        The values to place the beginning of the specified axis
+        The values to place the begining of the specified axis. The default is 1.0.
     outlet : scalar
-        The values to place the end of the specified axis
+        The values to place the end of the specified axis. The default is 0.0.
     axis : scalar
         The axis along which the ramp should be directed
 
@@ -31,6 +31,7 @@ def ramp(shape, inlet=1.0, outlet=0.0, axis=0):
         An array of the requested shape with greyscale values changing linearly
         from inlet to outlet in the direction specified.
     """
+    shape = np.array(shape, dtype=int)
     vals = np.linspace(inlet, outlet, shape[axis])
     vals = np.reshape(vals, [shape[axis]]+[1]*len(shape[1:]))
     vals = np.swapaxes(vals, 0, axis)
