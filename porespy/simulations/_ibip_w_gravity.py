@@ -366,7 +366,7 @@ def capillary_transform(
 def find_trapped_regions2(seq, im, outlets, return_mask=True):
     r"""
     Finds clusters of trapped voxels using a reverse site-based invasion percolation
-    algorithm.
+    algorithm
 
     Parameters
     ----------
@@ -463,6 +463,7 @@ def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cove
 if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
+    from copy import copy
 
     # %%
     im = ~ps.generators.random_spheres([400, 200], r=20, seed=0, clearance=10)
@@ -485,7 +486,9 @@ if __name__ == "__main__":
 
 
     # %%
+    cm = copy(plt.cm.turbo)
+    cm.set_under('grey')
     fig, ax = plt.subplots(1, 3)
-    ax[0].imshow(ip.im_seq/im, origin='lower', interpolation='none')
-    ax[1].imshow(trapped/im, origin='lower', interpolation='none')
-    ax[2].imshow(trapped_new/im, origin='lower', interpolation='none')
+    ax[0].imshow(ip.im_seq/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
+    ax[1].imshow(trapped/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
+    ax[2].imshow(trapped_new/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
