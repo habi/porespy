@@ -14,15 +14,16 @@ tqdm = get_tqdm()
 
 
 __all__ = [
-    'invasion',
+    'qbip',
     "capillary_transform",
     "find_trapped_regions2",
 ]
 
 
-def invasion(
+def qbip(
     im,
     pc,
+    dt=None,
     inlets=None,
     maxiter=None,
     return_sizes=False,
@@ -37,7 +38,7 @@ def invasion(
         A boolean image of the porous media with ``True`` values indicating
         the void space
     pc : ndarray
-        Precomputed capillary pressure values which are used to determine
+        Precomputed capillary pressure transform which is used to determine
         the invadability of each voxel, in Pa.
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
@@ -45,11 +46,11 @@ def invasion(
     return_sizes : bool
         If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
-        so requesting it increases computation time.
+        as computing it increases computation time.
     return_pressures : bool
         If `True` then an array containing the capillary pressure at which
         each pixels was first invaded is returned. This array is not computed by
-        default so requesting it increases computation time.
+        default as computing it increases computation time.
     maxiter : int
         The maximum number of iteration to perform.  The default is equal to the
         number of void pixels `im`.
@@ -78,7 +79,7 @@ def invasion(
     Notes
     -----
     This function operates differently than the original ``ibip``.  Here a
-    binary heap (via the `heapq` module from the standard libary) is used to
+    priority queue (via the `heapq` module from the standard libary) is used to
     maintain an up-to-date list of which voxels should be invaded next.  This
     is much faster than the original approach.
 
@@ -86,19 +87,16 @@ def invasion(
     if maxiter is None:
         maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
 
-    im = np.atleast_3d(im)
-    pc = np.atleast_3d(pc)
-
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
-    else:
-        inlets = np.atleast_3d(inlets)
 
-    dt = edt(im)
-    dt = np.around(dt, decimals=0).astype(int)
+    inlets = np.atleast_3d(inlets)
+    im = np.atleast_3d(im)
+    pc = np.atleast_3d(pc)
 
-    pc = np.around(pc, decimals=0)
+    if dt is None:
+        dt = edt(im)
 
     # Initialize arrays and do some preprocessing
     inv_seq = np.zeros_like(im, dtype=int)
@@ -110,7 +108,7 @@ def invasion(
         inv_size *= -np.inf
 
     # Call numba'd inner loop
-    sequence, pressure, size = _ibip_inner_loop(
+    sequence, pressure, size = _qbip_inner_loop(
         im=im,
         inlets=inlets,
         dt=dt,
@@ -151,7 +149,7 @@ def invasion(
 
 
 @njit
-def _ibip_inner_loop(
+def _qbip_inner_loop(
     im,
     inlets,
     dt,
@@ -161,52 +159,55 @@ def _ibip_inner_loop(
     size,
     maxiter,
 ):  # pragma: no cover
-    step = 1
-    # Initialize the binary heap
+    # Initialize the heap
     inds = np.where(inlets*im)
     bd = []
     for row, (i, j, k) in enumerate(zip(inds[0], inds[1], inds[2])):
         bd.append([pc[i, j, k], dt[i, j, k], i, j, k])
     hq.heapify(bd)
     # Note which sites have been added to heap already
-    edge = inlets*im + ~im
-    delta_step = 0
+    processed = inlets*im + ~im  # Add solid phase to be safe
+    step = 1  # Total step number
     for _ in range(1, maxiter):
-        if len(bd):  # Put next site into pts list
-            pts = [hq.heappop(bd)]
-        else:
+        if len(bd) == 0:
             print(f"Exiting after {step} steps")
             break
-        while len(bd) and (bd[0][0] == pts[0][0]):
+        pts = [hq.heappop(bd)]  # Put next site into pts list
+        while len(bd) and (bd[0][0] == pts[0][0]):  # Pop any items with equal Pc
             pts.append(hq.heappop(bd))
         for pt in pts:
             # Insert discs of invading fluid into images
-            seq = _insert_disk_at_point(im=seq, i=pt[2], j=pt[3], k=pt[4], r=pt[1],
-                                        v=step, overwrite=False)
+            seq = _insert_disk_at_point(
+                im=seq,
+                i=pt[2], j=pt[3], k=pt[4],
+                r=int(pt[1]), v=step, overwrite=False)
+            # Putting -inf in images is a numba compatible flag for 'skip'
             if pressure[0, 0, 0] > -np.inf:
-                pressure = _insert_disk_at_point(im=pressure, i=pt[2], j=pt[3], k=pt[4],
-                                                 r=pt[1], v=pt[0], overwrite=False)
+                pressure = _insert_disk_at_point(
+                    im=pressure,
+                    i=pt[2], j=pt[3], k=pt[4],
+                    r=int(pt[1]), v=pt[0], overwrite=False)
             if size[0, 0, 0] > -np.inf:
-                size = _insert_disk_at_point(im=size, i=pt[2], j=pt[3], k=pt[4],
-                                             r=pt[1], v=pt[1], overwrite=False)
-            # Add neighboring points to heap and edge
-            neighbors = _find_valid_neighbors(i=pt[2], j=pt[3], k=pt[4], im=edge, conn=26)
+                size = _insert_disk_at_point(
+                    im=size, i=pt[2], j=pt[3], k=pt[4],
+                    r=int(pt[1]), v=pt[1], overwrite=False)
+            # Add neighboring points to heap and processed array
+            neighbors = _find_valid_neighbors(
+                i=pt[2], j=pt[3], k=pt[4], im=processed, conn='min')
             for n in neighbors:
                 hq.heappush(bd, [pc[n], dt[n], n[0], n[1], n[2]])
-                edge[n[0], n[1], n[2]] = True
-                delta_step = 1
-        step += delta_step
-        delta_step = 0
+                processed[n[0], n[1], n[2]] = True
+        step += 1
     return seq, pressure, size
 
 
 @njit
-def _find_valid_neighbors(i, j, im, k=0, conn=4, valid=False):  # pragma: no cover
+def _find_valid_neighbors(i, j, im, k=0, conn='min', valid=False):  # pragma: no cover
     if im.ndim == 2:
         xlim, ylim = im.shape
-        if conn == 4:
+        if conn == 'min':
             mask = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
-        else:
+        elif conn == 'max':
             mask = [[1, 1, 1], [1, 1, 1], [1, 1, 1]]
         neighbors = []
         for a, x in enumerate(range(i-1, i+2)):
@@ -218,11 +219,11 @@ def _find_valid_neighbors(i, j, im, k=0, conn=4, valid=False):  # pragma: no cov
                                 neighbors.append((x, y))
     else:
         xlim, ylim, zlim = im.shape
-        if conn == 6:
+        if conn == 'min':
             mask = [[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
                     [[0, 1, 0], [1, 1, 1], [0, 1, 0]],
                     [[0, 0, 0], [0, 1, 0], [0, 0, 0]]]
-        else:
+        elif conn == 'max':
             mask = [[[1, 1, 1], [1, 1, 1], [1, 1, 1]],
                     [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
                     [[1, 1, 1], [1, 1, 1], [1, 1, 1]]]
@@ -472,16 +473,18 @@ if __name__ == "__main__":
     inlets[0, :] = True
     inlets = inlets*im
     pc = capillary_transform(im)
-    ip = invasion(im, pc=pc, inlets=inlets)
+    ip = qbip(im, pc=pc, inlets=inlets)
 
     outlets = np.zeros_like(im)
     outlets[-1, :] = True
     outlets = outlets*im
     ps.tools.tic()
-    trapped_new = find_trapped_regions2(seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
+    trapped_new = find_trapped_regions2(
+        seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
     ps.tools.toc()
     ps.tools.tic()
-    trapped = ps.filters.find_trapped_regions(seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
+    trapped = ps.filters.find_trapped_regions(
+        seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
     ps.tools.toc()
 
 

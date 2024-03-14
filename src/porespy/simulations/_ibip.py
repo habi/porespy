@@ -14,7 +14,7 @@ __all__ = [
 ]
 
 
-def ibip(im, inlets=None, dt=None, maxiter=10000):
+def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     r"""
     Performs invasion percolation on given image using iterative image dilation
 
@@ -60,21 +60,17 @@ def ibip(im, inlets=None, dt=None, maxiter=10000):
     # Process the boundary image
     if inlets is None:
         inlets = get_border(shape=im.shape, mode='faces')
+    inlets = inlets*im
     bd = np.copy(inlets > 0)
     if dt is None:  # Find dt if not given
         dt = edt(im)
-    dt = dt.astype(int)  # Conert the dt to nearest integer
     # Initialize inv image with -1 in the solid, and 0's in the void
     inv = -1*(~im)
     sizes = -1*(~im)
     scratch = np.copy(bd)
     for step in tqdm(range(1, maxiter), **settings.tqdm):
-        pt = _where(bd)
-        scratch = np.copy(bd)
-        temp = _insert_disk_at_points(im=scratch, coords=pt,
-                                       r=1, v=1, smooth=False)
-        # Reduce to only the 'new' boundary
-        edge = temp*(dt > 0)
+        # Find insertion points
+        edge = scratch*(dt > 0)
         if ~edge.any():
             break
         # Find the maximum value of the dt underlaying the new edge
@@ -84,10 +80,13 @@ def ibip(im, inlets=None, dt=None, maxiter=10000):
         # Extract the actual coordinates of the insertion sites
         pt = _where(edge*dt_thresh)
         inv = _insert_disk_at_points(im=inv, coords=pt,
-                                      r=r_max, v=step, smooth=True)
-        sizes = _insert_disk_at_points(im=sizes, coords=pt,
-                                        r=r_max, v=r_max, smooth=True)
+                                     r=int(r_max), v=step, smooth=True)
+        if return_sizes:
+            sizes = _insert_disk_at_points(im=sizes, coords=pt,
+                                           r=int(r_max), v=int(r_max), smooth=True)
         dt, bd = _update_dt_and_bd(dt, bd, pt)
+        scratch = _insert_disk_at_points(im=scratch, coords=pt,
+                                         r=1, v=1, smooth=False)
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
     inv[~im] = 0

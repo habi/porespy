@@ -20,4 +20,4 @@ from ._dns import *
 from ._drainage import *
 from ._ibip import *
 from ._ibip_gpu import *
-from ._ibip_w_gravity import *
+from ._qbip import *
