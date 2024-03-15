@@ -2,7 +2,11 @@ import heapq as hq
 import numpy as np
 from edt import edt
 from numba import njit
-from porespy.filters import seq_to_satn
+try:
+    from porespy.generators import ramp
+except ImportError:
+    from porespy.beta import ramp
+from porespy.filters import seq_to_satn, local_thickness
 from porespy.tools import (
     get_tqdm,
     make_contiguous,
@@ -17,6 +21,7 @@ __all__ = [
     'qbip',
     "capillary_transform",
     "find_trapped_regions2",
+    "bond_number",
 ]
 
 
@@ -312,9 +317,9 @@ def capillary_transform(
     sigma=0.01,
     theta=180,
     g=9.81,
-    rho=0,
+    delta_rho=0,
     voxelsize=1e-6,
-    spacing=100e-6
+    spacing=None,
 ):
     r"""
     Uses the Washburn equation to convert distance transform values to capillary
@@ -339,15 +344,16 @@ def capillary_transform(
         use `np.swapaxes(im, 0, ax)` where `ax` is the desired direction. If gravity
         is not acting directly along one of the principle axes, then use the
         component that is.
-    rho : scalar
+    delta_rho : scalar
         The density difference between the fluids.
     voxelsize : scalar
         The resolution of the image
     spacing : scalar
         If a 2D image is provided, this value is used to compute the second
         radii of curvature.  Setting it to `inf` will make the calculation truly
-        2D since only one radii of curvature is considered.  Setting it to `None`
-        will force the calculation to be 3D.
+        2D since only one radii of curvature is considered. Setting it to `None`
+        will force the calculation to be 3D.  If `im` is 3D this argument is
+        ignored.
 
     Notes
     -----
@@ -361,7 +367,23 @@ def capillary_transform(
         pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 1/spacing)
     else:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
+    if delta_rho != 0:
+        h = ramp(im.shape, inlet=0, outlet=im.shape[0], axis=0)*voxelsize
+        pc = pc + delta_rho*g*h
     return pc
+
+
+def bond_number(im, delta_rho, g, sigma, voxelsize, method='median-dt'):
+    if method == 'median-dt':
+        dt = edt(im)
+        R = np.median(dt[im])
+    elif method == 'median-lt':
+        lt = local_thickness(im)
+        R = np.median(lt[lt > 0])
+    else:
+        raise Exception(f"Unrecognized method {method}")
+    Bo = delta_rho*g*(R*voxelsize)**2/sigma
+    return Bo
 
 
 def find_trapped_regions2(seq, im, outlets, return_mask=True):
