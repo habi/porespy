@@ -4,6 +4,7 @@ from porespy.tools import get_tqdm
 from porespy.tools import get_border, make_contiguous
 from porespy.tools import _insert_disk_at_points
 from porespy.tools import Results
+from porespy.filters import seq_to_satn
 from numba import njit
 from porespy import settings
 tqdm = get_tqdm()
@@ -16,7 +17,7 @@ __all__ = [
 
 def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     r"""
-    Performs invasion percolation on given image using iterative image dilation
+    Performs invasion percolation on given image using the IBIP algorithm
 
     Parameters
     ----------
@@ -32,29 +33,44 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
         The number of steps to apply before stopping.  The default is to run
         for 10,000 steps which is almost certain to reach completion if the
         image is smaller than about 250-cubed.
+    return_sizes : bool
+        If `True` then an array containing the size of the sphere which first
+        overlapped each pixel is returned. This array is not computed by default
+        as computing it increases computation time.
 
     Returns
     -------
-    results : Results object
-        A custom object with the following two arrays as attributes:
+    results : dataclass-like
+        A dataclass-like object with the following arrays as attributes:
 
-        'inv_sequence'
-            An ndarray the same shape as ``im`` with each voxel labelled by
-            the sequence at which it was invaded.
-
-        'inv_size'
-            An ndarray the same shape as ``im`` with each voxel labelled by
-            the ``inv_size`` at which was filled.
+        ============= ===============================================================
+        Attribute     Description
+        ============= ===============================================================
+        im_seq        A numpy array with each voxel value containing the step at
+                      which it was invaded.  Uninvaded voxels are set to -1.
+        im_satn       A numpy array with each voxel value indicating the saturation
+                      present in the domain it was invaded. Solids are given 0, and
+                      uninvaded regions are given -1.
+        im_size       If `return_sizes` was set to `True`, then a numpy array with
+                      each voxel containing the radius of the sphere, in voxels,
+                      that first overlapped it.
+        inv_sequence  (Deprecated) This is the same as `im_seq`
+        inv_size      (Deprecated) This is the same as `im_size`
+        ============= ===============================================================
 
     See Also
     --------
     porosimetry
 
+    References
+    ----------
+    [1]
+
     Examples
     --------
     `Click here
     <https://porespy.org/examples/filters/reference/ibip.html>`_
-    to view online example.
+    to view an online example.
 
     """
     # Process the boundary image
@@ -99,6 +115,9 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     results = Results()
     results.inv_sequence = inv
     results.inv_sizes = sizes
+    results.im_size = np.copy(sizes)
+    results.im_seq = np.copy(inv)
+    results.im_satn = seq_to_satn(inv)
     return results
 
 
@@ -128,7 +147,7 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from copy import copy
 
-    # %% Run this cell to regenerate the variables in drainage
+    # %% Run this cell to regenerate the variables
     np.random.seed(6)
     bg = 'white'
     plots = True
@@ -142,7 +161,8 @@ if __name__ == "__main__":
         cmap = copy(plt.cm.plasma)
         cmap.set_under(color='black')
         cmap.set_over(color='grey')
+        cmap.set_bad('grey')
         fig, ax = plt.subplots(1, 1)
-        kw = ps.visualization.prep_for_imshow(ip.inv_sequence, im)
+        kw = ps.visualization.prep_for_imshow(ip.inv_sequence/im, im)
         kw['vmin'] = 0
         ax.imshow(**kw, cmap=cmap)
