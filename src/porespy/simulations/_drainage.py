@@ -1,5 +1,6 @@
 import numpy as np
 from edt import edt
+from skimage.morphology import ball, disk
 from porespy.filters import trim_disconnected_blobs, find_trapped_regions
 from porespy.filters import pc_to_satn, satn_to_seq
 from porespy import settings
@@ -15,8 +16,7 @@ __all__ = [
 ]
 
 
-def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
-             bins=25, delta_rho=1000, g=0, sigma=0.072, theta=180):
+def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
@@ -26,24 +26,20 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
     im : ndarray
         The image of the porous media with ``True`` values indicating the
         void space.
-    voxel_size : float
-        The resolution of the image in meters per voxel edge.
-    pc : ndarray, optional
+    pc : ndarray
         An array containing precomputed capillary pressure values in each
-        voxel. If not provided then the Washburn equation is used with the
-        provided values of ``sigma`` and ``theta``. If the image is 2D only
-        1 principle radii of curvature is included.
+        voxel. This can include gravity effects or not.
     inlets : ndarray (default = x0)
         A boolean image the same shape as ``im``, with ``True`` values
         indicating the inlet locations. See Notes. If not specified it is
         assumed that the invading phase enters from the bottom (x=0).
     outlets : ndarray, optional
         Similar to ``inlets`` except defining the outlets. This image is used
-        to assess trapping.  \If not provided then trapping is ignored,
+        to assess trapping. If not provided then trapping is ignored,
         otherwise a mask indicating which voxels were trapped is included
         amoung the returned data.
     residual : ndarray, optional
-        A boolean array indicating the locations of any residual defending
+        A boolean array indicating the locations of any residual invading
         phase. This is added to the intermediate image prior to trimming
         disconnected clusters, so will create connections to some clusters
         that would otherwise be removed. The residual phase is indicated
@@ -54,21 +50,6 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
         then bins will be created between the lowest and highest pressures
         in the ``pc``.  If a list is given, each value in the list is used
         directly in order.
-    delta_rho : float (default = 997)
-        The density difference between the invading and defending phases.
-        Note that if air is displacing water this value should be -997 (1-998).
-    g : float (default = 9.81)
-        The gravitational constant prevailing for the simulation. The default
-        is 0, which removes the effect of gravity.  If the domain is on an
-        angle, such as a tilted micromodel, this value should be scaled
-        appropriately by the user (i.e. g = 9.81 sin(alpha) where alpha is
-        the angle relative to the horizonal).
-    sigma : float (default = 0.072)
-        The surface tension of the fluid pair. If ``pc`` is provided this is
-        ignored.
-    theta : float (defaut = 180)
-        The contact angle of the sytem in degrees.  If ``pc`` is provded this
-        is ignored.
 
     Returns
     -------
@@ -82,6 +63,8 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
                    capillary pressure at which it was invaded
         im_satn    A numpy array with each voxel value indicating the global
                    saturation value at the point it was invaded
+        im_seq     An ndarray with each voxel indicating the step number at
+                   which it was first invaded by non-wetting phase
         pc         1D array of capillary pressure values that were applied
         swnp       1D array of non-wetting phase saturations for each applied
                    value of capillary pressure (``pc``).
@@ -102,45 +85,42 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
 
     """
     im = np.array(im, dtype=bool)
-    dt = edt(im)
-    if pc is None:
-        pc = -(im.ndim-1)*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
-    pc[~im] = 0  # Remove any infs or nans from pc computation
 
-    # Generate image for correcting entry pressure by gravitational effects
-    h = np.ones_like(im, dtype=bool)
-    h[0, ...] = False
-    h = (edt(h) + 1)*voxel_size   # This could be done quicker using clever logic
-    rgh = delta_rho*g*h
-    fn = pc + rgh
+    if dt is None:
+        dt = edt(im)
 
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
-    if isinstance(bins, int):  # Use values fn for invasion steps
-        vmax = fn[fn < np.inf].max()
-        vmin = fn[im][fn[im] > -np.inf].min()
+    pc[~im] = 0  # Remove any infs or nans from pc computation
+    if isinstance(bins, int):  # Use values in pc for invasion steps
+        vmax = pc[pc < np.inf].max()
+        vmin = pc[im][pc[im] > -np.inf].min()
         Ps = np.linspace(vmin, vmax*1.1, bins)
     else:
         Ps = bins
 
     # Initialize empty arrays to accumulate results of each loop
-    inv = np.zeros_like(im, dtype=float)
+    pc_inv = np.zeros_like(im, dtype=float)
     seeds = np.zeros_like(im, dtype=bool)
+
     # Deal with any void space trapped behind residual blobs
     mask = None
     if (residual is not None) and (outlets is not None):
         mask = im * (~residual)
         mask = trim_disconnected_blobs(mask, inlets=inlets)
+
+    # Begin IBOP algorithm
+    strel = ball(1) if im.ndim == 3 else disk(1)
     for p in tqdm(Ps, **settings.tqdm):
         # Find all locations in image invadable at current pressure
-        temp = (fn <= p)*im
+        temp = (pc <= p)*im
         # Add residual so that fluid is more easily reconnected
         if residual is not None:
             temp = temp + residual
         # Trim locations not connected to the inlets
-        new_seeds = trim_disconnected_blobs(temp, inlets=inlets)
+        new_seeds = trim_disconnected_blobs(temp, inlets=inlets, strel=strel)
         # Trim locations not connected to the outlet
         if mask is not None:
             new_seeds = new_seeds * mask
@@ -152,36 +132,37 @@ def drainage(im, voxel_size, pc=None, inlets=None, outlets=None, residual=None,
         seeds += new_seeds
         # Extract the local size of sphere to insert at each new location
         radii = dt[coords].astype(int)
-        # Insert spheres are new locations of given radii
-        inv = _insert_disks_at_points(im=inv, coords=np.vstack(coords),
-                                      radii=radii, v=p, smooth=True)
+        # Insert spheres of given radii at new locations
+        pc_inv = _insert_disks_at_points(im=pc_inv, coords=np.vstack(coords),
+                                         radii=radii, v=p, smooth=True)
 
     # Set uninvaded voxels to inf
-    inv[(inv == 0)*im] = np.inf
+    pc_inv[(pc_inv == 0)*im] = np.inf
 
     # Add residual if given
     if residual is not None:
-        inv[residual] = -np.inf
+        pc_inv[residual] = -np.inf
 
     # Initialize results object
     results = Results()
     trapped = None
-    satn = pc_to_satn(pc=inv, im=im)
+    satn = pc_to_satn(pc=pc_inv, im=im)
 
+    # Analyze trapping and adjust computed images accordingly
     if outlets is not None:
         seq = satn_to_seq(satn=satn, im=im)
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
         trapped[seq == -1] = True
-        inv[trapped] = np.inf
+        pc_inv[trapped] = np.inf
         if residual is not None:  # Re-add residual to inv
-            inv[residual] = -np.inf
-        satn = pc_to_satn(pc=inv, im=im)
+            pc_inv[residual] = -np.inf
+        satn = pc_to_satn(pc=pc_inv, im=im)
 
     results.im_satn = satn
-    results.im_pc = inv
+    results.im_pc = pc_inv
     results.im_trapped = trapped
 
-    _pccurve = pc_curve(im=im, pc=inv)
+    _pccurve = pc_curve(im=im, pc=pc_inv)
     results.pc = _pccurve.pc
     results.snwp = _pccurve.snwp
 
