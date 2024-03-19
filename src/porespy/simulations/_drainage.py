@@ -13,6 +13,7 @@ tqdm = get_tqdm()
 
 __all__ = [
     'drainage',
+    'ibop',
 ]
 
 
@@ -84,6 +85,19 @@ def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25)
     to view online example.
 
     """
+    results = ibop(
+        im=im,
+        pc=pc,
+        dt=dt,
+        inlets=inlets,
+        outlets=outlets,
+        residual=residual,
+        bins=bins,
+    )
+    return results
+
+
+def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
     im = np.array(im, dtype=bool)
 
     if dt is None:
@@ -165,7 +179,6 @@ def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25)
     _pccurve = pc_curve(im=im, pc=pc_inv)
     results.pc = _pccurve.pc
     results.snwp = _pccurve.snwp
-
     return results
 
 

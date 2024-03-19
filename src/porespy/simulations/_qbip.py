@@ -1,3 +1,4 @@
+import logging
 import heapq as hq
 import numpy as np
 from edt import edt
@@ -6,7 +7,7 @@ try:
     from porespy.generators import ramp
 except ImportError:
     from porespy.beta import ramp
-from porespy.filters import seq_to_satn, local_thickness
+from porespy.filters import seq_to_satn, local_thickness, pc_to_satn
 from porespy.tools import (
     get_tqdm,
     make_contiguous,
@@ -14,15 +15,53 @@ from porespy.tools import (
 )
 
 
+logger = logging.getLogger(__name__)
 tqdm = get_tqdm()
 
 
 __all__ = [
     'qbip',
+    'invasion',
     "capillary_transform",
     "find_trapped_regions2",
     "bond_number",
 ]
+
+
+def invasion(
+    im,
+    pc,
+    dt=None,
+    inlets=None,
+    outlets=None,
+    maxiter=None,
+    return_sizes=False,
+    return_pressures=False,
+):
+    r"""
+    Uses the QBIP algorithm to simulate volume-controlled invasion of a non-wetting
+    phase
+
+    Parameters
+    ----------
+    im : ndarray
+
+
+
+    Returns
+    -------
+    """
+    results = qbip(
+        im=im,
+        pc=pc,
+        dt=dt,
+        inlets=inlets,
+        outlets=outlets,
+        maxiter=maxiter,
+        return_sizes=return_sizes,
+        return_pressures=return_pressures,
+    )
+    return results
 
 
 def qbip(
@@ -30,6 +69,7 @@ def qbip(
     pc,
     dt=None,
     inlets=None,
+    outlets=None,
     maxiter=None,
     return_sizes=False,
     return_pressures=False,
@@ -48,6 +88,10 @@ def qbip(
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
+    outlets : ndarray, options
+        A boolean image with ``True`` values indicating the oulets locations.
+        If this is provided then trapped voxels of wetting phase are found and
+        all the output images are adjusted accordingly.
     return_sizes : bool
         If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
@@ -96,12 +140,13 @@ def qbip(
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
+    if dt is None:
+        dt = edt(im)
+
+    dt = np.atleast_3d(dt)
     inlets = np.atleast_3d(inlets)
     im = np.atleast_3d(im)
     pc = np.atleast_3d(pc)
-
-    if dt is None:
-        dt = edt(im)
 
     # Initialize arrays and do some preprocessing
     inv_seq = np.zeros_like(im, dtype=int)
@@ -141,6 +186,21 @@ def qbip(
     if return_sizes:
         size[sequence < 0] = np.inf
         size[~im] = 0
+
+    if outlets is not None:
+        logger.info('Computing trapping and adjusting outputs')
+        trapped = find_trapped_regions2(
+            seq=sequence,
+            im=im,
+            outlets=outlets,
+            return_mask=True,
+        )
+        trapped[sequence == -1] = True  # Add uninvaded voxels to trapped mask
+        sequence[trapped] = -1
+        pressure = pressure.astype(float)
+        pressure[trapped] = np.inf
+        size = size.astype(float)
+        size[trapped] = np.inf
 
     # Create results object for collected returned values
     results = Results()
@@ -317,7 +377,8 @@ def capillary_transform(
     sigma=0.01,
     theta=180,
     g=9.81,
-    delta_rho=0,
+    rho_wp=0,
+    rho_nwp=0,
     voxelsize=1e-6,
     spacing=None,
 ):
@@ -361,19 +422,49 @@ def capillary_transform(
     recommended to use SI for everything.
 
     """
+    delta_rho = rho_nwp - rho_wp
     if dt is None:
         dt = edt(im)
     if (im.ndim == 2) and (spacing is not None):
-        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 1/spacing)
+        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 2/spacing)
     else:
         pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
-    if delta_rho != 0:
+    if delta_rho > 0:
         h = ramp(im.shape, inlet=0, outlet=im.shape[0], axis=0)*voxelsize
+        pc = pc + delta_rho*g*h
+    elif delta_rho < 0:
+        h = ramp(im.shape, inlet=im.shape[0], outlet=0, axis=0)*voxelsize
         pc = pc + delta_rho*g*h
     return pc
 
 
 def bond_number(im, delta_rho, g, sigma, voxelsize, method='median-dt'):
+    r"""
+    Computes the Bond number for a system using the specified method
+
+    Parameters
+    ----------
+    im : ndarray
+        The image of the domain of interest with `True` values indicating the void
+        space
+    delta_rho : float
+        The difference in the density of the non-wetting and wetting phase
+    g : float
+        The gravitational constant for the system
+    sigma : float
+        The surface tension of the fluid pair
+    voxelsize : float
+        The size of the voxels
+    method : str
+        The method to use for finding the characteristic length *R*. Options are:
+
+        ============== =============================================================
+        Option         Description
+        ============== =============================================================
+        median-dt      Uses the median of the distance transform
+        median-lt      Uses the medial of the local thickness
+        ============== =============================================================
+    """
     if method == 'median-dt':
         dt = edt(im)
         R = np.median(dt[im])
@@ -382,7 +473,7 @@ def bond_number(im, delta_rho, g, sigma, voxelsize, method='median-dt'):
         R = np.median(lt[lt > 0])
     else:
         raise Exception(f"Unrecognized method {method}")
-    Bo = delta_rho*g*(R*voxelsize)**2/sigma
+    Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
     return Bo
 
 
@@ -473,12 +564,12 @@ def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cove
                 trapped[pt[1], pt[2], pt[3]] = False
                 minseq = pt[0]
             # Add neighboring points to heap and edge
-            neighbors = _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn=26)
+            neighbors = _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn='min')
             for n in neighbors:
                 hq.heappush(bd, [seq[n], n[0], n[1], n[2]])
                 edge[n[0], n[1], n[2]] = True
-        if step % 1000 == 0:
-            print(f'completed {str(step)} steps')
+        # if step % 1000 == 0:
+        #     print(f'completed {str(step)} steps')
         step += 1
     return trapped
 

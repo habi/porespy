@@ -1186,7 +1186,8 @@ def satn_profile(satn, s=None, im=None, axis=0, span=10, mode='tile'):
         void space.
     s : scalar
         The global saturation value for which the profile is desired. If `satn` is
-        a pre-thresholded boolean image then this is ignored, `im` is required.
+        a pre-thresholded boolean image then this is ignored, in which case `im`
+        is required.
     im : ndarray
         A boolean image with `True` values indicating the void phase. This is used
         to compute the void volume if `satn` is given as a pre-thresholded boolean
