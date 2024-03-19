@@ -915,9 +915,12 @@ def walk(im,
         The number of walkers to start from each voxel in throats. If 2D image
         is passed then 2 walkers is used automatically since there are only
         two directions perpendicular to normal in 2D.
-    step_size : float
+    step_size : float or ndarray
         The size of each step to take. This is equivalent to r in spherical
-        coordinates.
+        coordinates. If an ndarray is passed, it is assume that this is the
+        distance transform the same shape as im. Pass the distance transform
+        if you would like to adaptively effect step size for significant
+        speed up.
     max_n_steps : int (optional)
         The maximum number of steps to take. The default is None, in which case
         there is no maximum and the walk will stop when ALL walkers have
@@ -968,7 +971,11 @@ def walk(im,
         path[0, n_throat_nodes*w:n_throat_nodes*(w+1), 5] = phi
     # start walk
     i = 0  # initialize count of walkers reaching solid
-    r = step_size
+    # if step_size is array it MUST be dt, pad dt
+    if isinstance(step_size, np.ndarray):
+        dt = np.pad(step_size, pad_width=1)
+    else:
+        r = step_size  # step size, if fixed
     step = 1
     # pad image
     im_pad = np.pad(im, pad_width=1)
@@ -979,14 +986,22 @@ def walk(im,
         x_old = path[step-1, :, 1]
         y_old = path[step-1, :, 2]
         z_old = path[step-1, :, 3]
+        # get x, y, z
+        # round, take integer, and clip in case step_size > 1
+        x = np.round(x_old+1).astype(int).clip(0, im_pad.shape[0]-1)
+        y = np.round(y_old+1).astype(int).clip(0, im_pad.shape[1]-1)
+        z = np.round(z_old+1).astype(int).clip(0, im_pad.shape[-1]-1)
         # check if void, add one for padding
-        x = np.round(x_old+1).astype(int)  # round and take integer
-        y = np.round(y_old+1).astype(int)
-        z = np.round(z_old+1).astype(int)
         if im.ndim == 2:
             is_void = im_pad[x, y]
         else:
             is_void = im_pad[x, y, z]
+        # overwrite r with dt values if using adaptive stepping
+        if isinstance(step_size, np.ndarray):
+            if im.ndim == 2:
+                r = dt[x, y]*0.9
+            else:
+                r = dt[x, y, z]*0.9
         # calculate step in each direction
         delta_x = r*np.sin(path[step-1, :, 5])*np.cos(path[step-1, :, 4])
         delta_y = r*np.sin(path[step-1, :, 5])*np.sin(path[step-1, :, 4])
@@ -1042,9 +1057,12 @@ def get_throat_area(im,
         The number of walkers to start from each voxel in throats. If 2D image
         is passed then 2 walkers is used automatically since there are only
         two directions perpendicular to normal in 2D.
-    step_size : float (default=0.5)
+    step_size : float or ndarray (default=0.5)
         The size of each step to take. This is equivalent to r in spherical
-        coordinates.
+        coordinates. If an ndarray is passed, it is assume that this is the
+        distance transform the same shape as im. Pass the distance transform
+        if you would like to adaptively effect step size for significant
+        speed up.
     max_n_steps : int (optional)
         The maximum number of steps to take. The default is None, in which case
         there is no maximum and the walk will stop when ALL walkers have
@@ -1116,7 +1134,7 @@ if __name__ == "__main__":
     im3 = ps.filters.fill_blind_pores(im3, conn=26, surface=True)
     im3 = ps.filters.trim_floating_solid(im3, conn=6, surface=False)
 
-    im = im2
+    im = im3
 
     # plot
     if im.ndim == 2:
@@ -1152,10 +1170,10 @@ if __name__ == "__main__":
     dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
     throat_nodes = juncs_to_pore_centers(throats, dt_inv)  # find throat node at minimums, doesn't work well for endpoints!
     n_walkers=10
-    throat_area = get_throat_area(im, sk, throat_nodes, n_walkers)
+    throat_area = get_throat_area(im, sk, throat_nodes, n_walkers, step_size=0.5)
     print(f'Total throat area: {np.sum(throat_area)}')
-    # on im3: 28609.85937008391
-    # 30774.378561650945
+    # dt: 34724.696861937264
+    # 0.5: 30774.378561650945
     xx
     # get network from junctions
     net = junctions_to_network(sk, juncs, throats, dt, voxel_size=1)
