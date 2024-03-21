@@ -27,6 +27,7 @@ def magnet(im,
            voxel_size=1,
            l_max=7,
            throat_junctions=None,
+           n_walkers=None,
            **kwargs):
     r"""
     Perform a Medial Axis Guided Network ExtracTion (MAGNET) on an image of
@@ -74,6 +75,10 @@ def magnet(im,
         The mode to use when finding throat junctions. The options are "maximum
         filter" or "fast marching". If None is given, then throat junctions are
         not found (this is the default).
+    n_walkers: int
+        The number of walkers to use if calculating throat area. If None is
+        passed, the throat area is not calculated (this is the default). See
+        get_throat_area() documentation for more information.
 
     Returns
     -------
@@ -105,8 +110,16 @@ def magnet(im,
         juncs = ftj.new_juncs.astype('bool') + juncs
         # get new throats
         throats = ftj.new_throats
+    # use walk to get throat area
+    if n_walkers is not None:
+        dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
+        nodes = juncs_to_pore_centers(throats, dt_inv)  # find node at min
+        throat_area = get_throat_area(im, sk, nodes, n_walkers, **kwargs)
+        print(f'Total throat area: {np.sum(throat_area)}')  # FIXME: delete
+    else:
+        throat_area = None
     # get network from junctions
-    net = junctions_to_network(sk, juncs, throats, dt, voxel_size)
+    net = junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size)
     return net, sk
 
 
@@ -440,7 +453,7 @@ def juncs_to_pore_centers(juncs, dt):
     return reduced_juncs
 
 
-def junctions_to_network(sk, juncs, throats, dt, voxel_size=1):
+def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     r"""
     Assemble a dictionary object containing essential topological and
     geometrical data for a pore network. The information is retrieved from the
@@ -461,6 +474,9 @@ def junctions_to_network(sk, juncs, throats, dt, voxel_size=1):
         cluster labeling is performed with full cubic connectivity.
     dt : ndarray (optional)
         The distance transform of the image.
+    throat_area : ndarray
+        The throat area returned from get_throat_area where the labelled voxels
+        in the original throats image is overwritten by the measured area.
     voxel_size : scalar (default = 1)
         The resolution of the image, expressed as the length of one side of a
         voxel, so the volume of a voxel would be **voxel_size**-cubed.
@@ -486,12 +502,11 @@ def junctions_to_network(sk, juncs, throats, dt, voxel_size=1):
     # initialize throat conns and radius
     Nt = len(slices)
     t_conns = np.zeros((Nt, 2), dtype=int)
-    # FIXME: clean up returned diameters
-    t_inscribed_diameter = np.zeros((Nt), dtype=float)
+    # initialize diameters
     t_max_diameter = np.zeros((Nt), dtype=float)
     t_min_diameter = np.zeros((Nt), dtype=float)
     t_avg_diameter = np.zeros((Nt), dtype=float)
-    t_equivalent_diameter = np.zeros((Nt), dtype=float)
+    t_equ_diameter = np.zeros((Nt), dtype=float)
     t_length = np.zeros((Nt), dtype=float)
     # loop through throats to get t_conns and t_radius
     for throat in range(Nt):
@@ -508,21 +523,18 @@ def junctions_to_network(sk, juncs, throats, dt, voxel_size=1):
         throat_im_dilated = throat_im_dilated * sub_juncs
         # throat conns
         Pn_l = np.unique(throat_im_dilated)[1:] - 1
-        # FIXME: I removed if statement. Is that okay?
         t_conns[throat, :] = Pn_l
-        # throat radius
+        # throat diameter
         throat_dt = throat_im * sub_dt
-        # FIXME: Integrate R^4 and assume square cross-section!
-        t_inscribed_diameter[throat] = (np.average(throat_dt[throat_dt != 0]**4))**(1/4)*2
-        radii = throat_dt[throat_dt != 0]
-        F_approx = sum(1/(2*radii)**4)
-        t_equivalent_diameter[throat] = (len(radii)/F_approx)**(1/4)
         t_min_diameter[throat] = np.min(throat_dt[throat_dt != 0])*2
         t_max_diameter[throat] = np.max(throat_dt[throat_dt != 0])*2
         t_avg_diameter[throat] = np.average(throat_dt[throat_dt != 0])*2
+        if throat_area is not None:
+            sub_area = throat_area[ss]
+            A = np.average(sub_area[sub_area != 0])
+            t_equ_diameter[throat] =  2*np.sqrt(A/np.pi)
+        # throat length
         t_length[throat] = len(throat_dt[throat_dt != 0])
-    # FIXME: was it okay to remove remove?
-    # FIXME: did not set overlapping throat radius to min of neighbour pores
     # find pore coords
     Np = juncs.max()
     ct = juncs_to_pore_centers(juncs, dt)  # pore centres!
@@ -547,22 +559,18 @@ def junctions_to_network(sk, juncs, throats, dt, voxel_size=1):
     t_min_diameter_clipped = (4*V_t_min/np.pi/t_length)**(1/2)
     V_t_avg = t_avg_diameter**2*t_length
     t_avg_diameter_clipped = (4*V_t_avg/np.pi/t_length)**(1/2)
-    V_t_inscribed = t_inscribed_diameter**2*t_length
-    t_inscribed_diameter_clipped = (4*V_t_inscribed/np.pi/t_length)**(1/2)
-    V_t_equivalent = t_equivalent_diameter**2*t_length
-    t_equivalent_diameter_clipped = (4*V_t_equivalent/np.pi/t_length)**(1/2)
+    V_t_equ = t_equ_diameter**2*t_length  # FIXME: if throat_area is not None
+    t_equ_diameter_clipped = (4*V_t_equ/np.pi/t_length)**(1/2)
     # create network dictionary
     net = {}
     net['throat.conns'] = t_conns
     net['pore.coords'] = p_coords * voxel_size
     net['throat.actual_length'] = t_length * voxel_size
-    net['throat.inscribed_diameter'] = t_inscribed_diameter * voxel_size
-    net['throat.equivalent_diameter'] = t_equivalent_diameter * voxel_size
     net['throat.max_diameter'] = t_max_diameter * voxel_size
     net['throat.min_diameter'] = t_min_diameter * voxel_size
     net['throat.avg_diameter'] = t_avg_diameter * voxel_size
-    net['throat.inscribed_diameter_clipped'] = t_inscribed_diameter_clipped * voxel_size
-    net['throat.equivalent_diameter_clipped'] = t_equivalent_diameter_clipped * voxel_size
+    net['throat.equ_diameter'] = t_equ_diameter * voxel_size
+    net['throat.equ_diameter_clipped'] = t_equ_diameter_clipped * voxel_size
     net['throat.max_diameter_clipped'] = t_max_diameter_clipped * voxel_size
     net['throat.min_diameter_clipped'] = t_min_diameter_clipped * voxel_size
     net['throat.avg_diameter_clipped'] = t_avg_diameter_clipped * voxel_size
@@ -1110,6 +1118,7 @@ def get_throat_area(im,
             area = np.sum(r1*r2*np.sin(angle)/2)
             x, y, z = coord2[0].astype(int)
             throat_area[x, y, z] = area
+            # FIXME: multiply by voxel_sizes
     
     return throat_area
 
@@ -1134,13 +1143,13 @@ if __name__ == "__main__":
     im3 = ps.filters.fill_blind_pores(im3, conn=26, surface=True)
     im3 = ps.filters.trim_floating_solid(im3, conn=6, surface=False)
 
-    im = im3
+    im = im2
 
     # plot
     if im.ndim == 2:
         plt.figure(1)
         plt.imshow(im)
-    '''
+
     # MAGNET Steps
     net, sk = magnet(im,
                      sk=None,
@@ -1148,8 +1157,13 @@ if __name__ == "__main__":
                      surface=False,
                      voxel_size=1,
                      l_max=7,
-                     throat_junctions="fast marching")
-    '''
+                     throat_junctions="fast marching",
+                     n_walkers=10)
+    
+    plt.figure(2)
+    plt.hist(net['throat.avg_diameter'], alpha=0.5)
+    plt.hist(net['throat.equ_diameter'], alpha=0.5)
+    xx
     # take the skeleton
     sk, im = skeleton(im, surface=False, parallel=False)
     # take distance transform
