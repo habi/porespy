@@ -818,7 +818,7 @@ def region_size(im, strel=None):
 
     """
     if im.dtype == bool:
-        im = spim.label(im, strel=strel)[0]
+        im = spim.label(im, structure=strel)[0]
     counts = np.bincount(im.flatten())
     counts[0] = 0
     return counts[im]
