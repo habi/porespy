@@ -779,7 +779,7 @@ def find_dt_artifacts(dt):
     return result
 
 
-def region_size(im):
+def region_size(im, strel=None):
     r"""
     Replace each voxel with the size of the region to which it belongs
 
@@ -790,6 +790,9 @@ def region_size(im):
         interest, in which case ``scipy.ndimage.label`` will be applied to
         find regions, or a greyscale image with integer values indicating
         regions.
+    strel : ndarray
+        The structuring element to use for defining which connected voxels form
+        a region
 
     Returns
     -------
@@ -815,7 +818,7 @@ def region_size(im):
 
     """
     if im.dtype == bool:
-        im = spim.label(im)[0]
+        im = spim.label(im, strel=strel)[0]
     counts = np.bincount(im.flatten())
     counts[0] = 0
     return counts[im]
