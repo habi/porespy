@@ -25,9 +25,10 @@ def magnet(im,
            parallel=False,
            surface=False,
            voxel_size=1,
+           s=None,
            l_max=7,
            throat_junctions=None,
-           n_walkers=None,
+           throat_area=False,
            **kwargs):
     r"""
     Perform a Medial Axis Guided Network ExtracTion (MAGNET) on an image of
@@ -67,6 +68,10 @@ def magnet(im,
     voxel_size : scalar (default = 1)
         The resolution of the image, expressed as the length of one side of a
         voxel, so the volume of a voxel would be voxel_size-cubed
+    s : int (default = None)
+        The hard threshold for determining "near" junctions. If None is passed,
+        then the distance transform is used to merge junctions. The default is
+        None.
     l_max : scalar (default = 7)
         The size of the maximum filter used in finding junction along long
         throats. This argument is only used when throat_junctions is set to
@@ -75,10 +80,13 @@ def magnet(im,
         The mode to use when finding throat junctions. The options are "maximum
         filter" or "fast marching". If None is given, then throat junctions are
         not found (this is the default).
-    n_walkers: int
-        The number of walkers to use if calculating throat area. If None is
-        passed, the throat area is not calculated (this is the default). See
-        get_throat_area() documentation for more information.
+    throat_area: boolean (default = FALSE)
+        Set this argument to TRUE to calculate throat area using
+        get_throat_area. The area is calculated at the throat voxel with the
+        minimum distance transform value. If TRUE, an equivalent throat
+        diameter is returned. The default value is FALSE, for computational
+        efficiency sake. See get_throat_area() documentation for more
+        information.
 
     Returns
     -------
@@ -87,6 +95,13 @@ def magnet(im,
         and topological data.
     sk : ndarray
         The skeleton of the image is also returned.
+    juncs : ndarray (boolean)
+        An ndarray the same shape as `im` with clusters of junction voxels not
+        uniquely labelled.
+    throat_area : ndarray
+        If throat_area argument is set to FALSE (default), then None is
+        returned. However, if throat_area is set to TRUE, then the measured
+        throat area from get_throat_area is returned here.
     """
     # get the skeleton
     if sk is None:
@@ -99,7 +114,10 @@ def magnet(im,
     # find junctions
     fj = find_junctions(sk)
     juncs = fj.juncs + fj.endpts
-    juncs = merge_nearby_juncs(sk, juncs, dt)  # FIXME: merge juncs AND endpts?
+    # if int is not passed, s is dt
+    if type(s) is not int:
+        s = dt
+    juncs = merge_nearby_juncs(sk, juncs, s)  # FIXME: merge juncs AND endpts?
     # find throats
     throats = (~juncs) * sk
     # find throat junctions
@@ -111,16 +129,17 @@ def magnet(im,
         # get new throats
         throats = ftj.new_throats
     # use walk to get throat area
-    if n_walkers is not None:
+    if throat_area is True:
         dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
-        nodes = juncs_to_pore_centers(throats, dt_inv)  # find node at min
-        throat_area = get_throat_area(im, sk, nodes, n_walkers, **kwargs)
-        print(f'Total throat area: {np.sum(throat_area)}')  # FIXME: delete
+        nodes = juncs_to_pore_centers(throats, dt_inv)  # find area at min
+        if "step_size" not in kwargs:
+            kwargs["step_size"] = dt
+        throat_area = get_throat_area(im, sk, nodes, **kwargs)
     else:
         throat_area = None
     # get network from junctions
     net = junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size)
-    return net, sk
+    return net, sk, juncs, throat_area
 
 
 def skeleton(im, surface=False, parallel=False, **kwargs):
