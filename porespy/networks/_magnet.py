@@ -342,7 +342,7 @@ def find_throat_junctions(im,
         temp = Ps * np.inf
         mask = np.isnan(temp)
         temp[mask] = 0
-        temp = temp + dt * sk  # FIXME: should sk be an argument?
+        temp = temp + dt * sk
         b = square(l_max) if ct.ndim == 2 else cube(l_max)
         mx = (spim.maximum_filter(temp, footprint=b) == dt) * sk
         mx = juncs_to_pore_centers(mx, dt)
@@ -954,7 +954,7 @@ def walk(im,
         are asigned acoording to their starting coordinate. For example, a
         label 1 is assigned to all walkers starting at the first coordinate
         given in coords.
-        
+
     """
     # parse arguments
     if max_n_steps is None:
@@ -1048,11 +1048,12 @@ def walk(im,
 def get_throat_area(im,
                     sk,
                     throats,
+                    voxel_size=1,
                     n_walkers=10,
                     step_size=0.5,
                     max_n_steps=None):
     r"""
-    This function returns the cross-sectional acrea of throats. The 
+    This function returns the cross-sectional acrea of throats.
 
     Parameters
     ----------
@@ -1070,6 +1071,9 @@ def get_throat_area(im,
         will reduce the amount of imformation available. It is important that
         each voxel specified in this image has exactly two neighbours on the
         skeleton!
+    voxel_size : scalar (default = 1)
+        The resolution of the image, expressed as the length of one side of a
+        voxel, so the volume of a voxel would be voxel_size-cubed
     n_walkers: int (default=10)
         The number of walkers to start from each voxel in throats. If 2D image
         is passed then 2 walkers is used automatically since there are only
@@ -1106,8 +1110,8 @@ def get_throat_area(im,
     # perform walk
     path = walk(im, normals, coords, n_walkers, step_size, max_n_steps)
     # sort array by throat label again
-    I = np.argsort(path[0, :, 0], kind='stable')
-    path = path[:, I, :]
+    ind = np.argsort(path[0, :, 0], kind='stable')
+    path = path[:, ind, :]
     # calculate throat area
     throat_area = np.zeros_like(throats, dtype=float)
     # number of throats
@@ -1119,16 +1123,15 @@ def get_throat_area(im,
         if im.ndim==2:
             area = r[0] + r[1]  # cross-section length is area in 2D
             x, y, z = coord2[0].astype(int)
-            throat_area[x, y] = area
+            throat_area[x, y] = area * voxel_size
         else:
             r1 = r
             r2 = np.roll(r1, 1)
             angle = 2*np.pi/n_walkers
             area = np.sum(r1*r2*np.sin(angle)/2)
             x, y, z = coord2[0].astype(int)
-            throat_area[x, y, z] = area
-            # FIXME: multiply by voxel_sizes
-    
+            throat_area[x, y, z] = area * voxel_size**2
+
     return throat_area
 
 
@@ -1140,7 +1143,6 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import porespy as ps
     import openpnm as op
-    import numpy as np
     np.random.seed(10)
 
     # Define 2D image
@@ -1152,7 +1154,7 @@ if __name__ == "__main__":
     im3 = ps.filters.fill_blind_pores(im3, conn=26, surface=True)
     im3 = ps.filters.trim_floating_solid(im3, conn=6, surface=False)
 
-    im = im2
+    im = im3
 
     # plot
     if im.ndim == 2:
@@ -1160,46 +1162,27 @@ if __name__ == "__main__":
         plt.imshow(im)
 
     # MAGNET Steps
-    net, sk = magnet(im,
-                     sk=None,
-                     parallel=False,
-                     surface=False,
-                     voxel_size=1,
-                     l_max=7,
-                     throat_junctions="fast marching",
-                     n_walkers=10)
-    
-    plt.figure(2)
-    plt.hist(net['throat.avg_diameter'], alpha=0.5)
-    plt.hist(net['throat.equ_diameter'], alpha=0.5)
-    xx
-    # take the skeleton
-    sk, im = skeleton(im, surface=False, parallel=False)
-    # take distance transform
-    dt = edt(im)
-    # find junctions
-    fj = find_junctions(sk)
-    juncs = fj.juncs + fj.endpts
-    juncs = merge_nearby_juncs(sk, juncs, dt)
-    # find throats
-    throats = (~juncs) * sk
-    # find throat junctions
-    ftj = find_throat_junctions(im, sk, juncs, throats, dt, l_max=7, mode="fast marching")
-    # add throat juncs to juncs
-    juncs = ftj.new_juncs.astype('bool') + juncs
-    # get new throats
-    throats = ftj.new_throats
-    # use random walk to get throat area
-    dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
-    throat_nodes = juncs_to_pore_centers(throats, dt_inv)  # find throat node at minimums, doesn't work well for endpoints!
-    n_walkers=10
-    throat_area = get_throat_area(im, sk, throat_nodes, n_walkers, step_size=0.5)
+    net, sk, juncs, throat_area = magnet(im,
+                                         sk=None,
+                                         parallel=False,
+                                         surface=False,
+                                         voxel_size=1,
+                                         s=None,
+                                         l_max=7,
+                                         throat_junctions="fast marching",
+                                         throat_area=True,
+                                         step_size=0.5)
+
     print(f'Total throat area: {np.sum(throat_area)}')
+    # for im2:
+    # dt: 867.1912159919743
+    # 0.5: 837.0000000000025
+    # for im3:
     # dt: 34724.696861937264
     # 0.5: 30774.378561650945
-    xx
-    # get network from junctions
-    net = junctions_to_network(sk, juncs, throats, dt, voxel_size=1)
+
+    plt.figure(2)
+    plt.hist(net['throat.equivalent_diameter']/net['throat.max_diameter'])
 
     # import network to openpnm
     net = op.io.network_from_porespy(net)
@@ -1208,7 +1191,7 @@ if __name__ == "__main__":
 
     # check network health
     h = op.utils.check_network_health(net)
-    op.topotools.trim(net, pores=np.append(h['disconnected_pores'], h['isolated_pores']))
+    op.topotools.trim(net, throats=np.append(h['looped_throats'], h['duplicate_throats']))
     h = op.utils.check_network_health(net)
     print(h)
 
@@ -1236,22 +1219,3 @@ if __name__ == "__main__":
     b = square(3) if im.ndim == 2 else cube(3)
     _, Ns = spim.label(input=sk.astype('bool'), structure=b)
     print('Skeleton clusters:', Ns)
-    
-    '''
-    for j in range(10):
-        # j = 9
-        theta1 = angles[j, 0]
-        phi1 = angles[j, 1]
-        x1 =  np.sin(phi1)*np.cos(theta1)
-        y1 = np.sin(phi1)*np.sin(theta1)
-        z1 = np.cos(phi1)
-        coord1 = np.array([x1, y1, z1])
-        theta2 = path[0, 10*(j):10*(j+1), 4]
-        phi2 = path[0, 10*(j):10*(j+1), 5]
-        x2 =  np.sin(phi2)*np.cos(theta2)
-        y2 = np.sin(phi2)*np.sin(theta2)
-        z2 = np.cos(phi2)
-        for i in range(10):
-            coord2 = np.array([x2[i], y2[i], z2[i]])
-            print(np.dot(coord1, coord2))
-    '''
