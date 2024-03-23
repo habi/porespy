@@ -522,11 +522,12 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     Nt = len(slices)
     t_conns = np.zeros((Nt, 2), dtype=int)
     # initialize diameters
+    t_length = np.zeros((Nt), dtype=float)
     t_max_diameter = np.zeros((Nt), dtype=float)
     t_min_diameter = np.zeros((Nt), dtype=float)
     t_avg_diameter = np.zeros((Nt), dtype=float)
-    t_equ_diameter = np.zeros((Nt), dtype=float)
-    t_length = np.zeros((Nt), dtype=float)
+    if throat_area is not None:
+        t_equ_diameter = np.zeros((Nt), dtype=float)
     # loop through throats to get t_conns and t_radius
     for throat in range(Nt):
         ss = extend_slice(slices[throat], throats.shape)
@@ -550,8 +551,8 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
         t_avg_diameter[throat] = np.average(throat_dt[throat_dt != 0])*2
         if throat_area is not None:
             sub_area = throat_area[ss]
-            A = np.average(sub_area[sub_area != 0])
-            t_equ_diameter[throat] =  2*np.sqrt(A/np.pi)
+            A = np.average(sub_area[sub_area != 0])  # use average throat area
+            t_equ_diameter[throat] =  2*np.sqrt(A/np.pi)  # assume circle
         # throat length
         t_length[throat] = len(throat_dt[throat_dt != 0])
     # find pore coords
@@ -572,14 +573,6 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     # clipped diameters
     V_p = p_diameter**3  # volume of a cube!
     p_diameter_clipped = (6*V_p/np.pi)**(1/3)
-    V_t_max = t_max_diameter**2*t_length
-    t_max_diameter_clipped = (4*V_t_max/np.pi/t_length)**(1/2)
-    V_t_min = t_min_diameter**2*t_length
-    t_min_diameter_clipped = (4*V_t_min/np.pi/t_length)**(1/2)
-    V_t_avg = t_avg_diameter**2*t_length
-    t_avg_diameter_clipped = (4*V_t_avg/np.pi/t_length)**(1/2)
-    V_t_equ = t_equ_diameter**2*t_length  # FIXME: if throat_area is not None
-    t_equ_diameter_clipped = (4*V_t_equ/np.pi/t_length)**(1/2)
     # create network dictionary
     net = {}
     net['throat.conns'] = t_conns
@@ -588,12 +581,9 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     net['throat.max_diameter'] = t_max_diameter * voxel_size
     net['throat.min_diameter'] = t_min_diameter * voxel_size
     net['throat.avg_diameter'] = t_avg_diameter * voxel_size
-    net['throat.equ_diameter'] = t_equ_diameter * voxel_size
-    net['throat.equ_diameter_clipped'] = t_equ_diameter_clipped * voxel_size
-    net['throat.max_diameter_clipped'] = t_max_diameter_clipped * voxel_size
-    net['throat.min_diameter_clipped'] = t_min_diameter_clipped * voxel_size
-    net['throat.avg_diameter_clipped'] = t_avg_diameter_clipped * voxel_size
-    net['pore.inscribed_diameter'] = p_diameter  * voxel_size
+    if throat_area is not None:
+        net['throat.equivalent_diameter'] = t_equ_diameter * voxel_size
+    net['pore.inscribed_diameter'] = p_diameter * voxel_size
     net['pore.clipped_diameter'] = p_diameter_clipped * voxel_size
     net['pore.index'] = np.arange(0, Np)
     return net
