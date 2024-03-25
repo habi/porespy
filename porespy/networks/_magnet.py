@@ -526,6 +526,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     t_max_diameter = np.zeros((Nt), dtype=float)
     t_min_diameter = np.zeros((Nt), dtype=float)
     t_avg_diameter = np.zeros((Nt), dtype=float)
+    t_ins_diameter = np.zeros((Nt), dtype=float)
     if throat_area is not None:
         t_equ_diameter = np.zeros((Nt), dtype=float)
     # loop through throats to get t_conns and t_radius
@@ -549,6 +550,11 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
         t_min_diameter[throat] = np.min(throat_dt[throat_dt != 0])*2
         t_max_diameter[throat] = np.max(throat_dt[throat_dt != 0])*2
         t_avg_diameter[throat] = np.average(throat_dt[throat_dt != 0])*2
+        # inscribed diameter
+        radii = throat_dt[throat_dt != 0]
+        F_approx = sum(1/(2*radii)**4)
+        t_ins_diameter[throat] = (len(radii)/F_approx)**(1/4)
+        # equivalent diameter
         if throat_area is not None:
             sub_area = throat_area[ss]
             A = np.average(sub_area[sub_area != 0])  # use average throat area
@@ -581,6 +587,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     net['throat.max_diameter'] = t_max_diameter * voxel_size
     net['throat.min_diameter'] = t_min_diameter * voxel_size
     net['throat.avg_diameter'] = t_avg_diameter * voxel_size
+    net['throat.inscribed_diameter'] = t_ins_diameter * voxel_size
     if throat_area is not None:
         net['throat.equivalent_diameter'] = t_equ_diameter * voxel_size
     net['pore.inscribed_diameter'] = p_diameter * voxel_size
