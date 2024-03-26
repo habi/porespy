@@ -277,7 +277,7 @@ def radial_density_distribution(dt, bins=10, log=False, voxel_size=1):
     r"""
     Computes radial density function by analyzing the histogram of voxel
     values in the distance transform.  This function is defined by
-    Torquato [1] as:
+    Torquato [1]_ as:
 
         .. math::
 
@@ -346,8 +346,8 @@ def radial_density_distribution(dt, bins=10, log=False, voxel_size=1):
 
     References
     ----------
-    [1] Torquato, S. Random Heterogeneous Materials: Mircostructure and
-    Macroscopic Properties. Springer, New York (2002) - See page 48 & 292
+    .. [1] Torquato, S. Random Heterogeneous Materials: Mircostructure and
+       Macroscopic Properties. Springer, New York (2002) - See page 48 & 292
 
     Examples
     --------
