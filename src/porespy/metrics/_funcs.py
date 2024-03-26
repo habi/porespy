@@ -40,34 +40,38 @@ logger = logging.getLogger(__name__)
 
 def boxcount(im, bins=10):
     r"""
-    Calculates fractal dimension of an image using the tiled box counting
+    Calculates the fractal dimension of an image using the tiled box counting
     method [1]_
 
     Parameters
     ----------
     im : ndarray
-        The image of the porous material.
+        A boolean image of the porous material with `True` values indicating the
+        phase of interest.
     bins : int or array_like, optional
-        The number of box sizes to use. The default is 10 sizes
-        logarithmically spaced between 1 and ``min(im.shape)``.
-        If an array is provided, this is used directly.
+        The number of box sizes to use. The default is 10 sizes logarithmically
+        spaced between 1 and ``min(im.shape)``. If an array is provided, this is
+        used directly.
 
     Returns
     -------
-    results
+    results : dataclass-like
         An object possessing the following attributes:
 
-        size : ndarray
-            The box sizes used
-        count : ndarray
-            The number of boxes of each size that contain both solid and void
-        slope : ndarray
-            The gradient of ``count``. This has the same number of elements as
-            ``count`` and
+        ========== =================================================================
+        Attribute  Description
+        ========== =================================================================
+        size       An array containing the specific box sizes used
+        count      An array containing the number of boxes of each size that
+                   contain both solid and void
+        slope      The gradient of ``count``. This has the same number of elements
+                   as ``count``.
+        ========== =================================================================
 
     References
     ----------
-    .. [1] See Boxcounting on `Wikipedia <https://en.wikipedia.org/wiki/Box_counting>`_
+    .. [1] See Boxcounting on `Wikipedia
+       <https://en.wikipedia.org/wiki/Box_counting>`_
 
     Examples
     --------
@@ -1088,7 +1092,8 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
                 r = n*voxel_size
                 pc = -2*sigma*np.cos(np.deg2rad(theta))/r
                 x.append(pc)
-                snwp = ((sizes >= n)*(im == 1)).sum(dtype=np.int64)/im.sum(dtype=np.int64)
+                snwp = ((sizes >= n)*(im == 1)).sum(dtype=np.int64) \
+                    / im.sum(dtype=np.int64)
                 y.append(snwp)
         pc_curve = Results()
         pc_curve.pc = x
@@ -1135,6 +1140,8 @@ def pc_map_to_pc_curve(pc, im, seq=None, mode='drainage'):
         invaded. This is required when analyzing results from invasion percolation
         since the pressures in `pc` do not correspond to the sequence in which
         they were filled.
+    mode : str
+        Indicates whether the invasion was a drainage or an imbibition process.
 
     Returns
     -------
@@ -1250,7 +1257,7 @@ def satn_profile(satn, s=None, im=None, axis=0, span=10, mode='tile'):
         for i in range(int(satn.shape[0]/span)):
             void = satn[i*span:(i+1)*span, ...] != 0
             nwp = (satn[i*span:(i+1)*span, ...] <= s) \
-                *(satn[i*span:(i+1)*span, ...] > 0)
+                * (satn[i*span:(i+1)*span, ...] > 0)
             y[i] = nwp.sum(dtype=np.int64)/void.sum(dtype=np.int64)
             z[i] = i*span + (span-1)/2
     if mode == 'slide':
@@ -1313,7 +1320,7 @@ def find_h(saturation, position=None, srange=[0.01, 0.99]):
         srange = max(min(srange), min(saturation)), min(max(srange), max(saturation))
         r.valid = False
         logger.warning(f'The requested saturation range was adjusted to {srange}'
-                        ' to accomodate data')
+                       ' to accomodate data')
     # Find zmax
     x = saturation >= max(srange)
     zmax = np.where(x)[0][-1]
