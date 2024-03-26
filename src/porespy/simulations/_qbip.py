@@ -1,12 +1,11 @@
 import logging
 import heapq as hq
 import numpy as np
+import scipy.stats as spst
 from edt import edt
 from numba import njit
-try:
-    from porespy.generators import ramp
-except ImportError:
-    from porespy.beta import ramp
+from skimage.morphology import skeletonize_3d
+from porespy.generators import ramp
 from porespy.filters import seq_to_satn, local_thickness, pc_to_satn
 from porespy.tools import (
     get_tqdm,
@@ -28,42 +27,6 @@ __all__ = [
 ]
 
 
-def invasion(
-    im,
-    pc,
-    dt=None,
-    inlets=None,
-    outlets=None,
-    maxiter=None,
-    return_sizes=False,
-    return_pressures=False,
-):
-    r"""
-    Uses the QBIP algorithm to simulate volume-controlled invasion of a non-wetting
-    phase
-
-    Parameters
-    ----------
-    im : ndarray
-
-
-
-    Returns
-    -------
-    """
-    results = qbip(
-        im=im,
-        pc=pc,
-        dt=dt,
-        inlets=inlets,
-        outlets=outlets,
-        maxiter=maxiter,
-        return_sizes=return_sizes,
-        return_pressures=return_pressures,
-    )
-    return results
-
-
 def qbip(
     im,
     pc,
@@ -75,7 +38,11 @@ def qbip(
     return_pressures=False,
 ):
     r"""
-    Perform image-based invasion percolation in the presence of gravity
+    Performs invasion percolation using a priority queue, optionally including
+    the effect of gravity
+
+    The queue-based approach is much faster than the original image-based
+    approach [1]_.
 
     Parameters
     ----------
@@ -131,6 +98,14 @@ def qbip(
     priority queue (via the `heapq` module from the standard libary) is used to
     maintain an up-to-date list of which voxels should be invaded next.  This
     is much faster than the original approach.
+
+    References
+    ----------
+
+    .. [1] Gostick JT, Misaghian N, Yang J, Boek ES. *Simulating volume-controlled
+       invasion of a non-wetting fluid in volumetric images using basic image
+       processing tools*. `Computers and the Geosciences
+       <https://doi.org/10.1016/j.cageo.2021.104978>`_. 158(1), 104978 (2022)
 
     """
     if maxiter is None:
@@ -371,6 +346,32 @@ def _where(arr):
     return result
 
 
+def invasion(
+    im,
+    pc,
+    dt=None,
+    inlets=None,
+    outlets=None,
+    maxiter=None,
+    return_sizes=False,
+    return_pressures=False,
+):
+    results = qbip(
+        im=im,
+        pc=pc,
+        dt=dt,
+        inlets=inlets,
+        outlets=outlets,
+        maxiter=maxiter,
+        return_sizes=return_sizes,
+        return_pressures=return_pressures,
+    )
+    return results
+
+
+invasion.__doc__ = qbip.__doc__
+
+
 def capillary_transform(
     im,
     dt=None,
@@ -438,14 +439,23 @@ def capillary_transform(
     return pc
 
 
-def bond_number(im, delta_rho, g, sigma, voxelsize, method='median-dt'):
+def bond_number(
+    im,
+    delta_rho,
+    g,
+    sigma,
+    voxelsize,
+    source='lt',
+    method='median',
+    mask=False,
+):
     r"""
-    Computes the Bond number for a system using the specified method
+    Computes the Bond number for an image
 
     Parameters
     ----------
     im : ndarray
-        The image of the domain of interest with `True` values indicating the void
+        The image of the domain with `True` values indicating the phase of interest
         space
     delta_rho : float
         The difference in the density of the non-wetting and wetting phase
@@ -455,24 +465,61 @@ def bond_number(im, delta_rho, g, sigma, voxelsize, method='median-dt'):
         The surface tension of the fluid pair
     voxelsize : float
         The size of the voxels
-    method : str
-        The method to use for finding the characteristic length *R*. Options are:
+    source : str
+        The source of the pore size values to use when computing the characteristic
+        length *R*. Options are:
 
         ============== =============================================================
         Option         Description
         ============== =============================================================
-        median-dt      Uses the median of the distance transform
-        median-lt      Uses the medial of the local thickness
+        dt             Uses the distance transform
+        lt             Uses the local thickness
+        ============== =============================================================
+
+    mask : bool
+        If `True` then the distance values in `source` are masked by the skeleton
+        before computing the average value using the specified `method`.
+    method : str
+        The method to use for finding the characteristic length *R* from the
+        values in `source`. Options are:
+
+        ============== =============================================================
+        Option         Description
+        ============== =============================================================
+        mean           The arithmetic mean (using numpy.mean)
+        min (or amin)  The minimum value (using numpy.amin). This is only useful is
+                       `mask=True` so the values are masked by the skelton.
+        max (or amax)  The maximum value (using numpy.amax).
+        mode           The mode of the values (using scipy.stats.mode)
+        gmean          The geometric mean of the values (using scipy.stats.gmean)
+        hmean          The harmonic mean of the values (using scipy.stats.hmean)
+        pmean          The power mean of the values (using scipy.stats.pmean)
         ============== =============================================================
     """
-    if method == 'median-dt':
-        dt = edt(im)
-        R = np.median(dt[im])
-    elif method == 'median-lt':
-        lt = local_thickness(im)
-        R = np.median(lt[lt > 0])
+    if mask is True:
+        mask = skeletonize_3d(im)
+    else:
+        mask = im
+
+    if source == 'dt':
+        dvals = edt(im)
+    elif source == 'lt':
+        dvals = local_thickness(im)
+    else:
+        raise Exception(f"Unrecognized source {source}")
+
+    if method in ['median', 'mean', 'min', 'max', 'amin', 'amax']:
+        try:
+            f = getattr(np, method)
+        except AttributeError:
+            f = getattr(np, "a" + method)
+        R = f(dvals[mask])
+    elif method in ['pmean', 'hmean', 'gmean']:
+        f = getattr(spst, method)
+        R = f(dvals[mask])
     else:
         raise Exception(f"Unrecognized method {method}")
+
     Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
     return Bo
 
