@@ -3,6 +3,7 @@ import heapq as hq
 import numpy as np
 import scipy.stats as spst
 from edt import edt
+from scipy.ndimage import maximum_filter
 from numba import njit
 from skimage.morphology import skeletonize_3d
 from porespy.generators import ramp
@@ -11,6 +12,8 @@ from porespy.tools import (
     get_tqdm,
     make_contiguous,
     Results,
+    ps_rect,
+    ps_round,
 )
 
 
@@ -170,7 +173,7 @@ def qbip(
             outlets=outlets,
             return_mask=True,
         )
-        trapped[sequence == -1] = True  # Add uninvaded voxels to trapped mask
+        # trapped[sequence == -1] = True  # Add uninvaded voxels to trapped mask
         sequence[trapped] = -1
         pressure = pressure.astype(float)
         pressure[trapped] = np.inf
@@ -315,7 +318,7 @@ def _insert_disk_at_point(im, i, j, r, v, k=0, overwrite=False):  # pragma: no c
                 for b, y in enumerate(range(j-r, j+r+1)):
                     if (y >= 0) and (y < ylim):
                         R = ((a - r)**2 + (b - r)**2)**0.5
-                        if R < r:
+                        if R <= r:
                             if overwrite or (im[x, y] == 0):
                                 im[x, y] = v
     else:
@@ -328,12 +331,12 @@ def _insert_disk_at_point(im, i, j, r, v, k=0, overwrite=False):  # pragma: no c
                             for c, z in enumerate(range(k-1, k+r+1)):
                                 if (z >= 0) and (z < zlim):
                                     R = ((a - r)**2 + (b - r)**2 + (c - r)**2)**0.5
-                                    if R < r:
+                                    if R <= r:
                                         if overwrite or (im[x, y, z] == 0):
                                             im[x, y, z] = v
                         else:  # For 3D image with singleton 3rd dimension
                             R = ((a - r)**2 + (b - r)**2)**0.5
-                            if R < r:
+                            if R <= r:
                                 if overwrite or (im[x, y, 0] == 0):
                                     im[x, y, 0] = v
     return im
@@ -574,14 +577,20 @@ def find_trapped_regions2(seq, im, outlets, return_mask=True):
         outlets=out_temp,
     )
     trapped = trapped.squeeze()
+    trapped[~im] = 0
+    # Fix pixels on solid surfaces
+    size = region_size(trapped, strel=ps_round(r=1, ndim=im.ndim, smooth=False))
+    mask = (size < 5)*(size > 0)
     if return_mask:
-        trapped[~im] = 0
+        trapped[mask] = False
         return trapped
     else:
         seq = np.copy(seq)
         seq[trapped] = -1
         seq[~im] = 0
         seq = make_contiguous(im=seq, mode='symmetric')
+        mx = maximum_filter(seq, footprint=ps_rect(w=3, ndim=im.ndim))
+        seq[mask] = mx[mask]
         return seq
 
 
