@@ -2,6 +2,7 @@ import inspect as insp
 import logging
 import dask
 import numpy as np
+import numpy.typing as npt
 from edt import edt
 import operator as op
 import scipy.ndimage as spim
@@ -70,7 +71,13 @@ def ibip_gpu(**kwargs):
     return ibip_gpu(**kwargs)
 
 
-def find_trapped_regions(seq, outlets=None, bins: int = 25, return_mask: bool = True):
+def find_trapped_regions(
+    seq: npt.ArrayLike,
+    outlets: npt.ArrayLike = None,
+    bins: int = 25,
+    return_mask: bool = True,
+    conn: str = 'min',
+):
     r"""
     Find the trapped regions given an invasion sequence image
 
@@ -96,6 +103,18 @@ def find_trapped_regions(seq, outlets=None, bins: int = 25, return_mask: bool = 
         indicating which voxels are trapped.  If ``False``, then a copy of
         ``seq`` is returned with the trapped voxels set to uninvaded and
         the invasion sequence values adjusted accordingly.
+    conn : str
+        Controls the shape of the structuring element used to determin if voxels
+        are connected.  Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
+                  in 3D.
+        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
+                  26 neighbors in 3D.
+        ========= ==================================================================
 
     Returns
     -------
@@ -116,6 +135,10 @@ def find_trapped_regions(seq, outlets=None, bins: int = 25, return_mask: bool = 
     seq = np.copy(seq)
     if outlets is None:
         outlets = get_border(seq.shape, mode='faces')
+    if conn == 'min':
+        strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
+    elif conn == 'max':
+        strel = ps_rect(w=3, ndim=seq.ndim)
     # All uninvaded regions should be given sequence number of lowest nearby fluid
     mask = seq < 0  # This is used again at the end of the function to fix seq
     mask_dil = spim.binary_dilation(mask, structure=ps_rect(w=3, ndim=im.ndim))*im
@@ -136,7 +159,7 @@ def find_trapped_regions(seq, outlets=None, bins: int = 25, return_mask: bool = 
     for i in tqdm(range(len(bins)), **settings.tqdm):
         s = bins[i]
         temp = seq >= s
-        labels = spim.label(temp)[0]
+        labels = spim.label(temp, structure=strel)[0]
         keep = np.unique(labels[outlets])
         keep = np.setdiff1d(keep, np.array([0]))
         trapped += temp*np.isin(labels, keep, invert=True)

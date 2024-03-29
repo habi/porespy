@@ -2,18 +2,19 @@ import logging
 import heapq as hq
 import numpy as np
 import scipy.stats as spst
+import numpy.typing as npt
 from edt import edt
-from scipy.ndimage import maximum_filter
 from numba import njit
 from skimage.morphology import skeletonize_3d
+from scipy.ndimage import maximum_filter
 from porespy.generators import ramp
-from porespy.filters import seq_to_satn, local_thickness, pc_to_satn
+from porespy.filters import region_size, seq_to_satn, local_thickness
 from porespy.tools import (
     get_tqdm,
     make_contiguous,
     Results,
-    ps_rect,
     ps_round,
+    ps_rect,
 )
 
 
@@ -26,19 +27,22 @@ __all__ = [
     'invasion',
     "capillary_transform",
     "find_trapped_regions2",
+    "fill_trapped_voxels",
     "bond_number",
 ]
 
 
 def qbip(
-    im,
-    pc,
-    dt=None,
-    inlets=None,
-    outlets=None,
-    maxiter=None,
-    return_sizes=False,
-    return_pressures=False,
+    im: npt.NDArray,
+    pc: npt.NDArray,
+    dt: npt.NDArray = None,
+    inlets: npt.NDArray = None,
+    outlets: npt.NDArray = None,
+    maxiter: int = None,
+    return_sizes: bool = False,
+    return_pressures: bool = False,
+    conn: str = 'min',
+    max_size: int = 0,
 ):
     r"""
     Performs invasion percolation using a priority queue, optionally including
@@ -73,6 +77,18 @@ def qbip(
     maxiter : int
         The maximum number of iteration to perform.  The default is equal to the
         number of void pixels `im`.
+    conn : str
+        Controls the shape of the structuring element used to find neighboring
+        voxels.  Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
+                  in 3D.
+        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
+                  26 neighbors in 3D.
+        ========= ==================================================================
 
     Returns
     -------
@@ -104,15 +120,14 @@ def qbip(
 
     References
     ----------
-
     .. [1] Gostick JT, Misaghian N, Yang J, Boek ES. *Simulating volume-controlled
        invasion of a non-wetting fluid in volumetric images using basic image
        processing tools*. `Computers and the Geosciences
        <https://doi.org/10.1016/j.cageo.2021.104978>`_. 158(1), 104978 (2022)
 
     """
-    if maxiter is None:
-        maxiter = int(np.prod(im.shape)*(im.sum()/im.size))
+    if maxiter is None:  # Compute numpy of pixels in image
+        maxiter = (im == 1).sum()
 
     if inlets is None:
         inlets = np.zeros_like(im)
@@ -145,6 +160,7 @@ def qbip(
         pressure=inv_pc,
         size=inv_size,
         maxiter=maxiter,
+        conn=conn,
     )
     # Reduce back to 2D if necessary
     sequence = sequence.squeeze()
@@ -167,14 +183,15 @@ def qbip(
 
     if outlets is not None:
         logger.info('Computing trapping and adjusting outputs')
-        trapped = find_trapped_regions2(
+        sequence = find_trapped_regions2(
             seq=sequence,
             im=im,
             outlets=outlets,
-            return_mask=True,
+            return_mask=False,
+            conn=conn,
+            max_size=max_size,
         )
-        # trapped[sequence == -1] = True  # Add uninvaded voxels to trapped mask
-        sequence[trapped] = -1
+        trapped = sequence == -1
         pressure = pressure.astype(float)
         pressure[trapped] = np.inf
         size = size.astype(float)
@@ -201,6 +218,7 @@ def _qbip_inner_loop(
     pressure,
     size,
     maxiter,
+    conn,
 ):  # pragma: no cover
     # Initialize the heap
     inds = np.where(inlets*im)
@@ -236,7 +254,7 @@ def _qbip_inner_loop(
                     r=int(pt[1]), v=pt[1], overwrite=False)
             # Add neighboring points to heap and processed array
             neighbors = _find_valid_neighbors(
-                i=pt[2], j=pt[3], k=pt[4], im=processed, conn='min')
+                i=pt[2], j=pt[3], k=pt[4], im=processed, conn=conn)
             for n in neighbors:
                 hq.heappush(bd, [pc[n], dt[n], n[0], n[1], n[2]])
                 processed[n[0], n[1], n[2]] = True
@@ -245,7 +263,14 @@ def _qbip_inner_loop(
 
 
 @njit
-def _find_valid_neighbors(i, j, im, k=0, conn='min', valid=False):  # pragma: no cover
+def _find_valid_neighbors(
+    i,
+    j,
+    im,
+    k=0,
+    conn='min',
+    valid=False
+):  # pragma: no cover
     if im.ndim == 2:
         xlim, ylim = im.shape
         if conn == 'min':
@@ -358,6 +383,7 @@ def invasion(
     maxiter=None,
     return_sizes=False,
     return_pressures=False,
+    conn='min',
 ):
     results = qbip(
         im=im,
@@ -368,6 +394,7 @@ def invasion(
         maxiter=maxiter,
         return_sizes=return_sizes,
         return_pressures=return_pressures,
+        conn=conn,
     )
     return results
 
@@ -376,15 +403,15 @@ invasion.__doc__ = qbip.__doc__
 
 
 def capillary_transform(
-    im,
-    dt=None,
-    sigma=0.01,
-    theta=180,
-    g=9.81,
-    rho_wp=0,
-    rho_nwp=0,
-    voxelsize=1e-6,
-    spacing=None,
+    im: npt.NDArray,
+    dt: npt.NDArray = None,
+    sigma: float = 0.01,
+    theta: float = 180,
+    g: float = 9.81,
+    rho_wp: float = 0,
+    rho_nwp: float = 0,
+    voxelsize: float = 1e-6,
+    spacing: float = None,
 ):
     r"""
     Uses the Washburn equation to convert distance transform values to capillary
@@ -443,14 +470,14 @@ def capillary_transform(
 
 
 def bond_number(
-    im,
-    delta_rho,
-    g,
-    sigma,
-    voxelsize,
-    source='lt',
-    method='median',
-    mask=False,
+    im: npt.NDArray,
+    delta_rho: float,
+    g: float,
+    sigma: float,
+    voxelsize: float,
+    source: str = 'lt',
+    method: str = 'median',
+    mask: bool = False,
 ):
     r"""
     Computes the Bond number for an image
@@ -479,9 +506,6 @@ def bond_number(
         lt             Uses the local thickness
         ============== =============================================================
 
-    mask : bool
-        If `True` then the distance values in `source` are masked by the skeleton
-        before computing the average value using the specified `method`.
     method : str
         The method to use for finding the characteristic length *R* from the
         values in `source`. Options are:
@@ -489,15 +513,18 @@ def bond_number(
         ============== =============================================================
         Option         Description
         ============== =============================================================
-        mean           The arithmetic mean (using numpy.mean)
-        min (or amin)  The minimum value (using numpy.amin). This is only useful is
-                       `mask=True` so the values are masked by the skelton.
-        max (or amax)  The maximum value (using numpy.amax).
-        mode           The mode of the values (using scipy.stats.mode)
-        gmean          The geometric mean of the values (using scipy.stats.gmean)
-        hmean          The harmonic mean of the values (using scipy.stats.hmean)
-        pmean          The power mean of the values (using scipy.stats.pmean)
+        mean           The arithmetic mean (using `numpy.mean`)
+        min (or amin)  The minimum value (using `numpy.amin`)
+        max (or amax)  The maximum value (using `numpy.amax`)
+        mode           The mode of the values (using `scipy.stats.mode`)
+        gmean          The geometric mean of the values (using `scipy.stats.gmean`)
+        hmean          The harmonic mean of the values (using `scipy.stats.hmean`)
+        pmean          The power mean of the values (using `scipy.stats.pmean`)
         ============== =============================================================
+
+    mask : bool
+        If `True` then the distance values in `source` are masked by the skeleton
+        before computing the average value using the specified `method`.
     """
     if mask is True:
         mask = skeletonize_3d(im)
@@ -511,23 +538,92 @@ def bond_number(
     else:
         raise Exception(f"Unrecognized source {source}")
 
-    if method in ['median', 'mean', 'min', 'max', 'amin', 'amax']:
-        try:
-            f = getattr(np, method)
-        except AttributeError:
-            f = getattr(np, "a" + method)
-        R = f(dvals[mask])
-    elif method in ['pmean', 'hmean', 'gmean']:
+    if method in ['median', 'mean', 'amin', 'amax']:
+        f = getattr(np, method)
+    elif method in ['min', 'max']:
+        f = getattr(np, 'a' + method)
+    elif method in ['pmean', 'hmean', 'gmean', 'mode']:
         f = getattr(spst, method)
-        R = f(dvals[mask])
     else:
         raise Exception(f"Unrecognized method {method}")
-
+    R = f(dvals[mask])
     Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
     return Bo
 
 
-def find_trapped_regions2(seq, im, outlets, return_mask=True):
+def fill_trapped_voxels(
+    seq: npt.NDArray,
+    trapped: npt.NDArray = None,
+    max_size: int = 1,
+    conn: str = 'min',
+):
+    r"""
+    Finds small isolated clusters of voxels which were identified as trapped and
+    sets them to invaded.
+
+    Parameters
+    ----------
+    seq : ndarray
+        The sequence map resulting from an invasion process where trapping has
+        been applied, such that trapped voxels are labelled -1.
+    trapped : ndarray, optional
+        The boolean array of the trapped voxels. If this is not available than all
+        voxels in `seq` with a value < 0 are used.
+    max_size : int
+        The maximum size of the clusters which are to be filled. Clusters larger
+        than this size are left trapped.
+    conn : str
+        Controls the shape of the structuring element used to find neighboring
+        voxels when looking for sequence values to place into un-trapped voxels.
+        Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
+                  in 3D.
+        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
+                  26 neighbors in 3D.
+        ========= ==================================================================
+
+    Notes
+    -----
+    This function has to essentially guess which sequence value to put into each
+    un-trapped voxel so the sequence values can differ between the output of
+    this function and the result returned by the various invasion algorithms where
+    the trapping is computed internally. However, the fluid configuration for a
+    given saturation will be nearly identical.
+
+    """
+    if trapped is None:
+        trapped = seq < 0
+
+    strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
+    size = region_size(trapped, strel=strel)
+    mask = (size <= max_size)*(size > 0)
+    trapped[mask] = False
+
+    if conn == 'min':
+        strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
+    else:
+        strel = ps_rect(w=3, ndim=seq.ndim)
+    mx = maximum_filter(seq*~trapped, footprint=strel)
+    seq[mask] = mx[mask]
+
+    results = Results()
+    results.im_seq = seq
+    results.im_trapped = trapped
+    return results
+
+
+def find_trapped_regions2(
+    seq: npt.NDArray,
+    im: npt.NDArray,
+    outlets: npt.NDArray,
+    return_mask: bool = True,
+    conn: str = 'min',
+    max_size: int = 0,
+):
     r"""
     Finds clusters of trapped voxels using a reverse site-based invasion percolation
     algorithm
@@ -548,6 +644,25 @@ def find_trapped_regions2(seq, im, outlets, return_mask=True):
         which voxels were trapped. If `False`, then an image containing updated
         invasion sequence values is returned, with -1 indicating the trapped
         voxels.
+    conn : str
+        Controls the shape of the structuring element used to find neighboring
+        voxels.  Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
+                  in 3D.
+        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
+                  26 neighbors in 3D.
+        ========= ==================================================================
+
+    max_size : int
+        Any cluster of trapped voxels smaller than this size will be set to *not
+        trapped*. This is useful to remove small voxels along edges of the void
+        space, which appear to be trapped due to the jagged nature of the digital
+        image. The default is 0, meaning this adjustment is not applied, but a
+        value of 3 or 4 is probably suitable to activate this adjustment.
 
     Returns
     -------
@@ -575,27 +690,40 @@ def find_trapped_regions2(seq, im, outlets, return_mask=True):
         edge=edge,
         trapped=im_trapped,
         outlets=out_temp,
+        conn=conn,
     )
     trapped = trapped.squeeze()
     trapped[~im] = 0
-    # Fix pixels on solid surfaces
-    size = region_size(trapped, strel=ps_round(r=1, ndim=im.ndim, smooth=False))
-    mask = (size < 5)*(size > 0)
-    if return_mask:
+
+    if max_size > 0:  # Fix pixels on solid surfaces
+        strel = ps_round(r=1, ndim=im.ndim, smooth=False)  # Use minimum connectivity
+        size = region_size(trapped, strel=strel)
+        mask = (size <= max_size)*(size > 0)
         trapped[mask] = False
+        if conn == 'min':
+            strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
+        else:
+            strel = ps_rect(w=3, ndim=seq.ndim)
+        mx = maximum_filter(seq*~trapped, footprint=strel)
+        seq[mask] = mx[mask]
+
+    if return_mask:
         return trapped
     else:
-        seq = np.copy(seq)
         seq[trapped] = -1
         seq[~im] = 0
         seq = make_contiguous(im=seq, mode='symmetric')
-        mx = maximum_filter(seq, footprint=ps_rect(w=3, ndim=im.ndim))
-        seq[mask] = mx[mask]
         return seq
 
 
 @njit
-def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cover
+def _trapped_regions_inner_loop(
+    seq,
+    edge,
+    trapped,
+    outlets,
+    conn,
+):  # pragma: no cover
     # Initialize the binary heap
     inds = np.where(outlets)
     bd = []
@@ -620,7 +748,8 @@ def _trapped_regions_inner_loop(seq, edge, trapped, outlets):  # pragma: no cove
                 trapped[pt[1], pt[2], pt[3]] = False
                 minseq = pt[0]
             # Add neighboring points to heap and edge
-            neighbors = _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn='min')
+            neighbors = \
+                _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn=conn)
             for n in neighbors:
                 hq.heappush(bd, [seq[n], n[0], n[1], n[2]])
                 edge[n[0], n[1], n[2]] = True
@@ -656,11 +785,28 @@ if __name__ == "__main__":
         seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
     ps.tools.toc()
 
-
     # %%
     cm = copy(plt.cm.turbo)
     cm.set_under('grey')
     fig, ax = plt.subplots(1, 3)
-    ax[0].imshow(ip.im_seq/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
-    ax[1].imshow(trapped/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
-    ax[2].imshow(trapped_new/im, origin='lower', interpolation='none', vmin=0.0001, cmap=cm)
+    ax[0].imshow(
+        ip.im_seq/im,
+        origin='lower',
+        interpolation='none',
+        vmin=0.0001,
+        cmap=cm,
+    )
+    ax[1].imshow(
+        trapped/im,
+        origin='lower',
+        interpolation='none',
+        vmin=0.0001,
+        cmap=cm,
+    )
+    ax[2].imshow(
+        trapped_new/im,
+        origin='lower',
+        interpolation='none',
+        vmin=0.0001,
+        cmap=cm,
+    )
