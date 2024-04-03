@@ -6,9 +6,14 @@ import numpy.typing as npt
 from edt import edt
 from numba import njit
 from skimage.morphology import skeletonize_3d
-from scipy.ndimage import maximum_filter
+from scipy.ndimage import maximum_filter, label
 from porespy.generators import ramp
-from porespy.filters import region_size, seq_to_satn, local_thickness
+from porespy.filters import (
+    region_size,
+    seq_to_satn,
+    local_thickness,
+    flood_func,
+)
 from porespy.tools import (
     get_tqdm,
     make_contiguous,
@@ -138,7 +143,7 @@ def qbip(
 
     dt = np.atleast_3d(dt)
     inlets = np.atleast_3d(inlets)
-    im = np.atleast_3d(im)
+    im = np.atleast_3d(im == 1)
     pc = np.atleast_3d(pc)
 
     # Initialize arrays and do some preprocessing
@@ -191,8 +196,8 @@ def qbip(
             conn=conn,
             max_size=max_size,
         )
-        trapped = sequence == -1
-        pressure = pressure.astype(float)
+        trapped = (sequence == -1).squeeze()
+        pressure = pressure.astype(float).squeeze()
         pressure[trapped] = np.inf
         size = size.astype(float)
         size[trapped] = np.inf
@@ -608,6 +613,7 @@ def fill_trapped_voxels(
     else:
         strel = ps_rect(w=3, ndim=seq.ndim)
     mx = maximum_filter(seq*~trapped, footprint=strel)
+    mx = flood_func(mx, np.amax, labels=label(mask, structure=strel)[0])
     seq[mask] = mx[mask]
 
     results = Results()
@@ -623,10 +629,10 @@ def find_trapped_regions2(
     return_mask: bool = True,
     conn: str = 'min',
     max_size: int = 0,
+    mode: str = 'queue',
 ):
     r"""
-    Finds clusters of trapped voxels using a reverse site-based invasion percolation
-    algorithm
+    Finds clusters of trapped voxels given a set of outlets
 
     Parameters
     ----------
@@ -644,6 +650,21 @@ def find_trapped_regions2(
         which voxels were trapped. If `False`, then an image containing updated
         invasion sequence values is returned, with -1 indicating the trapped
         voxels.
+    mode : str
+        Controls the method used to find trapped voxels. Options are:
+
+        ========== =================================================================
+        Option     Description
+        ========== =================================================================
+        'cluster'  This method finds clusters of disconnected voxels with an
+                   invasion sequence less than or equal to the values on the outlet.
+                   It works well for invasion sequence maps which were produced by
+                   pressure-based simulations (IBOP).
+        'queue'    This method uses a queue-based method which is much faster if
+                   the invasion was performed using IBIP or QBIP, but can end up
+                   being slower than `'cluster'` if IBOP was used.
+        ========== =================================================================
+
     conn : str
         Controls the shape of the structuring element used to find neighboring
         voxels.  Options are:
@@ -677,43 +698,40 @@ def find_trapped_regions2(
     so needs to get the special case treatment that I added to the original
     function.
     """
-    # Make sure outlets are masked correctly and convert to 3d
-    out_temp = np.atleast_3d(outlets*(seq > 0))
-    # Initialize im_trapped array
-    im_trapped = np.ones_like(out_temp, dtype=bool)
-    # Convert seq to negative numbers and convert ot 3d
-    seq_temp = np.atleast_3d(-1*seq)
-    # Note which sites have been added to heap already
-    edge = out_temp*np.atleast_3d(im) + np.atleast_3d(~im)
-    trapped = _trapped_regions_inner_loop(
-        seq=seq_temp,
-        edge=edge,
-        trapped=im_trapped,
-        outlets=out_temp,
-        conn=conn,
-    )
-    trapped = trapped.squeeze()
-    trapped[~im] = 0
+    im = im > 0
+    if mode == 'queue':
+        # Make sure outlets are masked correctly and convert to 3d
+        out_temp = np.atleast_3d(outlets*(seq > 0))
+        # Initialize im_trapped array
+        im_trapped = np.ones_like(out_temp, dtype=bool)
+        # Convert seq to negative numbers and convert to 3d
+        seq_temp = np.atleast_3d(-1*seq)
+        # Note which sites have been added to heap already
+        edge = out_temp*np.atleast_3d(im) + np.atleast_3d(~im)
+        # seq = np.copy(np.atleast_3d(seq))
+        trapped = _trapped_regions_inner_loop(
+            seq=seq_temp,
+            edge=edge,
+            trapped=im_trapped,
+            outlets=out_temp,
+            conn=conn,
+        )
 
-    if max_size > 0:  # Fix pixels on solid surfaces
-        strel = ps_round(r=1, ndim=im.ndim, smooth=False)  # Use minimum connectivity
-        size = region_size(trapped, strel=strel)
-        mask = (size <= max_size)*(size > 0)
-        trapped[mask] = False
-        if conn == 'min':
-            strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
+        if return_mask:
+            trapped = trapped.squeeze()
+            trapped[~im] = 0
+            return trapped
         else:
-            strel = ps_rect(w=3, ndim=seq.ndim)
-        mx = maximum_filter(seq*~trapped, footprint=strel)
-        seq[mask] = mx[mask]
-
-    if return_mask:
-        return trapped
+            if max_size > 0:  # Fix pixels on solid surfaces
+                seq, trapped = fill_trapped_voxels(seq_temp, max_size=10)
+            seq = np.squeeze(seq)
+            trapped = np.squeeze(trapped)
+            seq[trapped] = -1
+            seq[~im] = 0
+            seq = make_contiguous(im=seq, mode='symmetric')
+            return seq
     else:
-        seq[trapped] = -1
-        seq[~im] = 0
-        seq = make_contiguous(im=seq, mode='symmetric')
-        return seq
+        raise NotImplementedError("Sorry, cluster is not implemented yet")
 
 
 @njit
