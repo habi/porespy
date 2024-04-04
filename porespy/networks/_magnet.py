@@ -1017,7 +1017,7 @@ def walk(im,
          step_size=0.5,
          max_n_steps=None):
     r"""
-    This function converts from cartesian coordinates to spherical coordinates.
+    Performs walk out to solid
 
     Parameters
     ----------
