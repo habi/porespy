@@ -132,6 +132,7 @@ def magnet(im,
         # get new throats
         throats = ftj.new_throats
     # use walk to get throat area
+    start = time.time()
     if throat_area is True:
         dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
         nodes = juncs_to_pore_centers(throats, dt_inv)  # find area at min
@@ -140,6 +141,8 @@ def magnet(im,
         throat_area = get_throat_area(im, sk, nodes, **kwargs)
     else:
         throat_area = None
+    stop = time.time()
+    print(f'Throat area time: {stop - start}s')
     # get network from junctions
     net = junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size)
     return net, sk, juncs, throat_area
