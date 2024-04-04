@@ -15,6 +15,9 @@ import scipy.signal as spsg
 import logging
 import numpy as np
 from porespy.tools import get_tqdm
+import time
+from numba import jit
+
 
 tqdm = get_tqdm()
 logger = logging.getLogger(__name__)
@@ -911,6 +914,97 @@ def _cartesian_to_spherical(n):
     angles[:, 1] = phi
 
     return angles
+
+
+@jit(nopython=True, cache=True)
+def _walk_jit(im, path, step_size, n_walkers_total, max_n_steps):
+    r"""
+    Performs walk out to solid using Numba's Jit
+
+    Parameters
+    ----------
+    im : ndarray (boolean)
+        Image of porous material where True indicates the void phase and False
+        indicates solid. Pass a padded image.
+    path: ndarray 1 by N_walkers by 6
+        The array used to keep track of the positions or path that each walker
+        takes. Upon each step, this array is incremented by one in the first
+        axis. The second axis corresponds to the number of total walkers while
+        the third axis contains labels, x-coord, y-coord, z-coord, theta, and
+        phi in that order. The labels given to each walker are asigned
+        acoording to their starting coordinate. For example, a label 1 is
+        assigned to all walkers starting at the first coordinate given in
+        coords.
+    step_size : float
+        The size of each step to take. This is equivalent to r in spherical
+        coordinates. If an ndarray is passed, it is assume that this is the
+        distance transform the same shape as im. Pass the distance transform
+        if you would like to adaptively effect step size for significant
+        speed up.
+    n_walkers_total : int
+        The total number of walkers being the number of throats times the
+        number of walkers per throat.
+    max_n_steps : int (optional)
+        The maximum number of steps to take. The default is None, in which case
+        there is no maximum and the walk will stop when ALL walkers have
+        reached solid.
+
+    Returns
+    -------
+    path: ndarray N_steps by N_walkers by 6
+        The array used to keep track of the positions or path that each walker
+        takes is returned. The first axis corresponds to the number of steps
+        taken
+
+    """
+    r = step_size
+    i = 0
+    step = 1
+    is_void = np.ones((n_walkers_total,), dtype=np.bool_)
+    while i < n_walkers_total:
+        i += 100
+        # retrieve old coords
+        x_old = path[step-1, :, 1]
+        y_old = path[step-1, :, 2]
+        z_old = path[step-1, :, 3]
+        # get x, y, z
+        # round, take integer, and clip in case step_size > 1
+        # add one for padding
+        x = np.round(x_old+1).astype(np.int64).clip(0, im.shape[0]-1)
+        y = np.round(y_old+1).astype(np.int64).clip(0, im.shape[1]-1)
+        if im.ndim == 3:
+            z = np.round(z_old+1).astype(np.int64).clip(0, im.shape[2]-1)
+        # check if void
+        # cannot use advanced indexing with numba
+        for j in range(len(x)):
+            if im.ndim == 2:
+                is_void[j] = im[x[j], y[j]]
+            else:
+                is_void[j] = im[x[j], y[j], z[j]]
+        # calculate step in each direction
+        delta_x = r*np.sin(path[step-1, :, 5])*np.cos(path[step-1, :, 4])
+        delta_y = r*np.sin(path[step-1, :, 5])*np.sin(path[step-1, :, 4])
+        delta_z = r*np.cos(path[step-1, :, 5])
+        # calculate new coords
+        x_new = delta_x + x_old
+        y_new = delta_y + y_old
+        z_new = delta_z + z_old
+        # create a new row in rw...
+        new_step = np.zeros_like(path[step-1:, :, :])
+        new_step[0, :, :] = path[step-1, :, :].copy()
+        new_step[0, :, 1][is_void] = x_new[is_void]
+        new_step[0, :, 2][is_void] = y_new[is_void]
+        new_step[0, :, 3][is_void] = z_new[is_void]
+        path = np.vstack((path, new_step))
+        if step == max_n_steps:
+            print('Maximum number of steps reached, ending walk')
+            break
+        # update step counter
+        step += 1
+        # update number of walkers that have reached solid
+        i = np.sum(~is_void)
+
+    return path
 
 
 def walk(im,
