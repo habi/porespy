@@ -583,7 +583,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     p_diameter = p_radius * 2
     # clipped diameters
     V_p = p_diameter**3  # volume of a cube!
-    p_diameter_clipped = (6*V_p/np.pi)**(1/3)
+    p_diameter_equivalent = (6*V_p/np.pi)**(1/3)
     # create network dictionary
     net = {}
     net['throat.conns'] = t_conns
@@ -597,7 +597,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     if throat_area is not None:
         net['throat.equivalent_diameter'] = t_equ_diameter * voxel_size
     net['pore.inscribed_diameter'] = p_diameter * voxel_size
-    net['pore.clipped_diameter'] = p_diameter_clipped * voxel_size
+    net['pore.equivalent_diameter'] = p_diameter_equivalent * voxel_size
     net['pore.index'] = np.arange(0, Np)
     return net
 
