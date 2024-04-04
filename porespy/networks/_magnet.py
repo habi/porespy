@@ -1266,6 +1266,16 @@ if __name__ == "__main__":
         plt.imshow(im)
 
     # MAGNET Steps
+    sk=None
+    parallel=False
+    surface=False
+    voxel_size=1
+    s=None
+    l_max=7
+    throat_junctions="fast marching"
+    throat_area=True
+    step_size=0.5
+    max_n_steps = 10
     net, sk, juncs, throat_area = magnet(im,
                                          sk=None,
                                          parallel=False,
@@ -1275,7 +1285,8 @@ if __name__ == "__main__":
                                          l_max=7,
                                          throat_junctions="fast marching",
                                          throat_area=True,
-                                         step_size=0.5)
+                                         step_size=step_size, 
+                                         max_n_steps=max_n_steps)
 
     print(f'Total throat area: {np.sum(throat_area)}')
     # for im2:
