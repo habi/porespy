@@ -348,13 +348,13 @@
 <span class="sd">    voxel in each x, y column. It uses numba for speed, and is</span>
 <span class="sd">    parallelized.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">shape</span><span class="o">=</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">depth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">prange</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
             <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">im</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">][</span><span class="n">z</span><span class="p">]:</span>
-                    <span class="n">depth</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">]</span><span class="o">=</span><span class="n">z</span>
+                    <span class="n">depth</span><span class="p">[</span><span class="n">x</span><span class="p">][</span><span class="n">y</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">/</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
                     <span class="k">break</span>
     <span class="k">return</span> <span class="n">depth</span>
 
@@ -395,6 +395,7 @@
     <span class="k">if</span> <span class="n">axis</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
     <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">im</span></div>
 
 </pre></div>
