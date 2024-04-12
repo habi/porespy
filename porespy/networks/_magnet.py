@@ -14,7 +14,8 @@ import scipy.ndimage as spim
 import scipy.signal as spsg
 import logging
 import numpy as np
-from porespy.tools import get_tqdm
+from porespy.tools import get_tqdm, ps_ball, ps_disk
+from porespy.filters import chunked_func
 import time
 from numba import jit
 
@@ -113,7 +114,7 @@ def magnet(im,
         if im.ndim == 3:
             _check_skeleton_health(sk.astype('bool'))
     # take distance transform
-    dt = edt(im)
+    dt = edt(im, parallel=16)
     # find junctions
     fj = find_junctions(sk)
     juncs = fj.juncs + fj.endpts
@@ -132,17 +133,14 @@ def magnet(im,
         # get new throats
         throats = ftj.new_throats
     # use walk to get throat area
-    start = time.time()
     if throat_area is True:
-        dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)
+        dt_inv = 1/spim.gaussian_filter(dt, sigma=0.4)  # FIXME: this is slow
         nodes = juncs_to_pore_centers(throats, dt_inv)  # find area at min
         if "step_size" not in kwargs:
             kwargs["step_size"] = dt
         throat_area = get_throat_area(im, sk, nodes, **kwargs)
     else:
         throat_area = None
-    stop = time.time()
-    print(f'Throat area time: {stop - start}s')
     # get network from junctions
     net = junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size)
     return net, sk, juncs, throat_area
@@ -522,6 +520,11 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
         juncs = spim.label(juncs > 0, structure=strel)[0]
     if throats.dtype == bool:
         throats = spim.label(throats > 0, structure=strel)[0]
+    # max filter on dt for finding inscribed throat diameter
+    # this is important since skeleton is off of peaks in dt map
+    b = ps_disk(2) if sk.ndim == 2 else ps_ball(2)
+    func = spim.maximum_filter
+    dt_max = chunked_func(func, input=dt, footprint=b)
     # get slicess of throats
     slices = spim.find_objects(throats)  # Nt by 2
     # initialize throat conns and radius
@@ -532,6 +535,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     t_max_diameter = np.zeros((Nt), dtype=float)
     t_min_diameter = np.zeros((Nt), dtype=float)
     t_avg_diameter = np.zeros((Nt), dtype=float)
+    t_int_diameter = np.zeros((Nt), dtype=float)
     t_ins_diameter = np.zeros((Nt), dtype=float)
     t_area = np.zeros((Nt), dtype=float)
     if throat_area is not None:
@@ -544,6 +548,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
         sub_throats = throats[ss]  # sub_im_l
         sub_sk = sk[ss]
         sub_dt = dt[ss]
+        sub_dt_max = dt_max[ss]
         throat_im = sub_throats == throat+1
         # dilate throat_im to capture connecting pore indices
         throat_im_dilated = spim.binary_dilation(throat_im, strel)
@@ -558,9 +563,12 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
         t_max_diameter[throat] = np.max(throat_dt[throat_dt != 0])*2
         t_avg_diameter[throat] = np.average(throat_dt[throat_dt != 0])*2
         # inscribed diameter
+        throat_dt_max = throat_im * sub_dt_max
+        t_ins_diameter[throat] = np.min(throat_dt_max[throat_dt_max != 0])*2
+        # integrated diameter
         radii = throat_dt[throat_dt != 0]
         F_approx = sum(1/(2*radii)**4)
-        t_ins_diameter[throat] = (len(radii)/F_approx)**(1/4)
+        t_int_diameter[throat] = (len(radii)/F_approx)**(1/4)
         # equivalent diameter
         if throat_area is not None:
             sub_area = throat_area[ss]
@@ -597,6 +605,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     net['throat.min_diameter'] = t_min_diameter * voxel_size
     net['throat.avg_diameter'] = t_avg_diameter * voxel_size
     net['throat.inscribed_diameter'] = t_ins_diameter * voxel_size
+    net['throat.integrated_diameter'] = t_int_diameter * voxel_size
     if throat_area is not None:
         net['throat.equivalent_diameter'] = t_equ_diameter * voxel_size
     net['pore.inscribed_diameter'] = p_diameter * voxel_size
@@ -1257,11 +1266,11 @@ if __name__ == "__main__":
     im2 = ps.filters.fill_blind_pores(im2, conn=8, surface=True)
 
     # Define 3D image
-    im3 = ps.generators.blobs([100, 100, 100], porosity=0.25, blobiness=1)
+    im3 = ps.generators.blobs([1000, 100, 100], porosity=0.25, blobiness=1)
     im3 = ps.filters.fill_blind_pores(im3, conn=26, surface=True)
     im3 = ps.filters.trim_floating_solid(im3, conn=6, surface=False)
 
-    im = im3
+    im = im2
 
     # plot
     if im.ndim == 2:
