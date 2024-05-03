@@ -587,7 +587,7 @@ def junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size=1):
     if p_coords.shape[1] == 2:  # If 2D, add zeros in 3rd column
         p_coords = np.hstack((p_coords, np.zeros((Np, 1))))
     # find pore radius
-    p_radius = dt[np.where(ct)].reshape((Np, 1)).astype(float)
+    p_radius = dt_max[np.where(ct)].reshape((Np, 1)).astype(float)
     p_radius = np.insert(p_radius, 1, ct[np.where(ct)], axis=1)
     p_radius = p_radius[ct[np.where(ct)].T.argsort()]
     p_radius = p_radius[:, 0].reshape(Np)
