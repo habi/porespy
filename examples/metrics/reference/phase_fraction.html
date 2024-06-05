@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2958,7 +2958,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="phase-fraction">
-<h1><code class="docutils literal notranslate"><span class="pre">phase_fraction</span></code><a class="headerlink" href="#phase-fraction" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">phase_fraction</span></code><a class="headerlink" href="#phase-fraction" title="Link to this heading">¶</a></h1>
 <p>Calculates the fraction of each phase (unique label) in an image. This method has varieties of applications including phase fraction in a porous medium where different materials are labeled in the image.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2979,7 +2979,7 @@
 </div>
 </div>
 <section id="im">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">¶</a></h2>
 <p>The input image containing the phase(s). Let’s generate a test image containing three phases:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3000,7 +3000,8 @@
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>labels of phases are [0. 1. 2.]
 </pre></div>
 </div>
-<img alt="../../../_images/c6091d0d8ea58969744011f2e4d8cd45063fc24310cc2220471b851781259a1e.png" src="../../../_images/c6091d0d8ea58969744011f2e4d8cd45063fc24310cc2220471b851781259a1e.png" />
+<a class="reference internal image-reference" href="../../../_images/c6091d0d8ea58969744011f2e4d8cd45063fc24310cc2220471b851781259a1e.png"><img alt="../../../_images/c6091d0d8ea58969744011f2e4d8cd45063fc24310cc2220471b851781259a1e.png" src="../../../_images/c6091d0d8ea58969744011f2e4d8cd45063fc24310cc2220471b851781259a1e.png" style="width: 984px; height: 335px;" />
+</a>
 </div>
 </div>
 <p>The generated image includes three phases labeled as 1,2,3. Note that the label values can by any unique number. Given the input image, the <code class="docutils literal notranslate"><span class="pre">phase_fraction</span></code> method returns a dictionary containing the label and the fraction of each phase in the image. The fraction of each phase is calculated by normalizing the number of voxels in each phase by the total number of voxels in the image.</p>
@@ -3019,7 +3020,7 @@
 </div>
 </section>
 <section id="normed">
-<h2><code class="docutils literal notranslate"><span class="pre">normed</span></code><a class="headerlink" href="#normed" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">normed</span></code><a class="headerlink" href="#normed" title="Link to this heading">¶</a></h2>
 <p>By default the <code class="docutils literal notranslate"><span class="pre">phase_fraction</span></code> method returns the fraction of phases. We can calculate the number of voxels in each phase by choosing <code class="docutils literal notranslate"><span class="pre">normed=False</span></code>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3062,7 +3063,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

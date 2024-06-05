@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -3024,7 +3024,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="random-spheres">
-<h1><code class="docutils literal notranslate"><span class="pre">random_spheres</span></code><a class="headerlink" href="#random-spheres" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">random_spheres</span></code><a class="headerlink" href="#random-spheres" title="Link to this heading">¶</a></h1>
 <p>Generates randomly located, non-overlapping spheres using the ‘random sequential addition’ technique.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3036,13 +3036,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:46:58] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:06:18] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 <section id="im-or-shape">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code> or <code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#im-or-shape" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code> or <code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#im-or-shape" title="Link to this heading">¶</a></h2>
 <p>The function can either add spheres an existing image, or create a new image of the given shape and add spheres to that.  Let’s start with an empty image, and set the void fraction to a low value:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3056,7 +3056,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/cd07cdf6251bf00cc0a84ed79513868c73af93559e0970727ba26b8ecd93154f.png" src="../../../_images/cd07cdf6251bf00cc0a84ed79513868c73af93559e0970727ba26b8ecd93154f.png" />
+<a class="reference internal image-reference" href="../../../_images/3651c6c3555f42d7d5c47d28f7212a1ff197abaad077166998363659dd8068f0.png"><img alt="../../../_images/3651c6c3555f42d7d5c47d28f7212a1ff197abaad077166998363659dd8068f0.png" src="../../../_images/3651c6c3555f42d7d5c47d28f7212a1ff197abaad077166998363659dd8068f0.png" style="width: 383px; height: 383px;" />
+</a>
 </div>
 </div>
 <p>Now let’s fill up the remaining space with as many smaller spheres as possible:</p>
@@ -3071,12 +3072,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/64d572824113650a1d94d0683c5c183dcd7af3d4d1e682965a527e07b1bc77ea.png" src="../../../_images/64d572824113650a1d94d0683c5c183dcd7af3d4d1e682965a527e07b1bc77ea.png" />
+<a class="reference internal image-reference" href="../../../_images/411fd946c4c2ace6f1895b85f281ff35099308a55111f4bbdf76274152b8d792.png"><img alt="../../../_images/411fd946c4c2ace6f1895b85f281ff35099308a55111f4bbdf76274152b8d792.png" src="../../../_images/411fd946c4c2ace6f1895b85f281ff35099308a55111f4bbdf76274152b8d792.png" style="width: 383px; height: 383px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="edges">
-<h2><code class="docutils literal notranslate"><span class="pre">edges</span></code><a class="headerlink" href="#edges" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">edges</span></code><a class="headerlink" href="#edges" title="Link to this heading">¶</a></h2>
 <p>Spheres can either be fully contained within the image or be truncated at the edges:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3098,12 +3100,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/56c6d9440bd98b4a0b4fd541905dfdf80f641ad89332ef3690b20bb10850761d.png" src="../../../_images/56c6d9440bd98b4a0b4fd541905dfdf80f641ad89332ef3690b20bb10850761d.png" />
+<a class="reference internal image-reference" href="../../../_images/55f67adada1a0deb8329e0beb6c9530ddc80d6327946f0f62d9bfa7e2efe6115.png"><img alt="../../../_images/55f67adada1a0deb8329e0beb6c9530ddc80d6327946f0f62d9bfa7e2efe6115.png" src="../../../_images/55f67adada1a0deb8329e0beb6c9530ddc80d6327946f0f62d9bfa7e2efe6115.png" style="width: 744px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="clearance">
-<h2><code class="docutils literal notranslate"><span class="pre">clearance</span></code><a class="headerlink" href="#clearance" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">clearance</span></code><a class="headerlink" href="#clearance" title="Link to this heading">¶</a></h2>
 <p>Spheres can be made to partially overlap, the so called ‘cherry pit’ model, or to have some clearance:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3124,12 +3127,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/3a864edb1cd00bca61966bce2be41d570b6fc2867728e258388ace3f3d898d99.png" src="../../../_images/3a864edb1cd00bca61966bce2be41d570b6fc2867728e258388ace3f3d898d99.png" />
+<a class="reference internal image-reference" href="../../../_images/62490db46e324ac6f8ca64d4753e0dd34b877f0ca767718d5c74e537253ae09d.png"><img alt="../../../_images/62490db46e324ac6f8ca64d4753e0dd34b877f0ca767718d5c74e537253ae09d.png" src="../../../_images/62490db46e324ac6f8ca64d4753e0dd34b877f0ca767718d5c74e537253ae09d.png" style="width: 744px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="protrusion">
-<h2><code class="docutils literal notranslate"><span class="pre">protrusion</span></code><a class="headerlink" href="#protrusion" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">protrusion</span></code><a class="headerlink" href="#protrusion" title="Link to this heading">¶</a></h2>
 <p>This controls how much the added spheres are allowed to protrude into the background.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3145,7 +3149,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/4e04911a61cd9f22ea3c0672b74b79445ee5302fa58f28d5432db79287963c48.png" src="../../../_images/4e04911a61cd9f22ea3c0672b74b79445ee5302fa58f28d5432db79287963c48.png" />
+<a class="reference internal image-reference" href="../../../_images/590de3cdd5f0dff3fead62f06fb5450d27cd8b00756a923337222f59cdeb3b87.png"><img alt="../../../_images/590de3cdd5f0dff3fead62f06fb5450d27cd8b00756a923337222f59cdeb3b87.png" src="../../../_images/590de3cdd5f0dff3fead62f06fb5450d27cd8b00756a923337222f59cdeb3b87.png" style="width: 984px; height: 313px;" />
+</a>
 </div>
 </div>
 <p>In the case of pre-existing spheres this can be used to give some clearance between existing spheres and new ones by using a negative value:</p>
@@ -3164,12 +3169,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/d657b772cbd2d23924db6c4a67adaa7365dfbd889c37c048d3f8cace42c43a58.png" src="../../../_images/d657b772cbd2d23924db6c4a67adaa7365dfbd889c37c048d3f8cace42c43a58.png" />
+<a class="reference internal image-reference" href="../../../_images/12279fe3e94866b1b547b7d951272c43bc04aa6b099ec420590163b93dac4ca1.png"><img alt="../../../_images/12279fe3e94866b1b547b7d951272c43bc04aa6b099ec420590163b93dac4ca1.png" src="../../../_images/12279fe3e94866b1b547b7d951272c43bc04aa6b099ec420590163b93dac4ca1.png" style="width: 984px; height: 313px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="phi-and-maxiter">
-<h2><code class="docutils literal notranslate"><span class="pre">phi</span></code> and <code class="docutils literal notranslate"><span class="pre">maxiter</span></code><a class="headerlink" href="#phi-and-maxiter" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">phi</span></code> and <code class="docutils literal notranslate"><span class="pre">maxiter</span></code><a class="headerlink" href="#phi-and-maxiter" title="Link to this heading">¶</a></h2>
 <p>The number of spheres to add can be controlled directly by specifying <code class="docutils literal notranslate"><span class="pre">maxiter</span></code>, or implicitly by specifying <code class="docutils literal notranslate"><span class="pre">phi</span></code> (the solid volume fraction).  Setting <code class="docutils literal notranslate"><span class="pre">phi</span></code> will attempt to compute the correct value of <code class="docutils literal notranslate"><span class="pre">maxiter</span></code> internally so will not give the exact <code class="docutils literal notranslate"><span class="pre">phi</span></code> requested:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3190,12 +3196,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/0e18bb75eb342c53940b9c72882356d639eef9922f5066650c961898e676e6bc.png" src="../../../_images/0e18bb75eb342c53940b9c72882356d639eef9922f5066650c961898e676e6bc.png" />
+<a class="reference internal image-reference" href="../../../_images/63c33b83919023a3041d8314c2b8125b2399090f552664cfeb612a80bc75af89.png"><img alt="../../../_images/63c33b83919023a3041d8314c2b8125b2399090f552664cfeb612a80bc75af89.png" src="../../../_images/63c33b83919023a3041d8314c2b8125b2399090f552664cfeb612a80bc75af89.png" style="width: 744px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="smooth">
-<h2><code class="docutils literal notranslate"><span class="pre">smooth</span></code><a class="headerlink" href="#smooth" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">smooth</span></code><a class="headerlink" href="#smooth" title="Link to this heading">¶</a></h2>
 <p>Controls whether or not the inserted spheres have the little nibs or pips on each face.  Note that if <code class="docutils literal notranslate"><span class="pre">smooth=True</span></code>, then <code class="docutils literal notranslate"><span class="pre">r</span></code> is increased by 1 to ensure the radius of the inserted spheres matches the requested value.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3216,12 +3223,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/35fd4d383d0523bf39c74b6383c64f986b8bcd48c57dae4de069b4de9506807a.png" src="../../../_images/35fd4d383d0523bf39c74b6383c64f986b8bcd48c57dae4de069b4de9506807a.png" />
+<a class="reference internal image-reference" href="../../../_images/faa92509dac63085fe6b65edb0a0be3c14a478bd511ab70be9dd94d3350ece01.png"><img alt="../../../_images/faa92509dac63085fe6b65edb0a0be3c14a478bd511ab70be9dd94d3350ece01.png" src="../../../_images/faa92509dac63085fe6b65edb0a0be3c14a478bd511ab70be9dd94d3350ece01.png" style="width: 744px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="seed">
-<h2><code class="docutils literal notranslate"><span class="pre">seed</span></code><a class="headerlink" href="#seed" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">seed</span></code><a class="headerlink" href="#seed" title="Link to this heading">¶</a></h2>
 <p>This function uses <code class="docutils literal notranslate"><span class="pre">numba</span></code> to accelerate the insertion process, which means that the <code class="docutils literal notranslate"><span class="pre">numpy</span></code> random number generator is <em>not</em> used.  To generate a repeatable realization of the spheres, pass an integer value to the <code class="docutils literal notranslate"><span class="pre">seed</span></code> argument:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3248,12 +3256,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/6a439a279b5039ac993477a317df0fb0204b183ab1e40871c6003d6c8dca90a8.png" src="../../../_images/6a439a279b5039ac993477a317df0fb0204b183ab1e40871c6003d6c8dca90a8.png" />
+<a class="reference internal image-reference" href="../../../_images/6439f6553da2702c646b83b611515c383c8bdab3a345d2bd2c20bee1769567f8.png"><img alt="../../../_images/6439f6553da2702c646b83b611515c383c8bdab3a345d2bd2c20bee1769567f8.png" src="../../../_images/6439f6553da2702c646b83b611515c383c8bdab3a345d2bd2c20bee1769567f8.png" style="width: 1139px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="value">
-<h2><code class="docutils literal notranslate"><span class="pre">value</span></code><a class="headerlink" href="#value" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">value</span></code><a class="headerlink" href="#value" title="Link to this heading">¶</a></h2>
 <p>The default behavior is to insert spheres with values of <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">False</span></code>, but this can be specified using the <code class="docutils literal notranslate"><span class="pre">value</span></code> argument.  This is useful when inserting several different sizes of spheres sequentially:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3278,7 +3287,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/1ea7cb48d4f8a7bee4349c3d3b659949653f0ad0a8d8a9c8ecb37881c1b592e6.png" src="../../../_images/1ea7cb48d4f8a7bee4349c3d3b659949653f0ad0a8d8a9c8ecb37881c1b592e6.png" />
+<a class="reference internal image-reference" href="../../../_images/cb7457679cd28689f32643c2c9a1a4890985d30eb5abb1321f1cd7a7f15e8961.png"><img alt="../../../_images/cb7457679cd28689f32643c2c9a1a4890985d30eb5abb1321f1cd7a7f15e8961.png" src="../../../_images/cb7457679cd28689f32643c2c9a1a4890985d30eb5abb1321f1cd7a7f15e8961.png" style="width: 782px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3309,7 +3319,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2994,7 +2994,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="nl-means-layered">
-<h1><code class="docutils literal notranslate"><span class="pre">nl_means_layered</span></code><a class="headerlink" href="#nl-means-layered" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">nl_means_layered</span></code><a class="headerlink" href="#nl-means-layered" title="Link to this heading">¶</a></h1>
 <p>Applies the non-local means filter to each 2D layer of a 3D image (stack of 2D images) in parallel. This function is applicable in removing noise from SEM images.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3015,7 +3015,7 @@
 </div>
 </div>
 <section id="im">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">¶</a></h2>
 <p>The input image is a greyscale image with noise to be removed. Let’s create a test image:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3030,7 +3030,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/309fd005532605156b779d0fce73da82babf77dd89f41341e79115c5a5e22991.png" src="../../../_images/309fd005532605156b779d0fce73da82babf77dd89f41341e79115c5a5e22991.png" />
+<a class="reference internal image-reference" href="../../../_images/309fd005532605156b779d0fce73da82babf77dd89f41341e79115c5a5e22991.png"><img alt="../../../_images/309fd005532605156b779d0fce73da82babf77dd89f41341e79115c5a5e22991.png" src="../../../_images/309fd005532605156b779d0fce73da82babf77dd89f41341e79115c5a5e22991.png" style="width: 1182px; height: 583px;" />
+</a>
 </div>
 </div>
 <div class="cell docutils container">
@@ -3046,12 +3047,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/bae4ec3492b07a0206e85a6b487a4da8f364fbb6752fd23f24716ceeb109f446.png" src="../../../_images/bae4ec3492b07a0206e85a6b487a4da8f364fbb6752fd23f24716ceeb109f446.png" />
+<a class="reference internal image-reference" href="../../../_images/bae4ec3492b07a0206e85a6b487a4da8f364fbb6752fd23f24716ceeb109f446.png"><img alt="../../../_images/bae4ec3492b07a0206e85a6b487a4da8f364fbb6752fd23f24716ceeb109f446.png" src="../../../_images/bae4ec3492b07a0206e85a6b487a4da8f364fbb6752fd23f24716ceeb109f446.png" style="width: 1483px; height: 484px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="cores">
-<h2><code class="docutils literal notranslate"><span class="pre">cores</span></code><a class="headerlink" href="#cores" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">cores</span></code><a class="headerlink" href="#cores" title="Link to this heading">¶</a></h2>
 <p>The number of cores to use for the processing. The default is all cores. Let’s change it to a smaller number (this will slow down the processing time):</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3063,12 +3065,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/50a96c5a2be86713b69023c296f7a47ecf33105773c04d39ac6e96bf10c7b9e0.png" src="../../../_images/50a96c5a2be86713b69023c296f7a47ecf33105773c04d39ac6e96bf10c7b9e0.png" />
+<a class="reference internal image-reference" href="../../../_images/50a96c5a2be86713b69023c296f7a47ecf33105773c04d39ac6e96bf10c7b9e0.png"><img alt="../../../_images/50a96c5a2be86713b69023c296f7a47ecf33105773c04d39ac6e96bf10c7b9e0.png" src="../../../_images/50a96c5a2be86713b69023c296f7a47ecf33105773c04d39ac6e96bf10c7b9e0.png" style="width: 583px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="axis">
-<h2><code class="docutils literal notranslate"><span class="pre">axis</span></code><a class="headerlink" href="#axis" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">axis</span></code><a class="headerlink" href="#axis" title="Link to this heading">¶</a></h2>
 <p>The axis along which 2D slices for the filtering process should be taken. This can be 0,1, or 2 corresponding to x, y, and z axis. By default the slices are taken along x axis. When using tomography images, this should correspond to the axis of rotation of the tomography stage.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3088,12 +3091,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/d456587baccf80e1f0983b8bd2de8c565e55ca6112bd027a9a3a0194c018cfeb.png" src="../../../_images/d456587baccf80e1f0983b8bd2de8c565e55ca6112bd027a9a3a0194c018cfeb.png" />
+<a class="reference internal image-reference" href="../../../_images/d456587baccf80e1f0983b8bd2de8c565e55ca6112bd027a9a3a0194c018cfeb.png"><img alt="../../../_images/d456587baccf80e1f0983b8bd2de8c565e55ca6112bd027a9a3a0194c018cfeb.png" src="../../../_images/d456587baccf80e1f0983b8bd2de8c565e55ca6112bd027a9a3a0194c018cfeb.png" style="width: 1484px; height: 372px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="patch-size">
-<h2><code class="docutils literal notranslate"><span class="pre">patch_size</span></code><a class="headerlink" href="#patch-size" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">patch_size</span></code><a class="headerlink" href="#patch-size" title="Link to this heading">¶</a></h2>
 <p>The size of patches used for denoising filter. The default is 5.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3113,12 +3117,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/850e3c8d8061efbaa51903677f4e2bc3d5aae208678bfc2b572dbc324dffaae0.png" src="../../../_images/850e3c8d8061efbaa51903677f4e2bc3d5aae208678bfc2b572dbc324dffaae0.png" />
+<a class="reference internal image-reference" href="../../../_images/850e3c8d8061efbaa51903677f4e2bc3d5aae208678bfc2b572dbc324dffaae0.png"><img alt="../../../_images/850e3c8d8061efbaa51903677f4e2bc3d5aae208678bfc2b572dbc324dffaae0.png" src="../../../_images/850e3c8d8061efbaa51903677f4e2bc3d5aae208678bfc2b572dbc324dffaae0.png" style="width: 1484px; height: 372px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="patch-distance">
-<h2><code class="docutils literal notranslate"><span class="pre">patch_distance</span></code><a class="headerlink" href="#patch-distance" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">patch_distance</span></code><a class="headerlink" href="#patch-distance" title="Link to this heading">¶</a></h2>
 <p>Maximal distance in pixels where to search patches used for denoising. The default is 15.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3138,12 +3143,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/b1008cfe17fb56b3dab206b56d42ab88dcc20f46de75b57e9349d533e94f8999.png" src="../../../_images/b1008cfe17fb56b3dab206b56d42ab88dcc20f46de75b57e9349d533e94f8999.png" />
+<a class="reference internal image-reference" href="../../../_images/b1008cfe17fb56b3dab206b56d42ab88dcc20f46de75b57e9349d533e94f8999.png"><img alt="../../../_images/b1008cfe17fb56b3dab206b56d42ab88dcc20f46de75b57e9349d533e94f8999.png" src="../../../_images/b1008cfe17fb56b3dab206b56d42ab88dcc20f46de75b57e9349d533e94f8999.png" style="width: 1484px; height: 372px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="h">
-<h2><code class="docutils literal notranslate"><span class="pre">h</span></code><a class="headerlink" href="#h" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">h</span></code><a class="headerlink" href="#h" title="Link to this heading">¶</a></h2>
 <p>Cut-off distance (in gray levels). The higher <code class="docutils literal notranslate"><span class="pre">h</span></code>, the more permissive one is in accepting patches. A higher h results in a
 smoother image, at the expense of blurring features. For a Gaussian noise of standard deviation sigma, a rule of thumb is to choose the value of <code class="docutils literal notranslate"><span class="pre">h</span></code> to be sigma of slightly less. The default is 4.</p>
 <div class="cell docutils container">
@@ -3164,7 +3170,8 @@ smoother image, at the expense of blurring features. For a Gaussian noise of sta
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/989baed504ecb568e8340990c7962a69c4905ab1a7651649205ccb77e4b5be68.png" src="../../../_images/989baed504ecb568e8340990c7962a69c4905ab1a7651649205ccb77e4b5be68.png" />
+<a class="reference internal image-reference" href="../../../_images/989baed504ecb568e8340990c7962a69c4905ab1a7651649205ccb77e4b5be68.png"><img alt="../../../_images/989baed504ecb568e8340990c7962a69c4905ab1a7651649205ccb77e4b5be68.png" src="../../../_images/989baed504ecb568e8340990c7962a69c4905ab1a7651649205ccb77e4b5be68.png" style="width: 1484px; height: 372px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3195,7 +3202,7 @@ smoother image, at the expense of blurring features. For a Gaussian noise of sta
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

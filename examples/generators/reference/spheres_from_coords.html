@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2967,7 +2967,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="spheres-from-coords">
-<h1><code class="docutils literal notranslate"><span class="pre">spheres_from_coords</span></code><a class="headerlink" href="#spheres-from-coords" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">spheres_from_coords</span></code><a class="headerlink" href="#spheres-from-coords" title="Link to this heading">¶</a></h1>
 <p>In cases where an external package is used to generate a sphere packing, this function can be used to convert the result to an <code class="docutils literal notranslate"><span class="pre">ndimage</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2979,13 +2979,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:43:16] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:02:34] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 <section id="df">
-<h2><code class="docutils literal notranslate"><span class="pre">df</span></code><a class="headerlink" href="#df" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">df</span></code><a class="headerlink" href="#df" title="Link to this heading">¶</a></h2>
 <p>The function is designed to accept the input coordinates and sphere radii as a <code class="docutils literal notranslate"><span class="pre">pandas</span></code> DataFrame, which is why this argument is called <code class="docutils literal notranslate"><span class="pre">df</span></code>…although as we’ll see this is somewhat flexible.</p>
 <p>Let assume we have 4 spheres whose x, y, and z coordinates plus their respective radii are stored as column an Excel file with each row representing a sphere.  This format can be directly read into a DataFrame using <code class="docutils literal notranslate"><span class="pre">df</span> <span class="pre">=</span> <span class="pre">pd.read_excel</span></code> or <code class="docutils literal notranslate"><span class="pre">df</span> <span class="pre">=</span> <span class="pre">pd.read_csv</span></code>, which is why the DataFrame is the format of choice.</p>
 <p>Let’s enter a DataFrame by hand for this demonstration, then print it:</p>
@@ -3039,7 +3039,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" src="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" />
+<img alt="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" src="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" />
 </div>
 </div>
 <p>It is also acceptable to pass a python <code class="docutils literal notranslate"><span class="pre">dict</span></code>:</p>
@@ -3052,7 +3052,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" src="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" />
+<img alt="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" src="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" />
 </div>
 </div>
 <p>It is also acceptable to leave the ‘X’ or ‘Y’ columns as 0’s.  The function will ignore the column with all 0’s and return a 2D image.</p>
@@ -3065,7 +3065,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" src="../../../_images/2d1f7dd0b2d0391ba82039cc87d6bba6c1838c35636f4b1eb6c694b637cee9a7.png" />
+<img alt="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" src="../../../_images/26d9fe721f9961ff267638de8517d7a82e2b43630071ad134eb606129031bd10.png" />
 </div>
 </div>
 <p>Of course, it also works with 3D images:</p>
@@ -3078,12 +3078,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/79f48cb8c4d32176a61d55c74e5d51dbcdbadb2be4265961df3f293d18ba8399.png" src="../../../_images/79f48cb8c4d32176a61d55c74e5d51dbcdbadb2be4265961df3f293d18ba8399.png" />
+<img alt="../../../_images/ab60f71cf44cf5a1c9c22915e16bb6199fb299523345c597d02f0e1497ccdfaf.png" src="../../../_images/ab60f71cf44cf5a1c9c22915e16bb6199fb299523345c597d02f0e1497ccdfaf.png" />
 </div>
 </div>
 </section>
 <section id="mode">
-<h2><code class="docutils literal notranslate"><span class="pre">mode</span></code><a class="headerlink" href="#mode" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">mode</span></code><a class="headerlink" href="#mode" title="Link to this heading">¶</a></h2>
 <p>The options are <code class="docutils literal notranslate"><span class="pre">'extended'</span></code> which means the spheres are allowed to extend beyond the edge of the image, and <code class="docutils literal notranslate"><span class="pre">contained</span></code> meaning the sphere lie fully inside the image.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3096,12 +3096,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/48a4c83913f62af815465b41efcfcade0d0cd221204567c291504c919096e47f.png" src="../../../_images/48a4c83913f62af815465b41efcfcade0d0cd221204567c291504c919096e47f.png" />
+<img alt="../../../_images/3b03efa066c082a4dfe0ffeb611c9f36fbab8f618535cbbbca0eb016a06a9540.png" src="../../../_images/3b03efa066c082a4dfe0ffeb611c9f36fbab8f618535cbbbca0eb016a06a9540.png" />
 </div>
 </div>
 </section>
 <section id="smooth">
-<h2><code class="docutils literal notranslate"><span class="pre">smooth</span></code><a class="headerlink" href="#smooth" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">smooth</span></code><a class="headerlink" href="#smooth" title="Link to this heading">¶</a></h2>
 <p>This controls the outer shape of the spheres.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3114,7 +3114,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/979af0546b0e93c689a78fbb59456f11387d857006225ebf8162db9530fc1e05.png" src="../../../_images/979af0546b0e93c689a78fbb59456f11387d857006225ebf8162db9530fc1e05.png" />
+<img alt="../../../_images/a45ad011a7a9b95949ead92b026c514db0851278d4b79d834f18f63bcf088d98.png" src="../../../_images/a45ad011a7a9b95949ead92b026c514db0851278d4b79d834f18f63bcf088d98.png" />
 </div>
 </div>
 </section>
@@ -3145,7 +3145,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

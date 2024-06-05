@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
@@ -2967,10 +2967,10 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="converting-greyscale-images-to-binary">
-<h1>Converting Greyscale Images to Binary<a class="headerlink" href="#converting-greyscale-images-to-binary" title="Link to this heading">#</a></h1>
+<h1>Converting Greyscale Images to Binary<a class="headerlink" href="#converting-greyscale-images-to-binary" title="Link to this heading">¶</a></h1>
 <p>The images produced by any microscope are greyscale, meaning each pixel contains a numerical value indicating the intensity of that location.  In an ideal world these values will be nicely distributed, such that all bright pixels corresponding to solid will have high values (i.e, 200-255) while all dark pixels corresponding to void have low values (i.e., 0-50). If this were the case it would be very easy to differentiate or ‘segment’ the solid and void.</p>
 <section id="the-noise-problem">
-<h2>The Noise Problem<a class="headerlink" href="#the-noise-problem" title="Link to this heading">#</a></h2>
+<h2>The Noise Problem<a class="headerlink" href="#the-noise-problem" title="Link to this heading">¶</a></h2>
 <p>Let’s import some of the packages and functions we’ll need:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2982,7 +2982,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:44:17] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:03:36] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
@@ -2999,7 +2999,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/7c9b28908cd00923ebb4ca90361a33311067050adf244598cf5450f5a3d3f1a8.png" src="../../_images/7c9b28908cd00923ebb4ca90361a33311067050adf244598cf5450f5a3d3f1a8.png" />
+<a class="reference internal image-reference" href="../../_images/3ca011dceaf4507067d56de476c0b2c79f81c20b2d43452a06bd11e05fcb6574.png"><img alt="../../_images/3ca011dceaf4507067d56de476c0b2c79f81c20b2d43452a06bd11e05fcb6574.png" src="../../_images/3ca011dceaf4507067d56de476c0b2c79f81c20b2d43452a06bd11e05fcb6574.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>The above image now contains some noise in each phase, which is more realistic, though as we will see it not close to reality.  Let’s look at a histogram of this image:</p>
@@ -3011,7 +3012,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/7d6fbb0d6ab5a66b13a64a11c7a938b155ec026dd51937a813946a61595c36cb.png" src="../../_images/7d6fbb0d6ab5a66b13a64a11c7a938b155ec026dd51937a813946a61595c36cb.png" />
+<a class="reference internal image-reference" href="../../_images/83b20eb582144608332ebfcad13ef317bba96be81be71472845d878982349e14.png"><img alt="../../_images/83b20eb582144608332ebfcad13ef317bba96be81be71472845d878982349e14.png" src="../../_images/83b20eb582144608332ebfcad13ef317bba96be81be71472845d878982349e14.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>We can see above that all pixels with a value less than 0.5 belong to the dark phase, while the other pixels belong to the light phase.  A simple global threshold can reproduce the original image perfectly:</p>
@@ -3023,7 +3025,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/4c6ea9d0542a17c724780f88e08c58f417c4f058fcf635adc31ad1db581a31c3.png" src="../../_images/4c6ea9d0542a17c724780f88e08c58f417c4f058fcf635adc31ad1db581a31c3.png" />
+<a class="reference internal image-reference" href="../../_images/08abf8ed78a09de4d377af1016446e2758016178dd1604ac4e952b740f38ce88.png"><img alt="../../_images/08abf8ed78a09de4d377af1016446e2758016178dd1604ac4e952b740f38ce88.png" src="../../_images/08abf8ed78a09de4d377af1016446e2758016178dd1604ac4e952b740f38ce88.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>Now let’s look at a more realistic noise distribution, though still artificially generated:</p>
@@ -3038,7 +3041,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/b8dfd115dbd1b160ab62801b187d6413a3e33b336abc308575d5e799c5268f70.png" src="../../_images/b8dfd115dbd1b160ab62801b187d6413a3e33b336abc308575d5e799c5268f70.png" />
+<a class="reference internal image-reference" href="../../_images/a2b345c2faeae6ce50fcbf9cc0280610046159ce752211a5a9147d38c9601f0b.png"><img alt="../../_images/a2b345c2faeae6ce50fcbf9cc0280610046159ce752211a5a9147d38c9601f0b.png" src="../../_images/a2b345c2faeae6ce50fcbf9cc0280610046159ce752211a5a9147d38c9601f0b.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>Now we can see that the noise is much less separated, and in fact the tails of the distributions just touch each other in the middle.  Let’s see how the simple threshold we used above would work now:</p>
@@ -3050,7 +3054,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/ccbca4d795b057cd2b65196a25271fe205baf001163b95980a7d9f21c22d16bc.png" src="../../_images/ccbca4d795b057cd2b65196a25271fe205baf001163b95980a7d9f21c22d16bc.png" />
+<a class="reference internal image-reference" href="../../_images/90ab304b469bf55b87bef9c1b8ff777e1576cc9530adaddd0c4ab4611fbc2c89.png"><img alt="../../_images/90ab304b469bf55b87bef9c1b8ff777e1576cc9530adaddd0c4ab4611fbc2c89.png" src="../../_images/90ab304b469bf55b87bef9c1b8ff777e1576cc9530adaddd0c4ab4611fbc2c89.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>Now there are a few pixels in the dark phase which have been identified as bright and vice-versa. Let’s take this further but putting more extreme, but more realistic noise:</p>
@@ -3066,7 +3071,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/21f2372cd56fe24b332ca8458b8e5e738a5d9acb5cad928ef06c11551108959d.png" src="../../_images/21f2372cd56fe24b332ca8458b8e5e738a5d9acb5cad928ef06c11551108959d.png" />
+<a class="reference internal image-reference" href="../../_images/2b70963390bf1b1ebf8205edadd58ea74d3f19d1ea527b301ce1e90797026874.png"><img alt="../../_images/2b70963390bf1b1ebf8205edadd58ea74d3f19d1ea527b301ce1e90797026874.png" src="../../_images/2b70963390bf1b1ebf8205edadd58ea74d3f19d1ea527b301ce1e90797026874.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>In the above case our eyes can differentiate the light and dark phases pretty well, but the histogram is fully merged into one, and the global threshold produces a very problematic result. Just to show this is not an exageration, below is an actual slice of a tomogram taken of an electrospun flow-battery electrode:</p>
@@ -3127,13 +3133,13 @@
 <p>In the above montage we can see the same effect as the previous artificial case…noisey but usable image, a single histogram, and a segmented image with a lot of falsely labeled pixels.  In the following sections we will explore how to fix this.</p>
 </section>
 <section id="noise-filtering">
-<h2>Noise Filtering<a class="headerlink" href="#noise-filtering" title="Link to this heading">#</a></h2>
+<h2>Noise Filtering<a class="headerlink" href="#noise-filtering" title="Link to this heading">¶</a></h2>
 <p>The simplest way to describe the noise above is that some pixels which we know lie in the dark region have intensity values brighter than some pixels which we know lie in the bright regions, and vice-versa.  This leads to a false labeling of pixels when a threshold is applied.  The reason that our eyes can still see dark and light regions, depsite the noise, is that the <em>majority</em> of pixels in the dark region are darker than the bright regions, and vice-versa.  Our eyes can do some sort of averaging on the data to discard or correct for the spurious intensity pixels.</p>
 <blockquote>
 <div><p>We just need to find a way to get the computer to recognize this!</p>
 </div></blockquote>
 <section id="non-edge-preserving-filters">
-<h3>Non-Edge Preserving Filters<a class="headerlink" href="#non-edge-preserving-filters" title="Link to this heading">#</a></h3>
+<h3>Non-Edge Preserving Filters<a class="headerlink" href="#non-edge-preserving-filters" title="Link to this heading">¶</a></h3>
 <p>The most obvious way to fix this is to replace each pixel with a value that is the average of the pixels around it. We could do a straight-up averaging, or some weighting like a gaussian blur:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3156,7 +3162,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/7947c5efa7c45dab584ec283aacf4da6eda01aa07c466024c8bca44251f0c340.png" src="../../_images/7947c5efa7c45dab584ec283aacf4da6eda01aa07c466024c8bca44251f0c340.png" />
+<a class="reference internal image-reference" href="../../_images/7947c5efa7c45dab584ec283aacf4da6eda01aa07c466024c8bca44251f0c340.png"><img alt="../../_images/7947c5efa7c45dab584ec283aacf4da6eda01aa07c466024c8bca44251f0c340.png" src="../../_images/7947c5efa7c45dab584ec283aacf4da6eda01aa07c466024c8bca44251f0c340.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>The above results are not too bad, but as noted in the title of this subsection, these filters do not preserve edges.  Consider the following artificial case:</p>
@@ -3174,13 +3181,14 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/07432ba28ec36164b4bcf06c225713570ac7e9c57d77ad3c7a472b6e553bb708.png" src="../../_images/07432ba28ec36164b4bcf06c225713570ac7e9c57d77ad3c7a472b6e553bb708.png" />
+<a class="reference internal image-reference" href="../../_images/07432ba28ec36164b4bcf06c225713570ac7e9c57d77ad3c7a472b6e553bb708.png"><img alt="../../_images/07432ba28ec36164b4bcf06c225713570ac7e9c57d77ad3c7a472b6e553bb708.png" src="../../_images/07432ba28ec36164b4bcf06c225713570ac7e9c57d77ad3c7a472b6e553bb708.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>In the bottom row above it can be seen that the original image is not recovered upon applying the threshold. The reason for this is that the filters merged information from the entire neighborhood without regard for whether those values were high or low (other than the usual weighting). This means that edges are blurred and some information is lost.  Although these filters can do a passable job if the noise is not too bad, in the next section we will look at some fancier filters for this job.</p>
 </section>
 <section id="edge-preserving-filters">
-<h3>Edge Preserving Filters<a class="headerlink" href="#edge-preserving-filters" title="Link to this heading">#</a></h3>
+<h3>Edge Preserving Filters<a class="headerlink" href="#edge-preserving-filters" title="Link to this heading">¶</a></h3>
 <p>The ability to preserve edges is quite helpful when trying to segment solid and void, which have strong edges in reality.  The simplest edge preserving filter is the median filter which instead of an average takes the middle value of the neighborhood.  This works because a pixel on an edge will be surrounded by many pixels with similar values, and a smaller number of dissimilar values, hence preserving the edge.  The need for a powerful edge preserving filter has inspired the development of several (much) more complicated algorithms, including the <code class="docutils literal notranslate"><span class="pre">non-local</span> <span class="pre">means</span></code>, which is very effective as shown below.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3204,7 +3212,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/d769f797d328e1b078435f3f72f5f4eb9636d22ec1d5e3adcff84a62f1bcad6a.png" src="../../_images/d769f797d328e1b078435f3f72f5f4eb9636d22ec1d5e3adcff84a62f1bcad6a.png" />
+<a class="reference internal image-reference" href="../../_images/d769f797d328e1b078435f3f72f5f4eb9636d22ec1d5e3adcff84a62f1bcad6a.png"><img alt="../../_images/d769f797d328e1b078435f3f72f5f4eb9636d22ec1d5e3adcff84a62f1bcad6a.png" src="../../_images/d769f797d328e1b078435f3f72f5f4eb9636d22ec1d5e3adcff84a62f1bcad6a.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>In the above montage the middle image shows the median filter and the edges are visibly less blurred than the gaussian and uniform filters used in the previous section.  The result after threshold is also better.  The right column above shows the non-local means filter and the result is clearly superior.  This was done without even attempting to optimize the various adjustable parameters, which will be explored below.</p>
@@ -3218,7 +3227,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/4c922c6d1bf7d7108fc3290d714e09b2be183991603d521e11ed1a0c15a21934.png" src="../../_images/4c922c6d1bf7d7108fc3290d714e09b2be183991603d521e11ed1a0c15a21934.png" />
+<a class="reference internal image-reference" href="../../_images/4c922c6d1bf7d7108fc3290d714e09b2be183991603d521e11ed1a0c15a21934.png"><img alt="../../_images/4c922c6d1bf7d7108fc3290d714e09b2be183991603d521e11ed1a0c15a21934.png" src="../../_images/4c922c6d1bf7d7108fc3290d714e09b2be183991603d521e11ed1a0c15a21934.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>The three histograms above show the distribution of pixel values before filtering, after the median filter, and after the non-local means filter.  The long tail on the righthand side of the non-local means histogram is bright pixels which have now been separated from the dark ones..thought the two histograms will overlap quite a bit.  Note that the solid volume fraction of the material is quite low so there are not a lot of bright pixels, hence the histogram for the bright pixels is not very tall.</p>
@@ -3264,13 +3274,14 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/ced342bf8cb93d6437079850965cc9b2f0b456174353e05da093614bb66b32ef.png" src="../../_images/ced342bf8cb93d6437079850965cc9b2f0b456174353e05da093614bb66b32ef.png" />
+<a class="reference internal image-reference" href="../../_images/ced342bf8cb93d6437079850965cc9b2f0b456174353e05da093614bb66b32ef.png"><img alt="../../_images/ced342bf8cb93d6437079850965cc9b2f0b456174353e05da093614bb66b32ef.png" src="../../_images/ced342bf8cb93d6437079850965cc9b2f0b456174353e05da093614bb66b32ef.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>The rightmost figure above is probably the most smooth in terms of noise removal and shows the cleanest segmentation, though only barely better.</p>
 </section>
 <section id="applying-non-local-means-to-a-stack">
-<h3>Applying Non-Local Means to a Stack<a class="headerlink" href="#applying-non-local-means-to-a-stack" title="Link to this heading">#</a></h3>
+<h3>Applying Non-Local Means to a Stack<a class="headerlink" href="#applying-non-local-means-to-a-stack" title="Link to this heading">¶</a></h3>
 <p>The non-local means filter is <em>very slow</em>, and is exponentially slower when applied to a 3D image.  Luckily, this filter can be applied to each layer independently of the other layers, if done along the same axis as the slicing was done during the experiment.  PoreSpy implements a parallelized version of this filter which basically just processes the layers on each available core.  Usage of this function is outlined <a class="reference external" href="https://porespy.org/examples/filters/reference/nl_means_layered.html">here</a>.</p>
 </section>
 </section>
@@ -3301,7 +3312,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

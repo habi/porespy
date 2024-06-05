@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2962,9 +2962,9 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="norm-to-uniform">
-<h1><code class="docutils literal notranslate"><span class="pre">norm_to_uniform</span></code><a class="headerlink" href="#norm-to-uniform" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">norm_to_uniform</span></code><a class="headerlink" href="#norm-to-uniform" title="Link to this heading">¶</a></h1>
 <section id="import-packages">
-<h2>Import packages<a class="headerlink" href="#import-packages" title="Link to this heading">#</a></h2>
+<h2>Import packages<a class="headerlink" href="#import-packages" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -2977,14 +2977,14 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:45:18] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:04:37] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 </section>
 <section id="generate-image-for-testing">
-<h2>Generate image for testing<a class="headerlink" href="#generate-image-for-testing" title="Link to this heading">#</a></h2>
+<h2>Generate image for testing<a class="headerlink" href="#generate-image-for-testing" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
@@ -3000,12 +3000,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/19a256461dafa2c1a9296ae8670335a3c7a0193f361b7817769d177a0cdf9702.png" src="../../../_images/19a256461dafa2c1a9296ae8670335a3c7a0193f361b7817769d177a0cdf9702.png" />
+<a class="reference internal image-reference" href="../../../_images/f95dde79a245db5588695f4b69d23dd4679ae3ed54e5cc320db5c4d38b1b2cb3.png"><img alt="../../../_images/f95dde79a245db5588695f4b69d23dd4679ae3ed54e5cc320db5c4d38b1b2cb3.png" src="../../../_images/f95dde79a245db5588695f4b69d23dd4679ae3ed54e5cc320db5c4d38b1b2cb3.png" style="width: 770px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="demonstrate-function">
-<h2>Demonstrate function<a class="headerlink" href="#demonstrate-function" title="Link to this heading">#</a></h2>
+<h2>Demonstrate function<a class="headerlink" href="#demonstrate-function" title="Link to this heading">¶</a></h2>
 <p>The correlated noise field generated above has approximatetly normally distributed values.  It’s not perfectly normal, but it’s pretty close.  This can be converted to uniformly distributed values as follows:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3020,11 +3021,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/36964b02c41ecb2e66fb431a62b52c8ae384d6be41fc3cfe4bd707b2184bb37d.png" src="../../../_images/36964b02c41ecb2e66fb431a62b52c8ae384d6be41fc3cfe4bd707b2184bb37d.png" />
+<a class="reference internal image-reference" href="../../../_images/8ead4e328de152d3ac1b86ed9b88f94b394e5610b91f6aaf88ab1f292f5f7396.png"><img alt="../../../_images/8ead4e328de152d3ac1b86ed9b88f94b394e5610b91f6aaf88ab1f292f5f7396.png" src="../../../_images/8ead4e328de152d3ac1b86ed9b88f94b394e5610b91f6aaf88ab1f292f5f7396.png" style="width: 770px; height: 384px;" />
+</a>
 </div>
 </div>
 <section id="scale">
-<h3>scale<a class="headerlink" href="#scale" title="Link to this heading">#</a></h3>
+<h3>scale<a class="headerlink" href="#scale" title="Link to this heading">¶</a></h3>
 <p>The output can be scale to a specific range:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3039,7 +3041,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/7e3091d22101cff7d36c3d43824a2204f78be6e1bd3395bbcd32a5f2608dbe30.png" src="../../../_images/7e3091d22101cff7d36c3d43824a2204f78be6e1bd3395bbcd32a5f2608dbe30.png" />
+<a class="reference internal image-reference" href="../../../_images/b104f22b8d2ac3ff565cf0064a6edd1cb9c928383da978f38da4f4d4917b02a7.png"><img alt="../../../_images/b104f22b8d2ac3ff565cf0064a6edd1cb9c928383da978f38da4f4d4917b02a7.png" src="../../../_images/b104f22b8d2ac3ff565cf0064a6edd1cb9c928383da978f38da4f4d4917b02a7.png" style="width: 771px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3071,7 +3074,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

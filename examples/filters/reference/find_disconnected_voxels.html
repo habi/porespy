@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2967,7 +2967,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="find-disconnected-voxels">
-<h1><code class="docutils literal notranslate"><span class="pre">find_disconnected_voxels</span></code><a class="headerlink" href="#find-disconnected-voxels" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">find_disconnected_voxels</span></code><a class="headerlink" href="#find-disconnected-voxels" title="Link to this heading">¶</a></h1>
 <p>Detects the isolated regions that are not connected to the edges of the image. This function uses the <code class="docutils literal notranslate"><span class="pre">label</span></code> method in scipy ndimage with a specific structuring element to find the disconnected voxels. A cluster of connected pixels or isolated pixels are labeled with a unique value. Then a scikitimage <code class="docutils literal notranslate"><span class="pre">clear_border</span></code> filter is applied on the labeled regions to remove the regions that are connected to the borders of the image. The resulting filtered image includes the isolated regions that are disconnected from the edges of the image.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2987,7 +2987,7 @@
 </div>
 </div>
 <section id="im">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">¶</a></h2>
 <p>The input image is a binary image, with <code class="docutils literal notranslate"><span class="pre">True</span></code> (or 1) values indicating the phase for which disconnected voxels are to be found.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3003,11 +3003,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/12cd61e233da2039a9e94fbe5a396a20dae8046006c7aebf74a4b0ee826ff73e.svg" src="../../../_images/12cd61e233da2039a9e94fbe5a396a20dae8046006c7aebf74a4b0ee826ff73e.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/12cd61e233da2039a9e94fbe5a396a20dae8046006c7aebf74a4b0ee826ff73e.svg"><img alt="../../../_images/12cd61e233da2039a9e94fbe5a396a20dae8046006c7aebf74a4b0ee826ff73e.svg" height="584" src="../../../_images/12cd61e233da2039a9e94fbe5a396a20dae8046006c7aebf74a4b0ee826ff73e.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 <section id="conn">
-<h2><code class="docutils literal notranslate"><span class="pre">conn</span></code><a class="headerlink" href="#conn" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">conn</span></code><a class="headerlink" href="#conn" title="Link to this heading">¶</a></h2>
 <p>Conn value is used for creating the structuring element that sweeps (filters) the image to find the disconnected voxels. The value of conn and subsequently the structuring element affect the detection of isolated regions (accuracy). The algorithm by default uses conn values of 8 and 26 for 2D and 3D images, respectively. Their corresponding structuring element are square and cube with radius of 3 voxels. The other options for the conn values are 4 and 6, which correspond to the structuring elements disk (in 2D) and ball (in 3D) with radius of 1, respectively.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3019,11 +3020,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/ff30baf40cf2ccf61cae097a10cf3722967664aefed8b6a4e0b7a3465e54d130.svg" src="../../../_images/ff30baf40cf2ccf61cae097a10cf3722967664aefed8b6a4e0b7a3465e54d130.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/ff30baf40cf2ccf61cae097a10cf3722967664aefed8b6a4e0b7a3465e54d130.svg"><img alt="../../../_images/ff30baf40cf2ccf61cae097a10cf3722967664aefed8b6a4e0b7a3465e54d130.svg" height="584" src="../../../_images/ff30baf40cf2ccf61cae097a10cf3722967664aefed8b6a4e0b7a3465e54d130.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 <section id="surface">
-<h2><code class="docutils literal notranslate"><span class="pre">surface</span></code><a class="headerlink" href="#surface" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">surface</span></code><a class="headerlink" href="#surface" title="Link to this heading">¶</a></h2>
 <p>Bt default, this Boolean parameter is <code class="docutils literal notranslate"><span class="pre">False</span></code>. If <code class="docutils literal notranslate"><span class="pre">True</span></code> any isolated regions touching the edge of the image are considered disconnected.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3035,7 +3037,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/1bddeeb76ab606894705c3780f777d1c27dd62f0e0b57b239d4826a28285bff7.svg" src="../../../_images/1bddeeb76ab606894705c3780f777d1c27dd62f0e0b57b239d4826a28285bff7.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/1bddeeb76ab606894705c3780f777d1c27dd62f0e0b57b239d4826a28285bff7.svg"><img alt="../../../_images/1bddeeb76ab606894705c3780f777d1c27dd62f0e0b57b239d4826a28285bff7.svg" height="584" src="../../../_images/1bddeeb76ab606894705c3780f777d1c27dd62f0e0b57b239d4826a28285bff7.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 </section>
@@ -3065,7 +3068,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2963,10 +2963,10 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="trim-extrema">
-<h1><code class="docutils literal notranslate"><span class="pre">trim_extrema</span></code><a class="headerlink" href="#trim-extrema" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">trim_extrema</span></code><a class="headerlink" href="#trim-extrema" title="Link to this heading">¶</a></h1>
 <p>Trims local extremes in the greyscale values of an image. It is useful for flattening peaks.</p>
 <section id="import-packages">
-<h2>Import Packages<a class="headerlink" href="#import-packages" title="Link to this heading">#</a></h2>
+<h2>Import Packages<a class="headerlink" href="#import-packages" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -2978,14 +2978,14 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:45:45] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:05:04] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 </section>
 <section id="im">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">¶</a></h2>
 <p>The function works on 2D or 3D image with greyscale values, such as a distance transform:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2999,7 +2999,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/76e055872a699b7904c06a2d333c8eaf01616e94680aeaf042a2298e63f10d52.png" src="../../../_images/76e055872a699b7904c06a2d333c8eaf01616e94680aeaf042a2298e63f10d52.png" />
+<a class="reference internal image-reference" href="../../../_images/3ed7981d4a98ae9b1b088afbfe700f89204cd968584112a168ba2e0aba8e6f32.png"><img alt="../../../_images/3ed7981d4a98ae9b1b088afbfe700f89204cd968584112a168ba2e0aba8e6f32.png" src="../../../_images/3ed7981d4a98ae9b1b088afbfe700f89204cd968584112a168ba2e0aba8e6f32.png" style="width: 583px; height: 583px;" />
+</a>
 </div>
 </div>
 <div class="cell docutils container">
@@ -3029,12 +3030,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/8793b452f91b40082617e83e58aa3a876e53f516c26807318c5a45bb53268e3f.png" src="../../../_images/8793b452f91b40082617e83e58aa3a876e53f516c26807318c5a45bb53268e3f.png" />
+<a class="reference internal image-reference" href="../../../_images/53c1b76d0f65424b136f21f143ee5f143eab6ec16555da154c438b7818210991.png"><img alt="../../../_images/53c1b76d0f65424b136f21f143ee5f143eab6ec16555da154c438b7818210991.png" src="../../../_images/53c1b76d0f65424b136f21f143ee5f143eab6ec16555da154c438b7818210991.png" style="width: 1161px; height: 1183px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="mode">
-<h2><code class="docutils literal notranslate"><span class="pre">mode</span></code><a class="headerlink" href="#mode" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">mode</span></code><a class="headerlink" href="#mode" title="Link to this heading">¶</a></h2>
 <p>The available modes are maxima, minima, and extrema. These modes specify which extremes to remove. Minima and maxima modes trim the maximum and minimum extremes respectively. The extrema mode trims both extremes.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3060,7 +3062,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/4260bf47633ddb3dd422c27b169546bc94d31044da193f1190118e7a08babc10.png" src="../../../_images/4260bf47633ddb3dd422c27b169546bc94d31044da193f1190118e7a08babc10.png" />
+<a class="reference internal image-reference" href="../../../_images/5ad37b186f0502174bdeb6f918d786138b1d073e3bd50f09f29fc4aaae5036bd.png"><img alt="../../../_images/5ad37b186f0502174bdeb6f918d786138b1d073e3bd50f09f29fc4aaae5036bd.png" src="../../../_images/5ad37b186f0502174bdeb6f918d786138b1d073e3bd50f09f29fc4aaae5036bd.png" style="width: 1161px; height: 1183px;" />
+</a>
 </div>
 </div>
 <div class="cell docutils container">
@@ -3087,7 +3090,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/193902c78ee4f84a3dc1a48e4c6e3e1dcda6888155498164f451aa0244a03da8.png" src="../../../_images/193902c78ee4f84a3dc1a48e4c6e3e1dcda6888155498164f451aa0244a03da8.png" />
+<a class="reference internal image-reference" href="../../../_images/5988c93caa311c47ba98f424383e3b899764dbe5818859c24e7604977e687d5f.png"><img alt="../../../_images/5988c93caa311c47ba98f424383e3b899764dbe5818859c24e7604977e687d5f.png" src="../../../_images/5988c93caa311c47ba98f424383e3b899764dbe5818859c24e7604977e687d5f.png" style="width: 1161px; height: 1183px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3118,7 +3122,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

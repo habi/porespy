@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2973,7 +2973,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="ramp">
-<h1><code class="docutils literal notranslate"><span class="pre">ramp</span></code><a class="headerlink" href="#ramp" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">ramp</span></code><a class="headerlink" href="#ramp" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">ramp</span></code> is a simple function which creates a linear ramp of values along a given axis. This function is useful for “detrending” a diffusion simulation, or for computing the elevation of each voxel in an image for including gravity effects in invasion simulations.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2985,13 +2985,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:46:54] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:06:14] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 <section id="shape">
-<h2><code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#shape" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#shape" title="Link to this heading">¶</a></h2>
 <p>Both 2D and 3D images can be generated. Since this function is typically used in conjunction with some other image, then <code class="docutils literal notranslate"><span class="pre">shape=other_im.shape</span></code> would be a common option.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3003,12 +3003,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/15940a3c889514b85221709bc306a79e3d8211ffb94742f84c98ec4354469043.png" src="../../../_images/15940a3c889514b85221709bc306a79e3d8211ffb94742f84c98ec4354469043.png" />
+<a class="reference internal image-reference" href="../../../_images/fdeac6d1ab079f1c4db8264b26a67a07d073e04b6968cfcd8ce2b6cfbc51807a.png"><img alt="../../../_images/fdeac6d1ab079f1c4db8264b26a67a07d073e04b6968cfcd8ce2b6cfbc51807a.png" src="../../../_images/fdeac6d1ab079f1c4db8264b26a67a07d073e04b6968cfcd8ce2b6cfbc51807a.png" style="width: 383px; height: 368px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="inlet-and-outlet">
-<h2><code class="docutils literal notranslate"><span class="pre">inlet</span></code> and <code class="docutils literal notranslate"><span class="pre">outlet</span></code><a class="headerlink" href="#inlet-and-outlet" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">inlet</span></code> and <code class="docutils literal notranslate"><span class="pre">outlet</span></code><a class="headerlink" href="#inlet-and-outlet" title="Link to this heading">¶</a></h2>
 <p>These arguments specific the inlet and outlet values.  The <code class="docutils literal notranslate"><span class="pre">inlet</span></code> values will be stored at the start of the specified <code class="docutils literal notranslate"><span class="pre">axis</span></code>, and <code class="docutils literal notranslate"><span class="pre">outlet</span></code> values at the end.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3021,12 +3022,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/09509e8ce6fd443208f9774bbf34929f01453fd540824a438e8d7ba4d7b8f00f.png" src="../../../_images/09509e8ce6fd443208f9774bbf34929f01453fd540824a438e8d7ba4d7b8f00f.png" />
+<a class="reference internal image-reference" href="../../../_images/3572fdb3e11fcc6c9b897ef0baeb6f9d59f195df790a37a4e729edf1bd3ac34a.png"><img alt="../../../_images/3572fdb3e11fcc6c9b897ef0baeb6f9d59f195df790a37a4e729edf1bd3ac34a.png" src="../../../_images/3572fdb3e11fcc6c9b897ef0baeb6f9d59f195df790a37a4e729edf1bd3ac34a.png" style="width: 783px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="axis">
-<h2><code class="docutils literal notranslate"><span class="pre">axis</span></code><a class="headerlink" href="#axis" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">axis</span></code><a class="headerlink" href="#axis" title="Link to this heading">¶</a></h2>
 <p>The direction of the ramp can be controlled by change which <code class="docutils literal notranslate"><span class="pre">axis</span></code> is used:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3042,7 +3044,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/3d32466dca6d36ac84d78a31a306a451eb29ddd4b4e57234eb38f32a84ce608e.png" src="../../../_images/3d32466dca6d36ac84d78a31a306a451eb29ddd4b4e57234eb38f32a84ce608e.png" />
+<a class="reference internal image-reference" href="../../../_images/8a978a13ed819f65fb701f01371a53f6208f5324e9a585667da9085f280b5a69.png"><img alt="../../../_images/8a978a13ed819f65fb701f01371a53f6208f5324e9a585667da9085f280b5a69.png" src="../../../_images/8a978a13ed819f65fb701f01371a53f6208f5324e9a585667da9085f280b5a69.png" style="width: 757px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3073,7 +3076,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

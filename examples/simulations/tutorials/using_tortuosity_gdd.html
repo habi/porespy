@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2955,7 +2955,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="determining-tortuosity-using-geometric-domain-decomposition">
-<h1>Determining tortuosity using geometric domain decomposition<a class="headerlink" href="#determining-tortuosity-using-geometric-domain-decomposition" title="Link to this heading">#</a></h1>
+<h1>Determining tortuosity using geometric domain decomposition<a class="headerlink" href="#determining-tortuosity-using-geometric-domain-decomposition" title="Link to this heading">¶</a></h1>
 <p>Import necessary packages and functions</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2975,7 +2975,7 @@
 </div>
 </div>
 <section id="generate-test-image">
-<h2>Generate test image<a class="headerlink" href="#generate-test-image" title="Link to this heading">#</a></h2>
+<h2>Generate test image<a class="headerlink" href="#generate-test-image" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># im = ps.generators.fractal_noise(shape=[100,100,100], seed=1)&lt;0.8</span>
@@ -2990,12 +2990,13 @@
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(-0.5, 162.5, 130.5, -0.5)
 </pre></div>
 </div>
-<img alt="../../../_images/98e0288453bb13884223ab6a1987e940d8275604c8c9ecbb215f1e87d5231f99.png" src="../../../_images/98e0288453bb13884223ab6a1987e940d8275604c8c9ecbb215f1e87d5231f99.png" />
+<a class="reference internal image-reference" href="../../../_images/98e0288453bb13884223ab6a1987e940d8275604c8c9ecbb215f1e87d5231f99.png"><img alt="../../../_images/98e0288453bb13884223ab6a1987e940d8275604c8c9ecbb215f1e87d5231f99.png" src="../../../_images/98e0288453bb13884223ab6a1987e940d8275604c8c9ecbb215f1e87d5231f99.png" style="width: 572px; height: 463px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="run-the-function-on-the-image">
-<h2>Run the function on the image<a class="headerlink" href="#run-the-function-on-the-image" title="Link to this heading">#</a></h2>
+<h2>Run the function on the image<a class="headerlink" href="#run-the-function-on-the-image" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">porespy.beta</span> <span class="kn">import</span> <span class="n">tortuosity_gdd</span>
@@ -3181,7 +3182,7 @@
 <p>With similar results, the main benefit to using the GDD method is the time save on larger images.</p>
 </section>
 <section id="extracting-info-from-the-dataframe">
-<h2>Extracting info from the DataFrame<a class="headerlink" href="#extracting-info-from-the-dataframe" title="Link to this heading">#</a></h2>
+<h2>Extracting info from the DataFrame<a class="headerlink" href="#extracting-info-from-the-dataframe" title="Link to this heading">¶</a></h2>
 <p>A graph representing the tortuosity distribution can be created from the results.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3203,7 +3204,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/400caf4a5d50d10ee496f4f91dbc20ed586662c45620a1c9b60af19f50e39b1b.png" src="../../../_images/400caf4a5d50d10ee496f4f91dbc20ed586662c45620a1c9b60af19f50e39b1b.png" />
+<a class="reference internal image-reference" href="../../../_images/400caf4a5d50d10ee496f4f91dbc20ed586662c45620a1c9b60af19f50e39b1b.png"><img alt="../../../_images/400caf4a5d50d10ee496f4f91dbc20ed586662c45620a1c9b60af19f50e39b1b.png" src="../../../_images/400caf4a5d50d10ee496f4f91dbc20ed586662c45620a1c9b60af19f50e39b1b.png" style="width: 983px; height: 684px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3234,7 +3236,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

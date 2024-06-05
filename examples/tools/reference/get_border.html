@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2972,9 +2972,9 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="get-border">
-<h1><code class="docutils literal notranslate"><span class="pre">get_border</span></code><a class="headerlink" href="#get-border" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">get_border</span></code><a class="headerlink" href="#get-border" title="Link to this heading">¶</a></h1>
 <section id="import-packages">
-<h2>Import packages<a class="headerlink" href="#import-packages" title="Link to this heading">#</a></h2>
+<h2>Import packages<a class="headerlink" href="#import-packages" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -2988,14 +2988,14 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:44:50] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:04:10] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 </section>
 <section id="generate-image-for-testing">
-<h2>Generate image for testing<a class="headerlink" href="#generate-image-for-testing" title="Link to this heading">#</a></h2>
+<h2>Generate image for testing<a class="headerlink" href="#generate-image-for-testing" title="Link to this heading">¶</a></h2>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">im2d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
@@ -3006,9 +3006,9 @@
 </div>
 </section>
 <section id="demonstrate-function">
-<h2>Demonstrate function<a class="headerlink" href="#demonstrate-function" title="Link to this heading">#</a></h2>
+<h2>Demonstrate function<a class="headerlink" href="#demonstrate-function" title="Link to this heading">¶</a></h2>
 <section id="thickness">
-<h3>thickness<a class="headerlink" href="#thickness" title="Link to this heading">#</a></h3>
+<h3>thickness<a class="headerlink" href="#thickness" title="Link to this heading">¶</a></h3>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">im1</span> <span class="o">=</span> <span class="n">ps</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">get_border</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">im2d</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -3025,12 +3025,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/6f2dd0d8755860805bd0b90b324d24d6f6c893510ecfef57215ca1ed328aa6fe.png" src="../../../_images/6f2dd0d8755860805bd0b90b324d24d6f6c893510ecfef57215ca1ed328aa6fe.png" />
+<a class="reference internal image-reference" href="../../../_images/7daec5f54fa7919b516e89ec9760fff74a2b14d1b772909fc899c243919a6e60.png"><img alt="../../../_images/7daec5f54fa7919b516e89ec9760fff74a2b14d1b772909fc899c243919a6e60.png" src="../../../_images/7daec5f54fa7919b516e89ec9760fff74a2b14d1b772909fc899c243919a6e60.png" style="width: 744px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="mode">
-<h3>mode<a class="headerlink" href="#mode" title="Link to this heading">#</a></h3>
+<h3>mode<a class="headerlink" href="#mode" title="Link to this heading">¶</a></h3>
 <p>The options are ‘faces’, ‘edges’, and ‘corners’.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3058,7 +3059,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/7e23270007967bc11fdd4a7134c6ec27b216f6b169845753cbab826e77882071.png" src="../../../_images/7e23270007967bc11fdd4a7134c6ec27b216f6b169845753cbab826e77882071.png" />
+<a class="reference internal image-reference" href="../../../_images/84e4390432be204a72f4f86e1bb5c99031d9aae602734fdedac8789b848c1d2a.png"><img alt="../../../_images/84e4390432be204a72f4f86e1bb5c99031d9aae602734fdedac8789b848c1d2a.png" src="../../../_images/84e4390432be204a72f4f86e1bb5c99031d9aae602734fdedac8789b848c1d2a.png" style="width: 783px; height: 269px;" />
+</a>
 </div>
 </div>
 <p>For 2D images, the mode of ‘faces’ and ‘edges’ both return the same thing.</p>
@@ -3087,12 +3089,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/4e22261cdbd6538c7a467396758912bdfa49588189e8c06d23d229c6530ccce9.png" src="../../../_images/4e22261cdbd6538c7a467396758912bdfa49588189e8c06d23d229c6530ccce9.png" />
+<a class="reference internal image-reference" href="../../../_images/889c480c74993b401786182d416975fbaadaa5e87e62f47fbbd606d769a991d3.png"><img alt="../../../_images/889c480c74993b401786182d416975fbaadaa5e87e62f47fbbd606d769a991d3.png" src="../../../_images/889c480c74993b401786182d416975fbaadaa5e87e62f47fbbd606d769a991d3.png" style="width: 783px; height: 284px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="return-indices">
-<h3>return_indices<a class="headerlink" href="#return-indices" title="Link to this heading">#</a></h3>
+<h3>return_indices<a class="headerlink" href="#return-indices" title="Link to this heading">¶</a></h3>
 <p>Instead of returning a boolean array, the fuction can optionally return indices into <code class="docutils literal notranslate"><span class="pre">im</span></code> where the border would be:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3115,7 +3118,8 @@
 <div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 1.0, &#39;image with zeroed borders&#39;)
 </pre></div>
 </div>
-<img alt="../../../_images/2780befd44adb675272f4ffa40510e44cfb42c6b4de278359803ccc32d863356.png" src="../../../_images/2780befd44adb675272f4ffa40510e44cfb42c6b4de278359803ccc32d863356.png" />
+<a class="reference internal image-reference" href="../../../_images/4b51c46c2dd884a420b0d721a0d23f4cc823c416b80965983c90fe34af2b0cf5.png"><img alt="../../../_images/4b51c46c2dd884a420b0d721a0d23f4cc823c416b80965983c90fe34af2b0cf5.png" src="../../../_images/4b51c46c2dd884a420b0d721a0d23f4cc823c416b80965983c90fe34af2b0cf5.png" style="width: 362px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3147,7 +3151,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

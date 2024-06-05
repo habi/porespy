@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2935,7 +2935,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="obtaining-the-porosity-profile-along-each-principle-axis">
-<h1>Obtaining the porosity profile along each principle axis<a class="headerlink" href="#obtaining-the-porosity-profile-along-each-principle-axis" title="Link to this heading">#</a></h1>
+<h1>Obtaining the porosity profile along each principle axis<a class="headerlink" href="#obtaining-the-porosity-profile-along-each-principle-axis" title="Link to this heading">¶</a></h1>
 <p>This example illustrates how to use the <code class="docutils literal notranslate"><span class="pre">porosity_profile</span></code> function to study the distribution of porosity in a sample.</p>
 <p>Start by importing the usual packages, and setting the matplotlib style to something more reasonble:</p>
 <div class="cell docutils container">
@@ -2948,7 +2948,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:46:38] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:06:00] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
@@ -2963,7 +2963,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/330ca0743b39c274c4ce0350f213fdb5bd30b471608305483873e8eff825715f.png" src="../../../_images/330ca0743b39c274c4ce0350f213fdb5bd30b471608305483873e8eff825715f.png" />
+<a class="reference internal image-reference" href="../../../_images/c4ab1ff2360cf6ee63c9c4001deed08abd4976c86ce047ae542771a311cbe5ce.png"><img alt="../../../_images/c4ab1ff2360cf6ee63c9c4001deed08abd4976c86ce047ae542771a311cbe5ce.png" src="../../../_images/c4ab1ff2360cf6ee63c9c4001deed08abd4976c86ce047ae542771a311cbe5ce.png" style="width: 624px; height: 419px;" />
+</a>
 </div>
 </div>
 <p>All results in PoreSpy are reported in voxels, so it is up to the user to scale these values to the physical size of each voxel.  Here we’ll assume that each voxel corresponds to 5.9 microns.</p>
@@ -2999,7 +3000,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/e723aa2319c0d75b567112ea95de0f497058d5888e050a0040dbe73a772dbdd4.png" src="../../../_images/e723aa2319c0d75b567112ea95de0f497058d5888e050a0040dbe73a772dbdd4.png" />
+<a class="reference internal image-reference" href="../../../_images/313217531744dcf26debf1646b29f254814a45e3a8f1b584cdbcf8e90e6b369e.png"><img alt="../../../_images/313217531744dcf26debf1646b29f254814a45e3a8f1b584cdbcf8e90e6b369e.png" src="../../../_images/313217531744dcf26debf1646b29f254814a45e3a8f1b584cdbcf8e90e6b369e.png" style="width: 484px; height: 384px;" />
+</a>
 </div>
 </div>
 <p>Note how each line ends at a different position on the x-axis.  This is caused by the fact that image had different total length in each direction.  We can also do the plots with each axis normalized by their total length:</p>
@@ -3017,7 +3019,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/c1795f2ea77d155c86717d00581cf650b01d928e5d49311c737a845efebfcf2d.png" src="../../../_images/c1795f2ea77d155c86717d00581cf650b01d928e5d49311c737a845efebfcf2d.png" />
+<a class="reference internal image-reference" href="../../../_images/3e07b500c030cf232f2059cc361781d48dac861de414d18f8db97975318a09dd.png"><img alt="../../../_images/3e07b500c030cf232f2059cc361781d48dac861de414d18f8db97975318a09dd.png" src="../../../_images/3e07b500c030cf232f2059cc361781d48dac861de414d18f8db97975318a09dd.png" style="width: 484px; height: 384px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3047,7 +3050,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

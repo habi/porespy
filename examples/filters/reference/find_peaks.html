@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2967,7 +2967,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="find-peaks">
-<h1><code class="docutils literal notranslate"><span class="pre">find_peaks</span></code><a class="headerlink" href="#find-peaks" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">find_peaks</span></code><a class="headerlink" href="#find-peaks" title="Link to this heading">¶</a></h1>
 <p>Finds local peaks in the distance transform.  This is need for watershed segmentations.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2990,7 +2990,7 @@
 </div>
 </div>
 <section id="dt">
-<h2><code class="docutils literal notranslate"><span class="pre">dt</span></code><a class="headerlink" href="#dt" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">dt</span></code><a class="headerlink" href="#dt" title="Link to this heading">¶</a></h2>
 <p>The distance transform must be provided</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3009,11 +3009,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/ed4ae540739fae5c2021345f52dce77d797a9a787d08575a85f9253f6008d625.svg" src="../../../_images/ed4ae540739fae5c2021345f52dce77d797a9a787d08575a85f9253f6008d625.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/ed4ae540739fae5c2021345f52dce77d797a9a787d08575a85f9253f6008d625.svg"><img alt="../../../_images/ed4ae540739fae5c2021345f52dce77d797a9a787d08575a85f9253f6008d625.svg" height="584" src="../../../_images/ed4ae540739fae5c2021345f52dce77d797a9a787d08575a85f9253f6008d625.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 <section id="r-max">
-<h2><code class="docutils literal notranslate"><span class="pre">r_max</span></code><a class="headerlink" href="#r-max" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">r_max</span></code><a class="headerlink" href="#r-max" title="Link to this heading">¶</a></h2>
 <p>The radius that should be searched for local maxima.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3034,11 +3035,12 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/84c53dd255c4ee7bbf535a149e8009f99c69a2739036faa38ff9fb6433462a03.svg" src="../../../_images/84c53dd255c4ee7bbf535a149e8009f99c69a2739036faa38ff9fb6433462a03.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/84c53dd255c4ee7bbf535a149e8009f99c69a2739036faa38ff9fb6433462a03.svg"><img alt="../../../_images/84c53dd255c4ee7bbf535a149e8009f99c69a2739036faa38ff9fb6433462a03.svg" height="584" src="../../../_images/84c53dd255c4ee7bbf535a149e8009f99c69a2739036faa38ff9fb6433462a03.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 <section id="strel">
-<h2><code class="docutils literal notranslate"><span class="pre">strel</span></code><a class="headerlink" href="#strel" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">strel</span></code><a class="headerlink" href="#strel" title="Link to this heading">¶</a></h2>
 <p>The structuring element to use, in the form of a function handle. The value of <code class="docutils literal notranslate"><span class="pre">r_max</span></code> is passed to this function, so note that the meaning for <code class="docutils literal notranslate"><span class="pre">r</span></code> differs depending on the strel used. The default is a disk/ball.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3062,7 +3064,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/554b4c106b09a346834d19ef65b76b4c7b6dd2d02a67c9ec04064c5987a04470.svg" src="../../../_images/554b4c106b09a346834d19ef65b76b4c7b6dd2d02a67c9ec04064c5987a04470.svg" /></div>
+<a class="reference internal image-reference" href="../../../_images/554b4c106b09a346834d19ef65b76b4c7b6dd2d02a67c9ec04064c5987a04470.svg"><img alt="../../../_images/554b4c106b09a346834d19ef65b76b4c7b6dd2d02a67c9ec04064c5987a04470.svg" height="584" src="../../../_images/554b4c106b09a346834d19ef65b76b4c7b6dd2d02a67c9ec04064c5987a04470.svg" width="1147" /></a>
+</div>
 </div>
 </section>
 </section>
@@ -3092,7 +3095,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

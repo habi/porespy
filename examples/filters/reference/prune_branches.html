@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2958,7 +2958,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="prune-branches">
-<h1><code class="docutils literal notranslate"><span class="pre">prune_branches</span></code><a class="headerlink" href="#prune-branches" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">prune_branches</span></code><a class="headerlink" href="#prune-branches" title="Link to this heading">¶</a></h1>
 <p>Removes dangling branches from a skeleton.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2972,13 +2972,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:44:18] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:03:37] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 <section id="im">
-<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">im</span></code><a class="headerlink" href="#im" title="Link to this heading">¶</a></h2>
 <p>The function requires a skeleton such as that produced by <code class="docutils literal notranslate"><span class="pre">skimage.mophology.skeletonize_3d</span></code>:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2995,12 +2995,17 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/92d3fe362c23edb55ba16aa596d7c7cca7af6927c90a2051c1b29ee0636a7ec5.png" src="../../../_images/92d3fe362c23edb55ba16aa596d7c7cca7af6927c90a2051c1b29ee0636a7ec5.png" />
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_3472/2563978865.py:2: FutureWarning: `skeletonize_3d` is deprecated since version 0.23 and will be removed in version 0.25. Use `skimage.morphology.skeletonize` instead.
+  sk = skeletonize_3d(im)
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="../../../_images/8b3253273b94c34fc6e98dbd540bdafe62f85ce444a2a2d292f61fdfef4c64fa.png"><img alt="../../../_images/8b3253273b94c34fc6e98dbd540bdafe62f85ce444a2a2d292f61fdfef4c64fa.png" src="../../../_images/8b3253273b94c34fc6e98dbd540bdafe62f85ce444a2a2d292f61fdfef4c64fa.png" style="width: 1170px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="iterations">
-<h2><code class="docutils literal notranslate"><span class="pre">iterations</span></code><a class="headerlink" href="#iterations" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">iterations</span></code><a class="headerlink" href="#iterations" title="Link to this heading">¶</a></h2>
 <p>How many times to repeat the process.  This is equivalen to just calling the function multiple times with the returned image, but is more convenient.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3019,7 +3024,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/dd12b9dd6e0404990627c74f47f5828a390e3a8cba5fbbcbf2af9d055c17b89d.png" src="../../../_images/dd12b9dd6e0404990627c74f47f5828a390e3a8cba5fbbcbf2af9d055c17b89d.png" />
+<a class="reference internal image-reference" href="../../../_images/91ddd3b75eee6f5ff90b5cc95a8673c7b90b2f30e6002bd914fa5067d78d7571.png"><img alt="../../../_images/91ddd3b75eee6f5ff90b5cc95a8673c7b90b2f30e6002bd914fa5067d78d7571.png" src="../../../_images/91ddd3b75eee6f5ff90b5cc95a8673c7b90b2f30e6002bd914fa5067d78d7571.png" style="width: 1464px; height: 484px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3050,7 +3056,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

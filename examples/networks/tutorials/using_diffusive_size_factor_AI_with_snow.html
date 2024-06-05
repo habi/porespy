@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2972,12 +2972,13 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="using-ai-based-diffusive-size-factors-for-extracted-networks">
-<h1>Using AI based diffusive size factors for extracted networks<a class="headerlink" href="#using-ai-based-diffusive-size-factors-for-extracted-networks" title="Link to this heading">#</a></h1>
+<h1>Using AI based diffusive size factors for extracted networks<a class="headerlink" href="#using-ai-based-diffusive-size-factors-for-extracted-networks" title="Link to this heading">¶</a></h1>
 <p>This notebook illustrates the use of the deep learning based diffusive conductance algorithm decribed <a class="reference external" href="https://doi.org/10.1016/j.cageo.2022.105086">here</a>. PoreSpy’s <code class="docutils literal notranslate"><span class="pre">diffusive_size_factor_AI</span></code> includes the steps for predicting the diffusive size factors of the conduit images. Note that the diffusive conductance of the conduits can be then calculated by multiplying the size factor by diffusivity of the phase. The function takes in the images of segmented porous medium and returns an array of diffusive size factors for all conduits in the image. Therefore, the framework can be applied to both one conduit image as well as a segmented image of porous medium:</p>
-<a class="reference internal image-reference" href="https://user-images.githubusercontent.com/43128873/116145783-bd458380-a6ab-11eb-8103-fb9a93f0599c.png"><img alt="PS_dl" src="https://user-images.githubusercontent.com/43128873/116145783-bd458380-a6ab-11eb-8103-fb9a93f0599c.png" style="width: 700px;" /></a>
+<a class="reference internal image-reference" href="https://user-images.githubusercontent.com/43128873/116145783-bd458380-a6ab-11eb-8103-fb9a93f0599c.png"><img alt="PS_dl" src="https://user-images.githubusercontent.com/43128873/116145783-bd458380-a6ab-11eb-8103-fb9a93f0599c.png" style="width: 700px;" />
+</a>
 </section>
 <section class="tex2jax_ignore mathjax_ignore" id="trained-model-and-supplementary-materials">
-<h1>Trained model and supplementary materials<a class="headerlink" href="#trained-model-and-supplementary-materials" title="Link to this heading">#</a></h1>
+<h1>Trained model and supplementary materials<a class="headerlink" href="#trained-model-and-supplementary-materials" title="Link to this heading">¶</a></h1>
 <p>To use the <code class="docutils literal notranslate"><span class="pre">diffusive_size_factor_AI</span></code>, the trained model, and training data distribution are required. The AI model files and additional files used in this example are available <a class="reference external" href="https://dl.dropboxusercontent.com/s/jrq82twl0vwedy4/AI_example_data.rar?dl=0">here</a>. The folder contains following files:</p>
 <ul class="simple">
 <li><p>Trained model weights: This file includes only weights of the deep learning layers. To use this file, the Resnet50 model structure must be built first.</p></li>
@@ -3005,13 +3006,132 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-09 17:48:43.218715: I external/local_tsl/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
-2024-04-09 17:48:43.221798: I external/local_tsl/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
-2024-04-09 17:48:43.259344: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-05 03:07:53.872628: I external/local_tsl/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
+2024-06-05 03:07:53.875763: I external/local_tsl/tsl/cuda/cudart_stub.cc:32] Could not find cuda drivers on your machine, GPU will not be used.
+2024-06-05 03:07:53.912854: I tensorflow/core/platform/cpu_feature_guard.cc:210] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
 To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
 </pre></div>
 </div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-04-09 17:48:44.015384: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>2024-06-05 03:07:56.405325: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Could not find TensorRT
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting scikit-learn
+  Using cached scikit_learn-1.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: numpy&gt;=1.19.5 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from scikit-learn) (1.26.4)
+Requirement already satisfied: scipy&gt;=1.6.0 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from scikit-learn) (1.13.1)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting joblib&gt;=1.2.0 (from scikit-learn)
+  Using cached joblib-1.4.2-py3-none-any.whl.metadata (5.4 kB)
+Collecting threadpoolctl&gt;=3.1.0 (from scikit-learn)
+  Using cached threadpoolctl-3.5.0-py3-none-any.whl.metadata (13 kB)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached scikit_learn-1.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.3 MB)
+Using cached joblib-1.4.2-py3-none-any.whl (301 kB)
+Using cached threadpoolctl-3.5.0-py3-none-any.whl (18 kB)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Installing collected packages: threadpoolctl, joblib, scikit-learn
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Successfully installed joblib-1.4.2 scikit-learn-1.5.0 threadpoolctl-3.5.0
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Cloning into &#39;sf-model-lib&#39;...
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>remote: Enumerating objects: 36, done.
+remote: Counting objects:  20% (1/5)
+remote: Counting objects:  40% (2/5)
+remote: Counting objects:  60% (3/5)
+remote: Counting objects:  80% (4/5)
+remote: Counting objects: 100% (5/5)
+remote: Counting objects: 100% (5/5), done.
+remote: Compressing objects:  20% (1/5)
+remote: Compressing objects:  40% (2/5)
+remote: Compressing objects:  60% (3/5)
+remote: Compressing objects:  80% (4/5)
+remote: Compressing objects: 100% (5/5)
+remote: Compressing objects: 100% (5/5), done.
+Receiving objects:   2% (1/36)
+Receiving objects:   5% (2/36)
+Receiving objects:   8% (3/36)
+Receiving objects:  11% (4/36)
+Receiving objects:  13% (5/36)
+Receiving objects:  16% (6/36)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  16% (6/36), 59.11 MiB | 59.10 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  19% (7/36), 59.11 MiB | 59.10 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  19% (7/36), 121.14 MiB | 60.57 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  22% (8/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  25% (9/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  27% (10/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  30% (11/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  33% (12/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  36% (13/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  38% (14/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  41% (15/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  44% (16/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  47% (17/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  50% (18/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  52% (19/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  55% (20/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  58% (21/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  61% (22/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  63% (23/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  66% (24/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  69% (25/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  72% (26/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  75% (27/36), 150.09 MiB | 60.03 MiB/s
+Receiving objects:  77% (28/36), 150.09 MiB | 60.03 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  77% (28/36), 180.67 MiB | 60.22 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  77% (28/36), 241.46 MiB | 60.38 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  80% (29/36), 241.46 MiB | 60.38 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  80% (29/36), 301.30 MiB | 60.71 MiB/s
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>remote: Total 36 (delta 0), reused 2 (delta 0), pack-reused 31
+Receiving objects:  83% (30/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects:  86% (31/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects:  88% (32/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects:  91% (33/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects:  94% (34/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects:  97% (35/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects: 100% (36/36), 331.92 MiB | 60.65 MiB/s
+Receiving objects: 100% (36/36), 334.57 MiB | 60.39 MiB/s, done.
+Resolving deltas:   0% (0/8)
+Resolving deltas:  12% (1/8)
+Resolving deltas:  25% (2/8)
+Resolving deltas:  37% (3/8)
+Resolving deltas:  50% (4/8)
+Resolving deltas:  62% (5/8)
+Resolving deltas:  75% (6/8)
+Resolving deltas:  87% (7/8)
+Resolving deltas: 100% (8/8)
+Resolving deltas: 100% (8/8), done.
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Updating files:  87% (7/8)
+Updating files: 100% (8/8)
+Updating files: 100% (8/8), done.
 </pre></div>
 </div>
 </div>
@@ -3054,7 +3174,7 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:48:45] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:08:09] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div><div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
@@ -3071,41 +3191,43 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 <span class="ne">--&gt; </span><span class="mi">614</span> <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">loss</span><span class="o">=</span><span class="s1">&#39;mse&#39;</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="n">Adam</span><span class="p">(</span><span class="n">lr</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">),</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;mse&#39;</span><span class="p">])</span>
 <span class="g g-Whitespace">    </span><span class="mi">615</span> <span class="k">return</span> <span class="n">model</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/optimizers/adam.py:60,</span> in <span class="ni">Adam.__init__</span><span class="nt">(self, learning_rate, beta_1, beta_2, epsilon, amsgrad, weight_decay, clipnorm, clipvalue, global_clipnorm, use_ema, ema_momentum, ema_overwrite_frequency, name, **kwargs)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/optimizers/adam.py:62,</span> in <span class="ni">Adam.__init__</span><span class="nt">(self, learning_rate, beta_1, beta_2, epsilon, amsgrad, weight_decay, clipnorm, clipvalue, global_clipnorm, use_ema, ema_momentum, ema_overwrite_frequency, loss_scale_factor, gradient_accumulation_steps, name, **kwargs)</span>
 <span class="g g-Whitespace">     </span><span class="mi">43</span> <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
 <span class="g g-Whitespace">     </span><span class="mi">44</span>     <span class="bp">self</span><span class="p">,</span>
 <span class="g g-Whitespace">     </span><span class="mi">45</span>     <span class="n">learning_rate</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
    <span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">58</span>     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">59</span> <span class="p">):</span>
-<span class="ne">---&gt; </span><span class="mi">60</span>     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-<span class="g g-Whitespace">     </span><span class="mi">61</span>         <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">62</span>         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">63</span>         <span class="n">weight_decay</span><span class="o">=</span><span class="n">weight_decay</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">64</span>         <span class="n">clipnorm</span><span class="o">=</span><span class="n">clipnorm</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">65</span>         <span class="n">clipvalue</span><span class="o">=</span><span class="n">clipvalue</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">66</span>         <span class="n">global_clipnorm</span><span class="o">=</span><span class="n">global_clipnorm</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">67</span>         <span class="n">use_ema</span><span class="o">=</span><span class="n">use_ema</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">68</span>         <span class="n">ema_momentum</span><span class="o">=</span><span class="n">ema_momentum</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">69</span>         <span class="n">ema_overwrite_frequency</span><span class="o">=</span><span class="n">ema_overwrite_frequency</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">70</span>         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">71</span>     <span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">72</span>     <span class="bp">self</span><span class="o">.</span><span class="n">beta_1</span> <span class="o">=</span> <span class="n">beta_1</span>
-<span class="g g-Whitespace">     </span><span class="mi">73</span>     <span class="bp">self</span><span class="o">.</span><span class="n">beta_2</span> <span class="o">=</span> <span class="n">beta_2</span>
+<span class="g g-Whitespace">     </span><span class="mi">60</span>     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">61</span> <span class="p">):</span>
+<span class="ne">---&gt; </span><span class="mi">62</span>     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">63</span>         <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">64</span>         <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">65</span>         <span class="n">weight_decay</span><span class="o">=</span><span class="n">weight_decay</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">66</span>         <span class="n">clipnorm</span><span class="o">=</span><span class="n">clipnorm</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">67</span>         <span class="n">clipvalue</span><span class="o">=</span><span class="n">clipvalue</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">68</span>         <span class="n">global_clipnorm</span><span class="o">=</span><span class="n">global_clipnorm</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">69</span>         <span class="n">use_ema</span><span class="o">=</span><span class="n">use_ema</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">70</span>         <span class="n">ema_momentum</span><span class="o">=</span><span class="n">ema_momentum</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">71</span>         <span class="n">ema_overwrite_frequency</span><span class="o">=</span><span class="n">ema_overwrite_frequency</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">72</span>         <span class="n">loss_scale_factor</span><span class="o">=</span><span class="n">loss_scale_factor</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">73</span>         <span class="n">gradient_accumulation_steps</span><span class="o">=</span><span class="n">gradient_accumulation_steps</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">74</span>         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">75</span>     <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">76</span>     <span class="bp">self</span><span class="o">.</span><span class="n">beta_1</span> <span class="o">=</span> <span class="n">beta_1</span>
+<span class="g g-Whitespace">     </span><span class="mi">77</span>     <span class="bp">self</span><span class="o">.</span><span class="n">beta_2</span> <span class="o">=</span> <span class="n">beta_2</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/backend/tensorflow/optimizer.py:20,</span> in <span class="ni">TFOptimizer.__init__</span><span class="nt">(self, *args, **kwargs)</span>
-<span class="g g-Whitespace">     </span><span class="mi">19</span> <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="ne">---&gt; </span><span class="mi">20</span>     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">21</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_distribution_strategy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">distribute</span><span class="o">.</span><span class="n">get_strategy</span><span class="p">()</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/backend/tensorflow/optimizer.py:22,</span> in <span class="ni">TFOptimizer.__init__</span><span class="nt">(self, *args, **kwargs)</span>
+<span class="g g-Whitespace">     </span><span class="mi">21</span> <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="ne">---&gt; </span><span class="mi">22</span>     <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_distribution_strategy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">distribute</span><span class="o">.</span><span class="n">get_strategy</span><span class="p">()</span>
 
-<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/optimizers/base_optimizer.py:38,</span> in <span class="ni">BaseOptimizer.__init__</span><span class="nt">(self, learning_rate, weight_decay, clipnorm, clipvalue, global_clipnorm, use_ema, ema_momentum, ema_overwrite_frequency, loss_scale_factor, gradient_accumulation_steps, name, **kwargs)</span>
-<span class="g g-Whitespace">     </span><span class="mi">34</span>     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-<span class="g g-Whitespace">     </span><span class="mi">35</span>         <span class="s2">&quot;Argument `decay` is no longer supported and will be ignored.&quot;</span>
-<span class="g g-Whitespace">     </span><span class="mi">36</span>     <span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">37</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
-<span class="ne">---&gt; </span><span class="mi">38</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument(s) not recognized: </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">40</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-<span class="g g-Whitespace">     </span><span class="mi">41</span>     <span class="n">name</span> <span class="o">=</span> <span class="n">auto_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="nn">File /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/optimizers/base_optimizer.py:37,</span> in <span class="ni">BaseOptimizer.__init__</span><span class="nt">(self, learning_rate, weight_decay, clipnorm, clipvalue, global_clipnorm, use_ema, ema_momentum, ema_overwrite_frequency, loss_scale_factor, gradient_accumulation_steps, name, **kwargs)</span>
+<span class="g g-Whitespace">     </span><span class="mi">33</span>     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">34</span>         <span class="s2">&quot;Argument `decay` is no longer supported and will be ignored.&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">35</span>     <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">36</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">:</span>
+<span class="ne">---&gt; </span><span class="mi">37</span>     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argument(s) not recognized: </span><span class="si">{</span><span class="n">kwargs</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">39</span> <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+<span class="g g-Whitespace">     </span><span class="mi">40</span>     <span class="n">name</span> <span class="o">=</span> <span class="n">auto_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="ne">ValueError</span>: Argument(s) not recognized: {&#39;lr&#39;: 0.0001}
 </pre></div>
@@ -3113,7 +3235,7 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </div>
 <section id="create-test-image">
-<h2>Create test image<a class="headerlink" href="#create-test-image" title="Link to this heading">#</a></h2>
+<h2>Create test image<a class="headerlink" href="#create-test-image" title="Link to this heading">¶</a></h2>
 <p>We can create a 3D image using PoreSpy’s <code class="docutils literal notranslate"><span class="pre">poly_disperese_spheres</span></code> generator:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3131,12 +3253,13 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/e46df43382af2d1a9e6f9b1253d87137d390111d28a10e32d8ea9d884f0ce2c0.png" src="../../../_images/e46df43382af2d1a9e6f9b1253d87137d390111d28a10e32d8ea9d884f0ce2c0.png" />
+<a class="reference internal image-reference" href="../../../_images/e46df43382af2d1a9e6f9b1253d87137d390111d28a10e32d8ea9d884f0ce2c0.png"><img alt="../../../_images/e46df43382af2d1a9e6f9b1253d87137d390111d28a10e32d8ea9d884f0ce2c0.png" src="../../../_images/e46df43382af2d1a9e6f9b1253d87137d390111d28a10e32d8ea9d884f0ce2c0.png" style="width: 383px; height: 383px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="extract-the-network">
-<h2>Extract the network<a class="headerlink" href="#extract-the-network" title="Link to this heading">#</a></h2>
+<h2>Extract the network<a class="headerlink" href="#extract-the-network" title="Link to this heading">¶</a></h2>
 <p>We then extract the pore network of the porous medium image using PoreSpy’s <code class="docutils literal notranslate"><span class="pre">snow2</span></code> algorithm. <code class="docutils literal notranslate"><span class="pre">snow2</span></code> returns the segmented image of the porous medium as well as extracted network data.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3151,7 +3274,7 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </section>
 <section id="apply-diffusive-size-factor-ai">
-<h2>Apply diffusive_size_factor_AI<a class="headerlink" href="#apply-diffusive-size-factor-ai" title="Link to this heading">#</a></h2>
+<h2>Apply diffusive_size_factor_AI<a class="headerlink" href="#apply-diffusive-size-factor-ai" title="Link to this heading">¶</a></h2>
 <p>AI_based diffusive size factors of conduits in the extracted network can then be calculated applying <code class="docutils literal notranslate"><span class="pre">diffusive_size_factor_AI</span></code> on the segmented regions. We can then define <code class="docutils literal notranslate"><span class="pre">throat.diffusive_size_factor_AI</span></code> property and assign the predicted size_factor to this property.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3181,12 +3304,13 @@ To enable the following instructions: AVX2 FMA, in other operations, rebuild Ten
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/3840f263cefd1682691da15fb681c12c695b94cae604d420fd49c89dbb0f37e5.png" src="../../../_images/3840f263cefd1682691da15fb681c12c695b94cae604d420fd49c89dbb0f37e5.png" />
+<a class="reference internal image-reference" href="../../../_images/3840f263cefd1682691da15fb681c12c695b94cae604d420fd49c89dbb0f37e5.png"><img alt="../../../_images/3840f263cefd1682691da15fb681c12c695b94cae604d420fd49c89dbb0f37e5.png" src="../../../_images/3840f263cefd1682691da15fb681c12c695b94cae604d420fd49c89dbb0f37e5.png" style="width: 484px; height: 464px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="compare-with-finite-difference-method">
-<h2>Compare with finite difference method<a class="headerlink" href="#compare-with-finite-difference-method" title="Link to this heading">#</a></h2>
+<h2>Compare with finite difference method<a class="headerlink" href="#compare-with-finite-difference-method" title="Link to this heading">¶</a></h2>
 <p>Now that the extracted network includes AI_based diffusive size factor data, we can use the network to compare the accuracy of <code class="docutils literal notranslate"><span class="pre">diffusive_size_factor_AI</span></code>, shape factor method,and geometry method (no shape factor) in contrast to finite difference method. Assuming a generic phase with diffusivity of 1, the diffusive conductance of the conduits will be equal to their diffusive size factors. The diffusive conductance of the conduits can be calculated using OpenPNM’s generic_diffusive method. The diffusive conductance of the conduits using shape factor based method assuming cones and cylinders shapes for pores and throats can be calculated as follows:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3312,7 +3436,8 @@ net : &lt;openpnm.network.Network at 0x7f0256f989a0&gt;
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/eb336ea57afdfc0dbc6a2d90b20d9773052ba33739373bdca35bb2625b06a740.png" src="../../../_images/eb336ea57afdfc0dbc6a2d90b20d9773052ba33739373bdca35bb2625b06a740.png" />
+<a class="reference internal image-reference" href="../../../_images/eb336ea57afdfc0dbc6a2d90b20d9773052ba33739373bdca35bb2625b06a740.png"><img alt="../../../_images/eb336ea57afdfc0dbc6a2d90b20d9773052ba33739373bdca35bb2625b06a740.png" src="../../../_images/eb336ea57afdfc0dbc6a2d90b20d9773052ba33739373bdca35bb2625b06a740.png" style="width: 983px; height: 384px;" />
+</a>
 </div>
 </div>
 <p>As shown in the scatter plots, the AI-based diffusive conductance method predicts the conductance values with a higher accuracy than geometry-based and shape factor-based methods. A comprehensive comparison between these methods for a large dataset can be found <a class="reference external" href="https://doi.org/10.1016/j.cageo.2022.105086">here</a>.</p>
@@ -3344,7 +3469,7 @@ net : &lt;openpnm.network.Network at 0x7f0256f989a0&gt;
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   

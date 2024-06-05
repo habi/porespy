@@ -26,18 +26,18 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/mystnb.4510f1fc1dee50b3e5859aac5469c37c29e427902b24a333a5f9fcb2f0b3ac41.css" />
-    <link rel="stylesheet" type="text/css" href="../../../_static/design-style.1e8bd061cd6da7fc9cf755528e8ffc24.min.css?v=0a3b3ea7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=87e54e7c" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css?v=723bc057" />
 
   <!-- Pre-loaded scripts that we'll load fully later -->
   <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=30646c52"></script>
-    <script src="../../../_static/design-tabs.js?v=36754332"></script>
+    <script src="../../../_static/design-tabs.js?v=f930bc37"></script>
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -2972,7 +2972,7 @@
               <article class="bd-article" role="main">
                 
   <section class="tex2jax_ignore mathjax_ignore" id="blobs">
-<h1><code class="docutils literal notranslate"><span class="pre">blobs</span></code><a class="headerlink" href="#blobs" title="Link to this heading">#</a></h1>
+<h1><code class="docutils literal notranslate"><span class="pre">blobs</span></code><a class="headerlink" href="#blobs" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">blobs</span></code> is a simple function to generate a test image.  It works by generating random noise, applying a guassian blur, renormalizing the result back to a uniform distribution, then thresholding the result to produce a binary image.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -2983,13 +2983,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[17:44:33] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
+<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[03:03:51] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
 <span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
 </pre>
 </div></div>
 </div>
 <section id="shape">
-<h2><code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#shape" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#shape" title="Link to this heading">¶</a></h2>
 <p>Both 2D and 3D images can be generated.  Sending a scalar (<code class="docutils literal notranslate"><span class="pre">shape=100</span></code>) will produce a 3D image of size <code class="docutils literal notranslate"><span class="pre">100^3</span></code>.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3002,12 +3002,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/fb173137f4a10a2e716974edf85b5bd0bfdaabbdad136111eafb54fd5d7e9b35.png" src="../../../_images/fb173137f4a10a2e716974edf85b5bd0bfdaabbdad136111eafb54fd5d7e9b35.png" />
+<a class="reference internal image-reference" href="../../../_images/33e37663f9cb4bccb379f26f5238d0c0d3ded707fdc5e0f0c5a4895b95e73700.png"><img alt="../../../_images/33e37663f9cb4bccb379f26f5238d0c0d3ded707fdc5e0f0c5a4895b95e73700.png" src="../../../_images/33e37663f9cb4bccb379f26f5238d0c0d3ded707fdc5e0f0c5a4895b95e73700.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="porosity">
-<h2><code class="docutils literal notranslate"><span class="pre">porosity</span></code><a class="headerlink" href="#porosity" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">porosity</span></code><a class="headerlink" href="#porosity" title="Link to this heading">¶</a></h2>
 <p>The fraction of the <code class="docutils literal notranslate"><span class="pre">True</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> pores can be set by specifying the porosity.  The default is 0.5.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3020,7 +3021,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/cfc9f0a457fdefc7d1003276afac63cee49040a2db6f888a6668ba110fd9615d.png" src="../../../_images/cfc9f0a457fdefc7d1003276afac63cee49040a2db6f888a6668ba110fd9615d.png" />
+<a class="reference internal image-reference" href="../../../_images/9d5473fc420dfc2004dc1279cbb3a25e34ce0b63a32628542236170eb3d3efcd.png"><img alt="../../../_images/9d5473fc420dfc2004dc1279cbb3a25e34ce0b63a32628542236170eb3d3efcd.png" src="../../../_images/9d5473fc420dfc2004dc1279cbb3a25e34ce0b63a32628542236170eb3d3efcd.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <p>Specifying <code class="docutils literal notranslate"><span class="pre">porosity=None</span></code> will return a greyscale image which can then be thresholded to get a boolean image.  The greyscale value are adjusted to a unifrom distribution:</p>
@@ -3037,7 +3039,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/adc89aa0ecfd3aca0891afc915bcfa33f28a8d5bd32cff0707107a8eb2b63cf0.png" src="../../../_images/adc89aa0ecfd3aca0891afc915bcfa33f28a8d5bd32cff0707107a8eb2b63cf0.png" />
+<a class="reference internal image-reference" href="../../../_images/78bc309692f8290eb4daab014dfa4027c769648b4436854e69dee93fb9241edc.png"><img alt="../../../_images/78bc309692f8290eb4daab014dfa4027c769648b4436854e69dee93fb9241edc.png" src="../../../_images/78bc309692f8290eb4daab014dfa4027c769648b4436854e69dee93fb9241edc.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <div class="cell docutils container">
@@ -3054,12 +3057,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/fee5d719957c7f7391768ede3879ddb59ff5efed9ab3429a6ae84e85ddc3f5fa.png" src="../../../_images/fee5d719957c7f7391768ede3879ddb59ff5efed9ab3429a6ae84e85ddc3f5fa.png" />
+<a class="reference internal image-reference" href="../../../_images/6061673b10d6dfe10f725b39e3a854a3bc97693e7ca3abc3b7ed4c43b1670ff6.png"><img alt="../../../_images/6061673b10d6dfe10f725b39e3a854a3bc97693e7ca3abc3b7ed4c43b1670ff6.png" src="../../../_images/6061673b10d6dfe10f725b39e3a854a3bc97693e7ca3abc3b7ed4c43b1670ff6.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="blobiness">
-<h2><code class="docutils literal notranslate"><span class="pre">blobiness</span></code><a class="headerlink" href="#blobiness" title="Link to this heading">#</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">blobiness</span></code><a class="headerlink" href="#blobiness" title="Link to this heading">¶</a></h2>
 <p>The size and anisotropy of the blobs can be changed:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3076,7 +3080,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/feccda3abb0cdd7b42ebfc50a82fcc37cb224821cec6980a547f74bf539219c5.png" src="../../../_images/feccda3abb0cdd7b42ebfc50a82fcc37cb224821cec6980a547f74bf539219c5.png" />
+<a class="reference internal image-reference" href="../../../_images/ce91c59ca61b91e86ab5b2a9a7beae7f41b724ab544738712a6dae3c192b2b4d.png"><img alt="../../../_images/ce91c59ca61b91e86ab5b2a9a7beae7f41b724ab544738712a6dae3c192b2b4d.png" src="../../../_images/ce91c59ca61b91e86ab5b2a9a7beae7f41b724ab544738712a6dae3c192b2b4d.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 <div class="cell docutils container">
@@ -3094,12 +3099,13 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/5cec3862f2f39002e0d645a9e7b7fe456c303e4122ba7304e6e4354c880b1c55.png" src="../../../_images/5cec3862f2f39002e0d645a9e7b7fe456c303e4122ba7304e6e4354c880b1c55.png" />
+<a class="reference internal image-reference" href="../../../_images/f3821a22c6cbfbb4029963e17c7132658fb0243551e9fba124cd3df4597d8528.png"><img alt="../../../_images/f3821a22c6cbfbb4029963e17c7132658fb0243551e9fba124cd3df4597d8528.png" src="../../../_images/f3821a22c6cbfbb4029963e17c7132658fb0243551e9fba124cd3df4597d8528.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
 <section id="reproducing-images">
-<h2>Reproducing Images<a class="headerlink" href="#reproducing-images" title="Link to this heading">#</a></h2>
+<h2>Reproducing Images<a class="headerlink" href="#reproducing-images" title="Link to this heading">¶</a></h2>
 <p>The random is controlled by numpy’s random number generator so the same image can be produced by setting the seed:</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -3116,7 +3122,8 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../../_images/4c15972e12629e4aa8683229742e2e822f2af544393911c06da2edddcf3b152e.png" src="../../../_images/4c15972e12629e4aa8683229742e2e822f2af544393911c06da2edddcf3b152e.png" />
+<a class="reference internal image-reference" href="../../../_images/da8732d8746f94dbde762b541e8bddb7bf9750dc5a0dcca437b9625733b984ce.png"><img alt="../../../_images/da8732d8746f94dbde762b541e8bddb7bf9750dc5a0dcca437b9625733b984ce.png" src="../../../_images/da8732d8746f94dbde762b541e8bddb7bf9750dc5a0dcca437b9625733b984ce.png" style="width: 578px; height: 583px;" />
+</a>
 </div>
 </div>
 </section>
@@ -3147,7 +3154,7 @@
   
   <div class="footer-item">
     <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.2.6.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 7.3.7.<br>
 </p>
   </div>
   
