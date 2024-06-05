@@ -220,7 +220,7 @@
     <span class="s1">&#39;marching_map&#39;</span><span class="p">,</span>
     <span class="s1">&#39;make_contiguous&#39;</span><span class="p">,</span>
     <span class="s1">&#39;mesh_region&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;norm_to_uniform&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;all_to_uniform&#39;</span><span class="p">,</span>
     <span class="s1">&#39;overlay&#39;</span><span class="p">,</span>
     <span class="s1">&#39;randomize_colors&#39;</span><span class="p">,</span>
     <span class="s1">&#39;recombine&#39;</span><span class="p">,</span>
@@ -1166,17 +1166,17 @@
 
 
 
-<div class="viewcode-block" id="norm_to_uniform">
-<a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.norm_to_uniform.html#porespy.tools.norm_to_uniform">[docs]</a>
-<span class="k">def</span> <span class="nf">norm_to_uniform</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="all_to_uniform">
+<a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.all_to_uniform.html#porespy.tools.all_to_uniform">[docs]</a>
+<span class="k">def</span> <span class="nf">all_to_uniform</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Take an image with normally distributed greyscale values and convert it to</span>
+<span class="sd">    Take an image with some distribution of greyscale values and convert it to</span>
 <span class="sd">    a uniform (i.e. flat) distribution.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    im : ndarray</span>
-<span class="sd">        The image containing the normally distributed scalar field</span>
+<span class="sd">        The image with the greyscale values distribution to be converted.</span>
 <span class="sd">    scale : [low, high]</span>
 <span class="sd">        A list or array indicating the lower and upper bounds for the new</span>
 <span class="sd">        randomly distributed data.  The default is ``None``, which uses the</span>
@@ -1192,16 +1192,16 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    `Click here</span>
-<span class="sd">    &lt;https://porespy.org/examples/tools/reference/norm_to_uniform.html&gt;`_</span>
+<span class="sd">    &lt;https://porespy.org/examples/tools/reference/all_to_uniform.html&gt;`_</span>
 <span class="sd">    to view online example.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">scale</span> <span class="o">=</span> <span class="p">[</span><span class="n">im</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">im</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="p">(</span><span class="n">im</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">im</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">erfc</span><span class="p">(</span><span class="o">-</span><span class="n">im</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="p">(</span><span class="n">im</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">im</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
-    <span class="n">im</span> <span class="o">=</span> <span class="n">im</span> <span class="o">*</span> <span class="p">(</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">aargsort_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span> <span class="c1"># twice for the inverse permutation</span>
+    <span class="n">linspace_im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">aargsort_im</span><span class="p">),</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">uniform_flatten_im</span> <span class="o">=</span> <span class="n">linspace_im</span><span class="p">[</span><span class="n">aargsort_im</span><span class="p">]</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">uniform_flatten_im</span><span class="p">,</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">im</span></div>
 
 

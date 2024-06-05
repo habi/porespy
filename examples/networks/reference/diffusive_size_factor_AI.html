@@ -1308,6 +1308,15 @@
       </a>
      </li>
      <li class="toctree-l3">
+      <a class="reference internal" href="../../tools/reference/all_to_uniform.html">
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         all_to_uniform
+        </span>
+       </code>
+      </a>
+     </li>
+     <li class="toctree-l3">
       <a class="reference internal" href="../../tools/reference/bbox_to_slices.html">
        <code class="docutils literal notranslate">
         <span class="pre">
@@ -1426,15 +1435,6 @@
         </span>
        </code>
        [WIP]
-      </a>
-     </li>
-     <li class="toctree-l3">
-      <a class="reference internal" href="../../tools/reference/norm_to_uniform.html">
-       <code class="docutils literal notranslate">
-        <span class="pre">
-         norm_to_uniform
-        </span>
-       </code>
       </a>
      </li>
      <li class="toctree-l3">
@@ -2603,6 +2603,15 @@
   </a>
  </li>
  <li class="toctree-l1">
+  <a class="reference internal" href="../../tools/reference/all_to_uniform.html">
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     all_to_uniform
+    </span>
+   </code>
+  </a>
+ </li>
+ <li class="toctree-l1">
   <a class="reference internal" href="../../tools/reference/bbox_to_slices.html">
    <code class="docutils literal notranslate">
     <span class="pre">
@@ -2721,15 +2730,6 @@
     </span>
    </code>
    [WIP]
-  </a>
- </li>
- <li class="toctree-l1">
-  <a class="reference internal" href="../../tools/reference/norm_to_uniform.html">
-   <code class="docutils literal notranslate">
-    <span class="pre">
-     norm_to_uniform
-    </span>
-   </code>
   </a>
  </li>
  <li class="toctree-l1">
@@ -3028,19 +3028,21 @@
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting absl-py&gt;=1.0.0 (from tensorflow)
   Using cached absl_py-2.1.0-py3-none-any.whl.metadata (2.3 kB)
-Collecting astunparse&gt;=1.6.0 (from tensorflow)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting astunparse&gt;=1.6.0 (from tensorflow)
   Using cached astunparse-1.6.3-py2.py3-none-any.whl.metadata (4.4 kB)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting flatbuffers&gt;=23.5.26 (from tensorflow)
+Collecting flatbuffers&gt;=23.5.26 (from tensorflow)
   Using cached flatbuffers-24.3.25-py2.py3-none-any.whl.metadata (850 bytes)
-Collecting gast!=0.5.0,!=0.5.1,!=0.5.2,&gt;=0.2.1 (from tensorflow)
-  Using cached gast-0.5.4-py3-none-any.whl.metadata (1.3 kB)
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting google-pasta&gt;=0.1.1 (from tensorflow)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting gast!=0.5.0,!=0.5.1,!=0.5.2,&gt;=0.2.1 (from tensorflow)
+  Using cached gast-0.5.4-py3-none-any.whl.metadata (1.3 kB)
+Collecting google-pasta&gt;=0.1.1 (from tensorflow)
   Using cached google_pasta-0.2.0-py3-none-any.whl.metadata (814 bytes)
-Requirement already satisfied: h5py&gt;=3.10.0 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from tensorflow) (3.11.0)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: h5py&gt;=3.10.0 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from tensorflow) (3.11.0)
 Collecting libclang&gt;=13.0.0 (from tensorflow)
   Using cached libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl.metadata (5.2 kB)
 </pre></div>
@@ -3065,7 +3067,9 @@ Requirement already satisfied: wrapt&gt;=1.11.0 in /opt/hostedtoolcache/Python/3
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting grpcio&lt;2.0,&gt;=1.24.3 (from tensorflow)
   Using cached grpcio-1.64.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.3 kB)
-Collecting tensorboard&lt;2.17,&gt;=2.16 (from tensorflow)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting tensorboard&lt;2.17,&gt;=2.16 (from tensorflow)
   Using cached tensorboard-2.16.2-py3-none-any.whl.metadata (1.6 kB)
 </pre></div>
 </div>
@@ -3080,7 +3084,9 @@ Requirement already satisfied: numpy&lt;2.0.0,&gt;=1.23.5 in /opt/hostedtoolcach
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting wheel&lt;1.0,&gt;=0.23.0 (from astunparse&gt;=1.6.0-&gt;tensorflow)
   Using cached wheel-0.43.0-py3-none-any.whl.metadata (2.2 kB)
-Requirement already satisfied: rich in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from keras&gt;=3.0.0-&gt;tensorflow) (13.7.1)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: rich in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from keras&gt;=3.0.0-&gt;tensorflow) (13.7.1)
 Collecting namex (from keras&gt;=3.0.0-&gt;tensorflow)
   Using cached namex-0.0.8-py3-none-any.whl.metadata (246 bytes)
 </pre></div>
@@ -3119,9 +3125,7 @@ Using cached tensorflow-2.16.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x
 </pre></div>
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached absl_py-2.1.0-py3-none-any.whl (133 kB)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached astunparse-1.6.3-py2.py3-none-any.whl (12 kB)
+Using cached astunparse-1.6.3-py2.py3-none-any.whl (12 kB)
 Using cached flatbuffers-24.3.25-py2.py3-none-any.whl (26 kB)
 Using cached gast-0.5.4-py3-none-any.whl (19 kB)
 Using cached google_pasta-0.2.0-py3-none-any.whl (57 kB)
@@ -3134,14 +3138,16 @@ Using cached libclang-18.1.1-py2.py3-none-manylinux2010_x86_64.whl (24.5 MB)
 Using cached opt_einsum-3.3.0-py3-none-any.whl (65 kB)
 Using cached protobuf-4.25.3-cp37-abi3-manylinux2014_x86_64.whl (294 kB)
 Using cached tensorboard-2.16.2-py3-none-any.whl (5.5 MB)
-Using cached tensorflow_io_gcs_filesystem-0.37.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.1 MB)
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached termcolor-2.4.0-py3-none-any.whl (7.7 kB)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached tensorflow_io_gcs_filesystem-0.37.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (5.1 MB)
+Using cached termcolor-2.4.0-py3-none-any.whl (7.7 kB)
 Using cached Markdown-3.6-py3-none-any.whl (105 kB)
 Using cached tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl (6.6 MB)
 Using cached werkzeug-3.0.3-py3-none-any.whl (227 kB)
-Using cached wheel-0.43.0-py3-none-any.whl (65 kB)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached wheel-0.43.0-py3-none-any.whl (65 kB)
 Using cached namex-0.0.8-py3-none-any.whl (5.8 kB)
 Using cached optree-0.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (311 kB)
 </pre></div>
@@ -3158,16 +3164,16 @@ Using cached optree-0.11.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_6
 </div>
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Requirement already satisfied: numpy&gt;=1.19.5 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from scikit-learn) (1.26.4)
 Requirement already satisfied: scipy&gt;=1.6.0 in /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages (from scikit-learn) (1.13.1)
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting joblib&gt;=1.2.0 (from scikit-learn)
+Collecting joblib&gt;=1.2.0 (from scikit-learn)
   Using cached joblib-1.4.2-py3-none-any.whl.metadata (5.4 kB)
-Collecting threadpoolctl&gt;=3.1.0 (from scikit-learn)
-  Using cached threadpoolctl-3.5.0-py3-none-any.whl.metadata (13 kB)
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached scikit_learn-1.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.3 MB)
-Using cached joblib-1.4.2-py3-none-any.whl (301 kB)
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Collecting threadpoolctl&gt;=3.1.0 (from scikit-learn)
+  Using cached threadpoolctl-3.5.0-py3-none-any.whl.metadata (13 kB)
+Using cached scikit_learn-1.5.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.3 MB)
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Using cached joblib-1.4.2-py3-none-any.whl (301 kB)
 Using cached threadpoolctl-3.5.0-py3-none-any.whl (18 kB)
 </pre></div>
 </div>
@@ -3205,10 +3211,7 @@ Receiving objects:  13% (5/36)
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  16% (6/36)
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  16% (6/36), 56.48 MiB | 56.48 MiB/s
-</pre></div>
-</div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  19% (7/36), 56.48 MiB | 56.48 MiB/s
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Receiving objects:  16% (6/36), 31.90 MiB | 31.89 MiB/s
 </pre></div>
 </div>
 </div>
