@@ -184,13 +184,23 @@
               <article class="bd-article" role="main">
                 
   <h1>Source code for porespy.networks._snow2</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">porespy.networks</span> <span class="kn">import</span> <span class="n">regions_to_network</span>
-<span class="kn">from</span> <span class="nn">porespy.networks</span> <span class="kn">import</span> <span class="n">add_boundary_regions</span>
-<span class="kn">from</span> <span class="nn">porespy.networks</span> <span class="kn">import</span> <span class="n">label_phases</span><span class="p">,</span> <span class="n">label_boundaries</span>
-<span class="kn">from</span> <span class="nn">porespy.filters</span> <span class="kn">import</span> <span class="n">snow_partitioning</span><span class="p">,</span> <span class="n">snow_partitioning_parallel</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">Results</span>
+<span class="kn">from</span> <span class="nn">porespy.networks</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">regions_to_network</span><span class="p">,</span>
+    <span class="n">add_boundary_regions</span><span class="p">,</span>
+    <span class="n">label_phases</span><span class="p">,</span>
+    <span class="n">label_boundaries</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">porespy.filters</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">snow_partitioning</span><span class="p">,</span>
+    <span class="n">snow_partitioning_parallel</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pyedt</span> <span class="kn">import</span> <span class="n">edt</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -202,17 +212,40 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">estimate_overlap_and_chunk</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>
+    <span class="n">divs</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">)]</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+        <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">divs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">//</span> <span class="n">divs</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="p">[:</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">chunk_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">edt</span><span class="p">((</span><span class="n">im</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">overlap</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">overlap</span><span class="p">,</span> <span class="n">chunk_shape</span>
+
+
 <div class="viewcode-block" id="snow2">
 <a class="viewcode-back" href="../../../modules/generated/generated/porespy.networks.snow2.html#porespy.networks.snow2">[docs]</a>
-<span class="k">def</span> <span class="nf">snow2</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span>
-          <span class="n">phase_alias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">boundary_width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-          <span class="n">accuracy</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span>
-          <span class="n">voxel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-          <span class="n">sigma</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
-          <span class="n">r_max</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-          <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-          <span class="n">parallelization</span><span class="o">=</span><span class="p">{},):</span>
+<span class="k">def</span> <span class="nf">snow2</span><span class="p">(</span>
+    <span class="n">phases</span><span class="p">,</span>
+    <span class="n">phase_alias</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">boundary_width</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">accuracy</span><span class="o">=</span><span class="s1">&#39;standard&#39;</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">sigma</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+    <span class="n">r_max</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">peaks</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">porosity_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">parallelization</span><span class="o">=</span><span class="p">{},</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Applies the SNOW algorithm to each phase indicated in ``phases``.</span>
 
@@ -257,21 +290,23 @@
 <span class="sd">        the analysis of regions in the ``regions_to_network`` function.</span>
 <span class="sd">        Options are:</span>
 
-<span class="sd">            - &#39;standard&#39; (default)</span>
-<span class="sd">                Computes the surface areas and perimeters by simply</span>
-<span class="sd">                counting voxels. This is *much* faster but does not</span>
-<span class="sd">                properly account for the rough voxelated nature</span>
-<span class="sd">                of the surfaces.</span>
+<span class="sd">        ------------ --------------------------------------------------------</span>
+<span class="sd">        Value        Description</span>
+<span class="sd">        ------------ --------------------------------------------------------</span>
+<span class="sd">        &#39;standard&#39;   Computes the surface areas and perimeters by simply</span>
+<span class="sd">                     counting voxels. This is *much* faster but does not</span>
+<span class="sd">                     properly account for the rough voxelated nature of the</span>
+<span class="sd">                     surfaces.</span>
+<span class="sd">        &#39;high&#39;       Computes surface areas using the marching cube method,</span>
+<span class="sd">                     and perimeters using the fast marching method. These</span>
+<span class="sd">                     are substantially slower but better account for the</span>
+<span class="sd">                     voxelated nature of the images.</span>
+<span class="sd">        ------------ --------------------------------------------------------</span>
 
-<span class="sd">            - &#39;high&#39;</span>
-<span class="sd">                Computes surface areas using the marching cube</span>
-<span class="sd">                method, and perimeters using the fast marching method. These</span>
-<span class="sd">                are substantially slower but better account for the</span>
-<span class="sd">                voxelated nature of the images.</span>
-
-<span class="sd">    voxel_size : scalar (default = 1)</span>
-<span class="sd">        The resolution of the image, expressed as the length of one side</span>
-<span class="sd">        of a voxel, so the volume of a voxel would be **voxel_size**-cubed.</span>
+<span class="sd">    voxel_size : tuple (default = (1, 1, 1))</span>
+<span class="sd">        The resolution of the image, expressed as the length of the sides of a</span>
+<span class="sd">        voxel, so the volume of a voxel would be the product of **voxel_size**</span>
+<span class="sd">        coords.</span>
 <span class="sd">    r_max : int</span>
 <span class="sd">        The radius of the spherical structuring element to use in the</span>
 <span class="sd">        Maximum filter stage that is used to find peaks. The default is 4.</span>
@@ -357,9 +392,18 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing phase </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">phases</span> <span class="o">==</span> <span class="n">i</span>
         <span class="n">pk</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">peaks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">peaks</span><span class="o">*</span><span class="n">phase</span>
+        <span class="n">overlap</span><span class="p">,</span> <span class="n">chunk</span> <span class="o">=</span> <span class="n">estimate_overlap_and_chunk</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">overlap</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">chunk</span><span class="o">//</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">parallelization</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Disabling paralelization as overlap exceeds than chunk size.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parallelization</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">snow</span> <span class="o">=</span> <span class="n">snow_partitioning_parallel</span><span class="p">(</span>
-                <span class="n">im</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">r_max</span><span class="o">=</span><span class="n">r_max</span><span class="p">,</span> <span class="o">**</span><span class="n">parallelization</span><span class="p">)</span>
+                <span class="n">im</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span>
+                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="n">r_max</span><span class="o">=</span><span class="n">r_max</span><span class="p">,</span>
+                <span class="n">overlap</span><span class="o">=</span><span class="n">overlap</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">parallelization</span><span class="p">,</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">snow</span> <span class="o">=</span> <span class="n">snow_partitioning</span><span class="p">(</span><span class="n">im</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">r_max</span><span class="o">=</span><span class="n">r_max</span><span class="p">,</span>
                                      <span class="n">peaks</span><span class="o">=</span><span class="n">pk</span><span class="p">)</span>
@@ -380,9 +424,16 @@
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">boundary_width</span><span class="p">):</span>
         <span class="n">regions</span> <span class="o">=</span> <span class="n">add_boundary_regions</span><span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">boundary_width</span><span class="p">)</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">boundary_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;edge&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">porosity_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">porosity_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">porosity_map</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">boundary_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;edge&#39;</span><span class="p">)</span>
     <span class="c1"># Perform actual extractcion on all regions</span>
     <span class="n">net</span> <span class="o">=</span> <span class="n">regions_to_network</span><span class="p">(</span>
-        <span class="n">regions</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span> <span class="n">accuracy</span><span class="o">=</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">)</span>
+        <span class="n">regions</span><span class="p">,</span>
+        <span class="n">phases</span><span class="o">=</span><span class="n">phases</span><span class="p">,</span>
+        <span class="n">accuracy</span><span class="o">=</span><span class="n">accuracy</span><span class="p">,</span>
+        <span class="n">voxel_size</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">,</span>
+        <span class="n">porosity_map</span><span class="o">=</span><span class="n">porosity_map</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="c1"># If image is multiphase, label pores/throats accordingly</span>
     <span class="k">if</span> <span class="n">phases</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">phase_alias</span> <span class="o">=</span> <span class="n">_parse_phase_alias</span><span class="p">(</span><span class="n">phase_alias</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>

@@ -1043,7 +1043,7 @@
 <h1>region_surface_areas<a class="headerlink" href="#region-surface-areas" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.metrics.region_surface_areas">
-<span class="sig-name descname"><span class="pre">region_surface_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_meshtools.html#region_surface_areas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.region_surface_areas" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">region_surface_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">1,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_meshtools.html#region_surface_areas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.region_surface_areas" title="Link to this definition">¶</a></dt>
 <dd><p>Extract the surface area of each region in a labeled image.</p>
 <p>Optionally, it can also find the the interfacial area between all
 adjoining regions.</p>
@@ -1053,7 +1053,7 @@ adjoining regions.</p>
 <li><p><strong>regions</strong> (<em>ndarray</em>) – An image of the pore space partitioned into individual pore regions.
 Note that zeros in the image will not be considered for area
 calculation.</p></li>
-<li><p><strong>voxel_size</strong> (<em>scalar</em>) – The resolution of the image, expressed as the length of one side of a
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The resolution of the image, expressed as the length of one side of a
 voxel, so the volume of a voxel would be <strong>voxel_size</strong>-cubed.  The
 default is 1.</p></li>
 <li><p><strong>strel</strong> (<em>array_like</em>) – The structuring element used to blur the region.  If not provided,

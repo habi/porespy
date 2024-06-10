@@ -1043,7 +1043,7 @@
 <h1>regions_to_network<a class="headerlink" href="#regions-to-network" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.networks.regions_to_network">
-<span class="sig-name descname"><span class="pre">regions_to_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/networks/_getnet.html#regions_to_network"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.networks.regions_to_network" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">regions_to_network</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">regions</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">accuracy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'standard'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">porosity_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/networks/_getnet_orig.html#regions_to_network"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.networks.regions_to_network" title="Link to this definition">¶</a></dt>
 <dd><p>Analyzes an image that has been partitioned into pore regions and extracts
 the pore and throat geometry as well as network connectivity.</p>
 <dl class="field-list simple">
@@ -1057,17 +1057,24 @@ If not given a value of 1 is assigned to every pore.</p></li>
 <li><p><strong>voxel_size</strong> (<em>scalar</em><em> (</em><em>default = 1</em><em>)</em>) – The resolution of the image, expressed as the length of one side of a
 voxel, so the volume of a voxel would be <strong>voxel_size</strong>-cubed.</p></li>
 <li><p><strong>accuracy</strong> (<em>string</em>) – <p>Controls how accurately certain properties are calculated. Options are:</p>
+<p>———— ——————————————————–
+Value        Description
+———— ——————————————————–
+‘standard’   Computes the surface areas and perimeters by simply</p>
+<blockquote>
+<div><p>counting voxels. This is <em>much</em> faster but does not
+properly account for the rough voxelated nature of the
+surfaces.</p>
+</div></blockquote>
 <dl class="simple">
-<dt>’standard’ (default)</dt><dd><p>Computes the surface areas and perimeters by simply counting
-voxels.  This is <em>much</em> faster but does not properly account
-for the rough, voxelated nature of the surfaces.</p>
-</dd>
-<dt>’high’</dt><dd><p>Computes surface areas using the marching cube method, and
-perimeters using the fast marching method.  These are substantially
-slower but better account for the voxelated nature of the images.</p>
+<dt>’high’       Computes surface areas using the marching cube method,</dt><dd><p>and perimeters using the fast marching method. These
+are substantially slower but better account for the
+voxelated nature of the images.</p>
 </dd>
 </dl>
+<p>———— ——————————————————–</p>
 </p></li>
+<li><p><strong>porosity_map</strong> (<em>None</em>) – This is not supported for this version of the function.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

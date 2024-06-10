@@ -187,15 +187,18 @@
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">spim</span>
-<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">erfc</span>
+<span class="kn">from</span> <span class="nn">numba</span> <span class="kn">import</span> <span class="n">njit</span><span class="p">,</span> <span class="n">boolean</span>
 <span class="kn">from</span> <span class="nn">skimage.segmentation</span> <span class="kn">import</span> <span class="n">relabel_sequential</span>
-<span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
 <span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">ball</span><span class="p">,</span> <span class="n">disk</span>
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="n">Results</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">marching_cubes</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">skimage.measure</span> <span class="kn">import</span> <span class="n">marching_cubes_lewiner</span> <span class="k">as</span> <span class="n">marching_cubes</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pyedt</span> <span class="kn">import</span> <span class="n">edt</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -230,6 +233,8 @@
     <span class="s1">&#39;ps_round&#39;</span><span class="p">,</span>
     <span class="s1">&#39;subdivide&#39;</span><span class="p">,</span>
     <span class="s1">&#39;unpad&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;jit_extend_slice&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;pad&#39;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -918,6 +923,29 @@
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">a</span><span class="p">)</span></div>
 
 
+<span class="nd">@njit</span>
+<span class="k">def</span> <span class="nf">jit_extend_slice</span><span class="p">(</span><span class="n">slices</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">slices</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">start</span> <span class="o">-</span> <span class="n">pad</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">stop</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">stop</span> <span class="o">+</span> <span class="n">pad</span><span class="p">,</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">a</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+<span class="nd">@njit</span>
+<span class="k">def</span> <span class="nf">pad</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assumes pad width=1 and mode is constant = 0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">w</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">h</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">d</span><span class="o">+</span><span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">boolean</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="n">output</span><span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">z</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">img</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span>
+
 
 <div class="viewcode-block" id="randomize_colors">
 <a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.randomize_colors.html#porespy.tools.randomize_colors">[docs]</a>
@@ -1249,7 +1277,7 @@
 
 <div class="viewcode-block" id="mesh_region">
 <a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.mesh_region.html#porespy.tools.mesh_region">[docs]</a>
-<span class="k">def</span> <span class="nf">mesh_region</span><span class="p">(</span><span class="n">region</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strel</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">mesh_region</span><span class="p">(</span><span class="n">region</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">voxel_size</span><span class="o">=</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates a tri-mesh of the provided region using the marching cubes</span>
 <span class="sd">    algorithm</span>
@@ -1294,7 +1322,13 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">padded_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">padded_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">padded_mask</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
-    <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">marching_cubes</span><span class="p">(</span><span class="n">padded_mask</span><span class="p">)</span>
+
+    <span class="c1"># It seems like skimage has changed marching cubes to only accept a list of</span>
+    <span class="c1"># spacing values with length 3, so we are checking this here.</span>
+    <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">ndmin</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">voxel_size</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">voxel_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">voxel_size</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+    <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">norm</span><span class="p">,</span> <span class="n">val</span> <span class="o">=</span> <span class="n">marching_cubes</span><span class="p">(</span><span class="n">padded_mask</span><span class="p">,</span> <span class="n">spacing</span><span class="o">=</span><span class="n">voxel_size</span><span class="p">)</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">Results</span><span class="p">()</span>
     <span class="n">result</span><span class="o">.</span><span class="n">verts</span> <span class="o">=</span> <span class="n">verts</span> <span class="o">-</span> <span class="n">pad_width</span>
     <span class="n">result</span><span class="o">.</span><span class="n">faces</span> <span class="o">=</span> <span class="n">faces</span>
@@ -1538,7 +1572,7 @@
     <span class="c1"># Generate sphere template within image boundaries</span>
     <span class="n">blank</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">im</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">blank</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">c</span> <span class="o">-</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">])]</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">sph</span> <span class="o">=</span> <span class="n">spim</span><span class="o">.</span><span class="n">distance_transform_edt</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">r</span>
+    <span class="n">sph</span> <span class="o">=</span> <span class="n">edt</span><span class="p">(</span><span class="n">blank</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">r</span>
     <span class="k">if</span> <span class="n">overwrite</span><span class="p">:</span>  <span class="c1"># Clear voxles under sphere to be zero</span>
         <span class="n">temp</span> <span class="o">=</span> <span class="n">im</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">*</span> <span class="n">sph</span> <span class="o">&gt;</span> <span class="mi">0</span>
         <span class="n">im</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="n">temp</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1690,6 +1724,29 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Input image conains a singleton axis. Reduce&quot;</span>
                        <span class="s2">&quot; dimensionality with np.squeeze(im) to avoid&quot;</span>
                        <span class="s2">&quot; unexpected behavior.&quot;</span><span class="p">)</span>
+
+<span class="nd">@njit</span>
+<span class="k">def</span> <span class="nf">center_of_mass</span><span class="p">(</span><span class="n">im</span><span class="p">):</span>
+    <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">x_sum</span> <span class="o">=</span> <span class="n">y_sum</span> <span class="o">=</span> <span class="n">z_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">x_mass</span> <span class="o">=</span> <span class="n">y_mass</span> <span class="o">=</span> <span class="n">z_mass</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">w</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">im</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+                <span class="n">x_sum</span> <span class="o">+=</span> <span class="n">val</span>
+                <span class="n">y_sum</span> <span class="o">+=</span> <span class="n">val</span>
+                <span class="n">z_sum</span> <span class="o">+=</span> <span class="n">val</span>
+                <span class="n">x_mass</span> <span class="o">+=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">val</span>
+                <span class="n">y_mass</span> <span class="o">+=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">val</span>
+                <span class="n">z_mass</span> <span class="o">+=</span> <span class="n">z</span> <span class="o">*</span> <span class="n">val</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span>
+        <span class="n">x_mass</span><span class="o">/</span><span class="n">x_sum</span><span class="p">,</span>
+        <span class="n">y_mass</span><span class="o">/</span><span class="n">y_sum</span><span class="p">,</span>
+        <span class="n">z_mass</span><span class="o">/</span><span class="n">z_sum</span><span class="p">,</span>
+        <span class="p">))</span>
+
 </pre></div>
 
               </article>

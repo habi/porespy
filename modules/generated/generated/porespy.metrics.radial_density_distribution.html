@@ -1066,8 +1066,7 @@ is equivalent to the cumulative distribution function (<em>cdf</em>).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dt</strong> (<em>ndarray</em>) – A distance transform of the pore space (the <code class="docutils literal notranslate"><span class="pre">edt</span></code> package is
-recommended).  Note that it is recommended to apply
+<li><p><strong>dt</strong> (<em>ndarray</em>) – A distance transform of the pore space.  Note that it is recommended to apply
 <code class="docutils literal notranslate"><span class="pre">find_dt_artifacts</span></code> to this image first, and set potentially
 erroneous values to 0 with <code class="docutils literal notranslate"><span class="pre">dt[mask]</span> <span class="pre">=</span> <span class="pre">0</span></code> where
 <code class="docutils literal notranslate"><span class="pre">mask</span> <span class="pre">=</span> <span class="pre">porespy.filters.find_dt_artifaces(dt)</span></code>.</p></li>

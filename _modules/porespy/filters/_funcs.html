@@ -188,7 +188,6 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">dask</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
 <span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
 <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">spim</span>
 <span class="kn">from</span> <span class="nn">deprecated</span> <span class="kn">import</span> <span class="n">deprecated</span>
@@ -202,6 +201,10 @@
 <span class="kn">from</span> <span class="nn">porespy</span> <span class="kn">import</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">get_tqdm</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">pyedt</span> <span class="kn">import</span> <span class="n">edt</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -1428,7 +1431,7 @@
                                                  <span class="n">strel</span><span class="o">=</span><span class="n">strel_2</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">imtemp</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">parallel</span><span class="p">:</span>
-                    <span class="n">imtemp</span> <span class="o">=</span> <span class="n">chunked_func</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">edt</span><span class="p">,</span>
+                    <span class="n">imtemp</span> <span class="o">=</span> <span class="n">chunked_func</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">edt</span><span class="p">(</span><span class="n">x</span><span class="p">),</span>
                                           <span class="n">data</span><span class="o">=~</span><span class="n">imtemp</span><span class="p">,</span> <span class="n">im_arg</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">,</span>
                                           <span class="n">overlap</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">parallel</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                           <span class="n">cores</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">ncores</span><span class="p">,</span> <span class="n">divs</span><span class="o">=</span><span class="n">divs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">r</span>

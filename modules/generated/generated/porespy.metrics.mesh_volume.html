@@ -1043,11 +1043,16 @@
 <h1>mesh_volume<a class="headerlink" href="#mesh-volume" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.metrics.mesh_volume">
-<span class="sig-name descname"><span class="pre">mesh_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_meshtools.html#mesh_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.mesh_volume" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">mesh_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">region</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1.0,</span> <span class="pre">1.0,</span> <span class="pre">1.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_meshtools.html#mesh_volume"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.mesh_volume" title="Link to this definition">¶</a></dt>
 <dd><p>Compute the volume of a single region by meshing it</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>region</strong> (<em>ndarray</em>) – An image with a single region labelled as <code class="docutils literal notranslate"><span class="pre">True</span></code> (or &gt; 0)</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>region</strong> (<em>ndarray</em>) – An image with a single region labelled as <code class="docutils literal notranslate"><span class="pre">True</span></code> (or &gt; 0)</p></li>
+<li><p><strong>voxel_size</strong> (<em>tuple</em>) – The resolution of the image, expressed as the length of one side of a
+voxel, so the volume of a voxel would be <strong>voxel_size</strong>-cubed.  The
+default is 1.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>volume</strong> – The volume of the region computed by applyuing the marching cubes
