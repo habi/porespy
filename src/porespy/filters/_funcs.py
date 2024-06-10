@@ -2,6 +2,7 @@ import inspect as insp
 import logging
 import dask
 import numpy as np
+import numpy.typing as npt
 import operator as op
 import scipy.ndimage as spim
 from deprecated import deprecated
