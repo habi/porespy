@@ -1,4 +1,5 @@
 import numpy as np
+from skimage.morphology import ball, disk
 from porespy import settings
 from porespy.metrics import pc_curve
 from porespy.tools import (
@@ -28,7 +29,6 @@ tqdm = get_tqdm()
 
 
 def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
-
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
