@@ -1,14 +1,21 @@
 import numpy as np
-from edt import edt
-from skimage.morphology import ball, disk
-from porespy.filters import trim_disconnected_blobs, find_trapped_regions
-from porespy.filters import pc_to_satn, satn_to_seq
 from porespy import settings
-from porespy.tools import _insert_disks_at_points
-from porespy.tools import get_tqdm
-from porespy.tools import Results
 from porespy.metrics import pc_curve
-tqdm = get_tqdm()
+from porespy.tools import (
+    _insert_disks_at_points,
+    get_tqdm,
+    Results,
+)
+from porespy.filters import (
+    trim_disconnected_blobs,
+    find_trapped_regions,
+    pc_to_satn,
+    satn_to_seq,
+)
+try:
+    from pyedt import edt
+except ModuleNotFoundError:
+    from edt import edt
 
 
 __all__ = [
@@ -17,7 +24,11 @@ __all__ = [
 ]
 
 
+tqdm = get_tqdm()
+
+
 def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
+
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity

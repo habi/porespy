@@ -2,8 +2,6 @@ import inspect as insp
 import logging
 import dask
 import numpy as np
-import numpy.typing as npt
-from edt import edt
 import operator as op
 import scipy.ndimage as spim
 from deprecated import deprecated
@@ -17,6 +15,10 @@ from porespy.tools import ps_disk, ps_ball, ps_round, ps_rect
 from porespy import settings
 from porespy.tools import get_tqdm
 from typing import Literal
+try:
+    from pyedt import edt
+except ModuleNotFoundError:
+    from edt import edt
 
 
 __all__ = [
@@ -1213,7 +1215,7 @@ def porosimetry(
                                                  strel=strel_2(1))
             if np.any(imtemp):
                 if parallel:
-                    imtemp = chunked_func(func=edt,
+                    imtemp = chunked_func(func=lambda x: edt(x),
                                           data=~imtemp, im_arg='data',
                                           overlap=int(r) + 1, parallel=0,
                                           cores=settings.ncores, divs=divs) < r
