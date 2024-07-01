@@ -35,8 +35,6 @@ __all__ = [
     "flood",
     "flood_func",
     "hold_peaks",
-    "ibip",
-    "ibip_gpu",
     "local_thickness",
     "nphase_border",
     "porosimetry",
@@ -52,26 +50,6 @@ __all__ = [
 
 tqdm = get_tqdm()
 logger = logging.getLogger(__name__)
-
-
-@deprecated("The ibip function will be moved to the"
-            + " ``simulations`` module in a future version")
-def ibip(**kwargs):
-    r"""
-    This function has been moved to the ``simulations`` module, please use that.
-    """
-    from porespy.simulations import ibip
-    return ibip(**kwargs)
-
-
-@deprecated("The ibip_gpu function will be moved to the"
-            + " ``simulations`` module in a future version")
-def ibip_gpu(**kwargs):
-    r"""
-    This function has been moved to the ``simulations`` module, please use that.
-    """
-    from porespy.simulations import ibip_gpu
-    return ibip_gpu(**kwargs)
 
 
 def find_trapped_regions(
