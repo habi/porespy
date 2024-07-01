@@ -98,8 +98,8 @@ def drainage_dt(im, inlets, residual=None):
     validating other implementations. It can also be used for speed comparisons
     since it uses the `edt` package with parallelization enabled. It cannot operate
     on the capillary pressure transform so cannot do gravity or other physics. The
-    capillary pressure must be calculated afterwards using the `results.im_pc`
-    array, like `pc = -2*sigma*cos(theta)/(results.im_pc*voxel_size)`.
+    capillary pressure must be calculated afterwards using the `results.im_size`
+    array, like `pc = -2*sigma*cos(theta)/(results.im_size*voxel_size)`.
 
     """
     im = np.array(im, dtype=bool)
@@ -283,6 +283,8 @@ if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
     from edt import edt
+    from copy import copy
+
     cm = copy(plt.cm.plasma)
     cm.set_under('darkgrey')
     cm.set_over('k')
@@ -290,7 +292,7 @@ if __name__ == "__main__":
     # %% Compare bf to dt, with and without residual nwp
     if 1:
         im = ps.generators.blobs(
-            shape=[200, 200, 200], porosity=0.7, blobiness=1.5, seed=0)
+            shape=[200, 200], porosity=0.7, blobiness=1.5, seed=0)
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 

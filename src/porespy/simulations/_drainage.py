@@ -4,6 +4,7 @@ from porespy import settings
 from porespy.metrics import pc_curve
 from porespy.tools import (
     _insert_disks_at_points,
+    _insert_disks_at_points_parallel,
     get_tqdm,
     Results,
 )
@@ -11,7 +12,7 @@ from porespy.filters import (
     trim_disconnected_blobs,
     find_trapped_regions,
     pc_to_satn,
-    satn_to_seq,
+    pc_to_seq,
 )
 try:
     from pyedt import edt
@@ -108,7 +109,17 @@ def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25)
     return results
 
 
-def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
+def ibop(
+    im,
+    pc,
+    dt=None,
+    inlets=None,
+    outlets=None,
+    residual=None,
+    bins=25,
+):
+    r"""
+    """
     im = np.array(im, dtype=bool)
 
     if dt is None:
@@ -119,6 +130,7 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
         inlets[0, ...] = True
 
     pc[~im] = 0  # Remove any infs or nans from pc computation
+
     if isinstance(bins, int):  # Use values in pc for invasion steps
         vmax = pc[pc < np.inf].max()
         vmin = pc[im][pc[im] > -np.inf].min()
@@ -130,7 +142,7 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
     pc_inv = np.zeros_like(im, dtype=float)
     seeds = np.zeros_like(im, dtype=bool)
 
-    # Deal with any void space trapped behind residual blobs
+    # Remove wetting phase blocked from inlets by residual (if present)
     mask = None
     if (residual is not None) and (outlets is not None):
         mask = im * (~residual)
@@ -139,6 +151,8 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
     # Begin IBOP algorithm
     strel = ball(1) if im.ndim == 3 else disk(1)
     for p in tqdm(Ps, **settings.tqdm):
+        p = Ps[i]
+        i += 1
         # Find all locations in image invadable at current pressure
         temp = (pc <= p)*im
         # Add residual so that fluid is more easily reconnected
@@ -146,7 +160,7 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
             temp = temp + residual
         # Trim locations not connected to the inlets
         new_seeds = trim_disconnected_blobs(temp, inlets=inlets, strel=strel)
-        # Trim locations not connected to the outlet
+        # Trim locations not connected to the outlet (for trapping)
         if mask is not None:
             new_seeds = new_seeds * mask
         # Isolate only newly found locations to speed up inserting
@@ -158,8 +172,13 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
         # Extract the local size of sphere to insert at each new location
         radii = dt[coords].astype(int)
         # Insert spheres of given radii at new locations
-        pc_inv = _insert_disks_at_points(im=pc_inv, coords=np.vstack(coords),
-                                         radii=radii, v=p, smooth=True)
+        pc_inv = _insert_disks_at_points_parallel(
+            im=pc_inv,
+            coords=np.vstack(coords),
+            radii=radii,
+            v=p,
+            smooth=True,
+        )
 
     # Set uninvaded voxels to inf
     pc_inv[(pc_inv == 0)*im] = np.inf
@@ -168,22 +187,22 @@ def ibop(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
     if residual is not None:
         pc_inv[residual] = -np.inf
 
-    # Initialize results object
-    results = Results()
     trapped = None
-    satn = pc_to_satn(pc=pc_inv, im=im)
 
     # Analyze trapping and adjust computed images accordingly
     if outlets is not None:
-        seq = satn_to_seq(satn=satn, im=im)
+        seq = pc_to_seq(pc_inv, im=im, mode='drainage')
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
         trapped[seq == -1] = True
         pc_inv[trapped] = np.inf
         if residual is not None:  # Re-add residual to inv
-            pc_inv[residual] = -np.inf
+            pc_inv[residual] = -1
         satn = pc_to_satn(pc=pc_inv, im=im)
 
-    results.im_satn = satn
+
+    # Initialize results object
+    results = Results()
+    results.im_satn = pc_to_satn(pc_inv, im, mode='drainage')
     results.im_pc = pc_inv
     results.im_trapped = trapped
 
@@ -198,67 +217,90 @@ if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
     from copy import copy
+    from pyedt import edt
 
     # %% Run this cell to regenerate the variables in drainage
     np.random.seed(6)
     bg = 'white'
     plots = True
-    im = ps.generators.blobs(shape=[500, 500], porosity=0.7, blobiness=1.5)
+    im = ps.generators.blobs(
+        shape=[500, 500],
+        porosity=0.7,
+        blobiness=1.5,
+    )
+    im = ps.filters.fill_blind_pores(im, surface=True)
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     outlets = np.zeros_like(im)
     outlets[-1, :] = True
-    pc = None
+
     lt = ps.filters.local_thickness(im)
+    dt = edt(im)
     residual = lt > 25
     bins = 25
-    voxel_size = 1e-4
-    sigma = 0.072
-    theta = 180
-    delta_rho = 1000
-    g = 9.81
+    pc = ps.simulations.capillary_transform(
+        im=im,
+        dt=dt,
+        sigma=0.072,
+        theta=180,
+        rho_nwp=1000,
+        rho_wp=0,
+        g=9.81,
+        voxelsize=1e-4,
+    )
 
     # %% Run 4 different drainage simulations
-    drn1 = ps.simulations.drainage(im=im, voxel_size=voxel_size,
-                                   inlets=inlets,
-                                   delta_rho=delta_rho,
-                                   g=g)
-    drn2 = ps.simulations.drainage(im=im, voxel_size=voxel_size,
-                                   inlets=inlets, outlets=outlets,
-                                   delta_rho=delta_rho,
-                                   g=g)
-    drn3 = ps.simulations.drainage(im=im, voxel_size=voxel_size,
-                                   inlets=inlets,
-                                   residual=residual,
-                                   delta_rho=delta_rho,
-                                   g=g)
-    drn4 = ps.simulations.drainage(im=im, voxel_size=voxel_size,
-                                   inlets=inlets, outlets=outlets,
-                                   residual=residual,
-                                   delta_rho=delta_rho,
-                                   g=g)
+    drn1 = ps.simulations.drainage(
+        im=im,
+        pc=pc,
+        inlets=inlets,
+    )
+    drn2 = ps.simulations.drainage(
+        im=im,
+        pc=pc,
+        inlets=inlets,
+        outlets=outlets,
+    )
+    drn3 = ps.simulations.drainage(
+        im=im,
+        pc=pc,
+        inlets=inlets,
+        residual=residual,
+    )
+    drn4 = ps.simulations.drainage(
+        im=im,
+        pc=pc,
+        inlets=inlets,
+        outlets=outlets,
+        residual=residual,
+    )
 
     # %% Visualize the invasion configurations for each scenario
     if plots:
         cmap = copy(plt.cm.plasma)
         cmap.set_under(color='black')
         cmap.set_over(color='grey')
+        cmap.set_bad(color='w')
         fig, ax = plt.subplots(2, 2, facecolor=bg)
 
-        kw = ps.visualization.prep_for_imshow(drn1.im_pc, im)
-        ax[0][0].imshow(**kw, cmap=cmap)
+        tmp = np.copy(drn1.im_pc)
+        tmp[~im] = pc.max()*2
+        ax[0][0].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
         ax[0][0].set_title("No trapping, no residual")
 
-        kw = ps.visualization.prep_for_imshow(drn2.im_pc, im)
-        ax[0][1].imshow(**kw, cmap=cmap)
+        tmp = np.copy(drn2.im_pc)
+        tmp[~im] = pc.max()*2
+        ax[0][1].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
         ax[0][1].set_title("With trapping, no residual")
 
-        kw = ps.visualization.prep_for_imshow(drn3.im_pc, im)
-        ax[1][0].imshow(**kw, cmap=cmap)
+        tmp = np.copy(drn3.im_pc)
+        tmp[~im] = pc.max()*2
+        ax[1][0].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
         ax[1][0].set_title("No trapping, with residual")
 
-        kw = ps.visualization. prep_for_imshow(drn4.im_pc, im)
-        ax[1][1].imshow(**kw, cmap=cmap)
+        tmp = np.copy(drn4.im_pc)
+        tmp[~im] = pc.max()*2
+        ax[1][1].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
         ax[1][1].set_title("With trapping, with residual")
 
     # %% Plot the capillary pressure curves for each scenario
