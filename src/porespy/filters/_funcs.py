@@ -144,17 +144,20 @@ def find_trapped_regions(
         strel = ps_rect(w=3, ndim=seq.ndim)
     # All uninvaded regions should be given sequence number of lowest nearby fluid
     mask = seq < 0  # This is used again at the end of the function to fix seq
-    mask_dil = spim.binary_dilation(mask, structure=ps_rect(w=3, ndim=im.ndim))*im
-    tmp = seq*mask_dil
-    new_seq = flood(im=tmp, labels=spim.label(mask_dil)[0], mode='maximum')
-    seq = seq*~mask + new_seq*mask
-    # Remove all trivially trapped regions (i.e. invaded after last outlet)
-    Lmax = seq[outlets].max()
-    seq[seq > Lmax] = -1
+    if np.any(mask):
+        mask_dil = spim.binary_dilation(mask, structure=strel)*im
+        tmp = seq*mask_dil
+        new_seq = flood(im=tmp, labels=spim.label(mask_dil)[0], mode='maximum')
+        seq = seq*~mask + new_seq*mask
+    # Convert outlets to indices instead of mask to save time (maybe?)
     outlets = np.where(outlets)
+    # Remove all trivially trapped regions (i.e. invaded after last outlet)
     trapped = np.zeros_like(seq, dtype=bool)
+    Lmax = seq[outlets].max()
+    trapped[seq > Lmax] = True
+    # Scan image for each value of sequence in the outlets
     if bins is None:
-        bins = np.unique(seq)[-1::-1]
+        bins = np.unique(seq[seq <= Lmax])[-1::-1]
         bins = bins[bins > 0]
     elif isinstance(bins, int):
         bins_start = seq.max()
@@ -164,7 +167,7 @@ def find_trapped_regions(
         temp = seq >= s
         labels = spim.label(temp, structure=strel)[0]
         keep = np.unique(labels[outlets])
-        keep = np.setdiff1d(keep, np.array([0]))
+        keep = keep[keep > 0]
         trapped += temp*np.isin(labels, keep, invert=True)
     # Set uninvaded locations back to -1, and set to untrapped
     seq[mask] = -1
