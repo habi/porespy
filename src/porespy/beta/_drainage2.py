@@ -13,51 +13,8 @@ tqdm = get_tqdm()
 
 __all__ = [
     'drainage',
-    'elevation_map',
     'drainage_dt',
 ]
-
-
-def elevation_map(im_or_shape, voxel_size=1, axis=0):
-    r"""
-    Generate a image of distances from given axis
-
-    Parameters
-    ----------
-    im_or_shape : ndarray or list
-        This dictates the shape of the output image. If an image is supplied, then
-        it's shape is used. Otherwise, the shape should be supplied as a N-D long
-        list of the shape for each axis (i.e. `[200, 200]` or `[300, 300, 300]`).
-    voxel_size : scalar, optional, default is 1
-        The size of the voxels in physical units (i.e. `100e-6` would be 100 um per
-        voxel side). If not given that 1 is used, so the returned image is in units
-        of voxels.
-    axis : int, optional, default is 0
-        The direction along which the height is calculated.  The default is 0, which
-        is the 'x-axis'.
-
-    Returns
-    -------
-    elevation : ndarray
-        A numpy array of the specified shape with the values in each voxel indicating
-        the height of that voxel from the beginning of the specified axis.
-
-    See Also
-    --------
-    ramp
-
-    """
-    if len(im_or_shape) <= 3:
-        im = np.zeros(*im_or_shape, dtype=bool)
-    else:
-        im = im_or_shape
-    im = np.swapaxes(im, 0, axis)
-    a = np.arange(0, im.shape[0])
-    b = np.reshape(a, [im.shape[0], 1, 1])
-    c = np.tile(b, (1, *im.shape[1:]))
-    c = c*voxel_size
-    h = np.swapaxes(c, 0, axis)
-    return h
 
 
 def drainage_dt(im, inlets, residual=None):

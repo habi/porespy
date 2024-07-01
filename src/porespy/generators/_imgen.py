@@ -32,6 +32,7 @@ __all__ = [
     "bundle_of_tubes",
     "cylinders",
     "cylindrical_plug",
+    "elevation",
     "insert_shape",
     "lattice_spheres",
     "line_segment",
@@ -46,6 +47,52 @@ __all__ = [
 
 tqdm = get_tqdm()
 logger = logging.getLogger(__name__)
+
+
+def elevation(
+    shape: List,
+    voxel_size: float,
+    axis: int = 0,
+):
+    r"""
+    Generates a image of distances from given axis
+
+    Parameters
+    ----------
+    shape : ndarray or list
+        This dictates the shape of the output image. If an image is supplied, then
+        it's shape is used. Otherwise, the shape should be supplied as a N-D long
+        list of the shape for each axis (i.e. `[200, 200]` or `[300, 300, 300]`).
+    voxel_size : scalar
+        The size of the voxels in physical units (i.e. `100e-6` would be 100 um per
+        voxel side).
+    axis : int, optional, default is 0
+        The direction along which the height is calculated.  The default is 0, which
+        is the 'x-axis'.
+
+    Returns
+    -------
+    elevation : ndarray
+        A numpy array of the specified shape with the values in each voxel indicating
+        the height of that voxel from the beginning of the specified axis.
+
+    See Also
+    --------
+    ramp
+
+    Examples
+    --------
+    # TODO: Create a notebook example for this function
+
+    """
+    im = np.zeros(shape, dtype=bool)
+    im = np.swapaxes(im, 0, axis)
+    a = np.arange(0, im.shape[0])
+    b = np.reshape(a, [im.shape[0], 1, 1])
+    c = np.tile(b, (1, *im.shape[1:]))
+    c = c*voxel_size
+    h = np.swapaxes(c, 0, axis)
+    return h
 
 
 def ramp(
@@ -78,6 +125,10 @@ def ramp(
     ramp : ndarray
         An array of the requested shape with values changing linearly from inlet
         to outlet in the direction specified.
+
+    See Also
+    --------
+    elevation
 
     Examples
     --------
