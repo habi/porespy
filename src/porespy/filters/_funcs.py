@@ -5,7 +5,6 @@ import numpy as np
 import numpy.typing as npt
 import operator as op
 import scipy.ndimage as spim
-from deprecated import deprecated
 from skimage.morphology import reconstruction
 from skimage.segmentation import clear_border
 from skimage.morphology import ball, disk, square, cube, diamond, octahedron
