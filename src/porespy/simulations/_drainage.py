@@ -50,18 +50,18 @@ def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25)
         Similar to ``inlets`` except defining the outlets. This image is used
         to assess trapping. If not provided then trapping is ignored,
         otherwise a mask indicating which voxels were trapped is included
-        amoung the returned data.
+        among the returned data.
     residual : ndarray, optional
         A boolean array indicating the locations of any residual invading
         phase. This is added to the intermediate image prior to trimming
         disconnected clusters, so will create connections to some clusters
         that would otherwise be removed. The residual phase is indicated
-        in the final image by ``-np.inf`` values, since there are invaded at
+        in the final image by ``-np.inf`` values, since these are invaded at
         all applied capillary pressures.
     bins : int or array_like (default = 25)
         The range of pressures to apply. If an integer is given
         then bins will be created between the lowest and highest pressures
-        in the ``pc``.  If a list is given, each value in the list is used
+        in ``pc``. If a list is given, each value in the list is used
         directly in order.
 
     Returns
@@ -78,6 +78,7 @@ def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25)
                    saturation value at the point it was invaded
         im_seq     An ndarray with each voxel indicating the step number at
                    which it was first invaded by non-wetting phase
+        im_trapped A numpy array with ``True`` values indicating trapped voxels
         pc         1D array of capillary pressure values that were applied
         swnp       1D array of non-wetting phase saturations for each applied
                    value of capillary pressure (``pc``).
@@ -129,6 +130,9 @@ def ibop(
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
+    if outlets is not None:
+        outlets = outlets*im
+
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
     if isinstance(bins, int):  # Use values in pc for invasion steps
@@ -151,21 +155,13 @@ def ibop(
     # Begin IBOP algorithm
     strel = ball(1) if im.ndim == 3 else disk(1)
     for p in tqdm(Ps, **settings.tqdm):
-        p = Ps[i]
-        i += 1
         # Find all locations in image invadable at current pressure
-        temp = (pc <= p)*im
-        # Add residual so that fluid is more easily reconnected
-        if residual is not None:
-            temp = temp + residual
+        invadable = (pc <= p)*im
         # Trim locations not connected to the inlets
-        new_seeds = trim_disconnected_blobs(temp, inlets=inlets, strel=strel)
-        # Trim locations not connected to the outlet (for trapping)
-        if mask is not None:
-            new_seeds = new_seeds * mask
+        new_seeds = trim_disconnected_blobs(invadable, inlets=inlets, strel=strel)
         # Isolate only newly found locations to speed up inserting
         temp = new_seeds*(~seeds)
-        # Find i,j,k coordinates of new locations
+        # Find (i, j, k) coordinates of new locations
         coords = np.where(temp)
         # Add new locations to list of invaded locations
         seeds += new_seeds
@@ -178,7 +174,31 @@ def ibop(
             radii=radii,
             v=p,
             smooth=True,
+            overwrite=False,
         )
+        # Deal with impact of residual, if present
+        if residual is not None:
+            # Find residual connected to current invasion front
+            inv_temp = (pc_inv > 0)
+            temp = trim_disconnected_blobs(residual, inv_temp, strel=strel)*~inv_temp
+            # Find invadable pixels connected to surviving residual
+            if np.any(temp):
+                new_seeds = trim_disconnected_blobs(invadable, temp, strel=strel)
+                # Find (i, j, k) coordinates of new locations
+                coords = np.where(new_seeds)
+                # Add new locations to list of invaded locations
+                seeds += new_seeds
+                # Extract the local size of sphere to insert at each new location
+                radii = dt[coords].astype(int)
+                # Insert spheres of given radii at new locations
+                pc_inv = _insert_disks_at_points_parallel(
+                    im=pc_inv,
+                    coords=np.vstack(coords),
+                    radii=radii,
+                    v=p,
+                    smooth=True,
+                    overwrite=False,
+                )
 
     # Set uninvaded voxels to inf
     pc_inv[(pc_inv == 0)*im] = np.inf
@@ -187,28 +207,24 @@ def ibop(
     if residual is not None:
         pc_inv[residual] = -np.inf
 
-    trapped = None
-
     # Analyze trapping and adjust computed images accordingly
+    trapped = None
     if outlets is not None:
         seq = pc_to_seq(pc_inv, im=im, mode='drainage')
         trapped = find_trapped_regions(seq=seq, outlets=outlets)
         trapped[seq == -1] = True
         pc_inv[trapped] = np.inf
         if residual is not None:  # Re-add residual to inv
-            pc_inv[residual] = -1
+            pc_inv[residual] = -np.inf
         satn = pc_to_satn(pc=pc_inv, im=im)
-
 
     # Initialize results object
     results = Results()
     results.im_satn = pc_to_satn(pc_inv, im, mode='drainage')
     results.im_pc = pc_inv
-    results.im_trapped = trapped
-
-    _pccurve = pc_curve(im=im, pc=pc_inv)
-    results.pc = _pccurve.pc
-    results.snwp = _pccurve.snwp
+    if trapped is not None:
+        results.im_trapped = trapped
+    results.pc, results.snwp = pc_curve(im=im, pc=pc_inv)
     return results
 
 
@@ -280,27 +296,36 @@ if __name__ == "__main__":
         cmap = copy(plt.cm.plasma)
         cmap.set_under(color='black')
         cmap.set_over(color='grey')
-        cmap.set_bad(color='w')
+        # cmap.set_bad(color='white')
+        vmax = pc.max()*2
         fig, ax = plt.subplots(2, 2, facecolor=bg)
 
         tmp = np.copy(drn1.im_pc)
-        tmp[~im] = pc.max()*2
-        ax[0][0].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
+        tmp[~im] = -1
+        tmp[tmp == np.inf] = vmax*2
+        tmp[tmp == np.inf] = -1
+        ax[0][0].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[0][0].set_title("No trapping, no residual")
 
         tmp = np.copy(drn2.im_pc)
-        tmp[~im] = pc.max()*2
-        ax[0][1].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
+        tmp[~im] = -1
+        tmp[tmp == np.inf] = vmax*2
+        tmp[tmp == np.inf] = -1
+        ax[0][1].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[0][1].set_title("With trapping, no residual")
 
         tmp = np.copy(drn3.im_pc)
-        tmp[~im] = pc.max()*2
-        ax[1][0].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
+        tmp[~im] = -1
+        tmp[tmp == np.inf] = vmax*2
+        tmp[tmp == np.inf] = -1
+        ax[1][0].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[1][0].set_title("No trapping, with residual")
 
         tmp = np.copy(drn4.im_pc)
-        tmp[~im] = pc.max()*2
-        ax[1][1].imshow(tmp, cmap=cmap, vmin=0, vmax=pc.max())
+        tmp[~im] = -1
+        tmp[tmp == np.inf] = vmax*2
+        tmp[tmp == np.inf] = -1
+        ax[1][1].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[1][1].set_title("With trapping, with residual")
 
     # %% Plot the capillary pressure curves for each scenario
