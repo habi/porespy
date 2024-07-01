@@ -29,7 +29,15 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def drainage(im, pc, dt=None, inlets=None, outlets=None, residual=None, bins=25):
+def drainage(
+    im,
+    pc,
+    dt=None,
+    inlets=None,
+    outlets=None,
+    residual=None,
+    bins=25,
+):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
     gravity
@@ -119,8 +127,6 @@ def ibop(
     residual=None,
     bins=25,
 ):
-    r"""
-    """
     im = np.array(im, dtype=bool)
 
     if dt is None:
@@ -216,16 +222,18 @@ def ibop(
         pc_inv[trapped] = np.inf
         if residual is not None:  # Re-add residual to inv
             pc_inv[residual] = -np.inf
-        satn = pc_to_satn(pc=pc_inv, im=im)
 
     # Initialize results object
     results = Results()
-    results.im_satn = pc_to_satn(pc_inv, im, mode='drainage')
+    results.im_satn = pc_to_satn(pc=pc_inv, im=im, mode='drainage')
     results.im_pc = pc_inv
     if trapped is not None:
         results.im_trapped = trapped
     results.pc, results.snwp = pc_curve(im=im, pc=pc_inv)
     return results
+
+
+ibop.__doc__ = drainage.__doc__
 
 
 if __name__ == "__main__":
