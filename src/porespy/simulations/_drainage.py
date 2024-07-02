@@ -70,7 +70,7 @@ def drainage(
         The range of pressures to apply. If an integer is given
         then bins will be created between the lowest and highest pressures
         in ``pc``. If a list is given, each value in the list is used
-        directly in order.
+        in ascending order.
 
     Returns
     -------
@@ -146,17 +146,11 @@ def ibop(
         vmin = pc[im][pc[im] > -np.inf].min()
         Ps = np.linspace(vmin, vmax*1.1, bins)
     else:
-        Ps = bins
+        Ps = np.unique(bins)  # To ensure they are in ascending order
 
     # Initialize empty arrays to accumulate results of each loop
     pc_inv = np.zeros_like(im, dtype=float)
     seeds = np.zeros_like(im, dtype=bool)
-
-    # Remove wetting phase blocked from inlets by residual (if present)
-    mask = None
-    if (residual is not None) and (outlets is not None):
-        mask = im * (~residual)
-        mask = trim_disconnected_blobs(mask, inlets=inlets)
 
     # Begin IBOP algorithm
     strel = ball(1) if im.ndim == 3 else disk(1)

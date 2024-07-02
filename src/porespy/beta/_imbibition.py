@@ -1,4 +1,5 @@
 import numpy as np
+from skimage.morphology import ball, disk
 from porespy.filters import (
     local_thickness,
     find_trapped_regions,
@@ -6,6 +7,7 @@ from porespy.filters import (
     size_to_seq,
     seq_to_satn,
     pc_to_satn,
+    pc_to_seq,
     trim_disconnected_blobs,
     find_disconnected_voxels,
 )
@@ -13,6 +15,8 @@ from porespy.tools import (
     Results,
     get_tqdm,
     make_contiguous,
+    _insert_disks_at_points,
+    _insert_disks_at_points_parallel,
 )
 from porespy import settings
 from edt import edt
@@ -63,6 +67,7 @@ def imbibition_dt(im, inlets=None, residual=None):
 def imbibition(
     im,
     pc,
+    dt=None,
     inlets=None,
     residual=None,
     bins=25,
@@ -75,6 +80,10 @@ def imbibition(
     ----------
     im : ndarray
         The image of the porous materials with void indicated by ``True``
+    pc : ndarray
+        An array containing precomputed capillary pressure values in each
+        voxel. This can include gravity effects or not. This can be generated
+        by ``capillary_transform``.
     inlets : ndarray
         An image the same shape as ``im`` with ``True`` values indicating the
         wetting fluid inlet(s).  If ``None`` then the wetting film is able to
@@ -82,8 +91,11 @@ def imbibition(
     residual : ndarray, optional
         A boolean mask the same shape as ``im`` with ``True`` values
         indicating to locations of residual wetting phase.
-    bins : int
-        The number of points to generate
+    bins : int or array_like (default = 25)
+        The range of pressures to apply. If an integer is given
+        then bins will be created between the lowest and highest pressures
+        in ``pc``. If a list is given, each value in the list is used
+        directly in order.
 
     Notes
     -----
@@ -97,44 +109,51 @@ def imbibition(
 
     """
     raise Exception("This doesn't work!")
-    dt = np.around(edt(im), decimals=0).astype(int)
-    pc[~im] = -np.inf
 
-    bins = np.logspace(np.log10(pc[im * np.isfinite(pc)].max()),
-                       np.log10(pc[im * np.isfinite(pc)].min()),
-                       bins)
-    pc2 = np.digitize(pc[im], bins)
-    pc2 = np.clip(pc2, 0, len(bins)-1)
-    pc[im] = bins[pc2]
-    bins = np.unique(pc[im])[::-1]
-    bins = np.hstack((bins, bins[-1]/2))
+    if dt is None:
+        dt = edt(im)
 
-    im_seq = -np.ones_like(im, dtype=int)
+    if inlets is None:
+        inlets = np.zeros_like(im)
+        inlets[0, ...] = True
+
+    pc[~im] = 0  # Remove any infs or nans from pc computation
+
+    if isinstance(bins, int):
+        vmax = pc[pc < np.inf].max()
+        vmin = pc[im][pc[im] > -np.inf].min()
+        Ps = np.logspace(np.log10(vmax), np.log10(vmin), bins)
+    else:
+        Ps = np.unique(bins)[::-1]  # To ensure they are in descending order
+
+    # Initialize empty arrays to accumulate results of each loop
     im_pc = np.zeros_like(im, dtype=float)
-    for i, p in enumerate(tqdm(bins[:-1], **settings.tqdm)):
-        wp = pc >= bins[i]
-        seeds = (pc >= bins[i + 1])*(~wp)
-        coords = np.where(seeds)
-        radii = dt[coords]
-        wp = _insert_disks_npoints_nradii_1value_parallel(
-            im=wp, coords=coords, radii=radii, v=False, smooth=False, overwrite=True)
-        if inlets is not None:
-            wp = trim_disconnected_blobs(wp, inlets=inlets)
-        mask = wp*(im_seq == -1)
-        im_pc[mask] = bins[i]
-        im_seq[mask] = i+1
+    strel = ball(1) if im.ndim == 3 else disk(1)
+    for i in tqdm(range(len(Ps)), **settings.tqdm):
+        # This can be made faster if I find a way to get only seeds on edge, so
+        # less spheres need to be drawn
+        invadable = (pc <= Ps[i])*im
+        # if inlets is not None:
+        #     mask = ~trim_disconnected_blobs(invadable, inlets=inlets, strel=strel)
+        #     invadable *= mask
+        if np.any(invadable):
+            coords = np.where(invadable)
+            radii = dt[coords].astype(int)
+            im_pc = _insert_disks_at_points_parallel(
+                im=im_pc,
+                coords=np.vstack(coords),
+                radii=radii,
+                v=Ps[i],
+                smooth=True,
+                overwrite=True,
+            )
 
     # Collect data in a Results object
     result = Results()
     im_pc[im_pc == 0] = -np.inf
     im_pc[~im] = 0
     result.im_pc = im_pc
-    im_seq[~im] = 0
-    im_seq = make_contiguous(im_seq)
-    result.im_seq = im_seq
-    if return_snwp:
-        satn = pc_to_satn(pc=im_pc, im=im, mode='imbibition')
-        result.im_snwp = satn
+    result.im_seq = pc_to_seq(pc=im_pc, im=im, mode='imbibition')
     return result
 
 
@@ -194,7 +213,8 @@ if __name__ == '__main__':
 
     # %% Compare imbibition_dt with drainage_dt
     if 0:
-        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
+        # im = ps.generators.blobs([400, 400], porosity=0.65, blobiness=1, seed=0)
+        im = ~ps.generators.random_spheres([400, 400], r=10, clearance=5, seed=0, edges='extended')
         # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
@@ -202,7 +222,7 @@ if __name__ == '__main__':
         outlets[-1, ...] = True
 
         imb = imbibition_dt(im=im, inlets=outlets)  # Inlets trigger trimming of disconnected wp
-        pc = 2*0.072/(imb.im_size*1e-5)
+        pc = ps.simulations.capillary_transform(im)
         pc_curve = ps.metrics.pc_map_to_pc_curve(
             pc=pc,
             im=im,
@@ -226,8 +246,13 @@ if __name__ == '__main__':
         outlets = np.zeros_like(im)
         outlets[-1, ...] = True
         vx = 1e-5
-        pc = 2*0.072/(np.around(edt(im))*vx)
-        pc[~im] = np.inf
+        pc = ps.simulations.capillary_transform(
+            im=im,
+            sigma=0.072,
+            theta=180,
+            voxelsize=vx,
+        )
+
 
         fig, ax = plt.subplots()
         imb = imbibition(im=im, pc=pc, inlets=inlets, bins=25)
