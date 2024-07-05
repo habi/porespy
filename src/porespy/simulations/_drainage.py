@@ -36,7 +36,8 @@ def drainage(
     inlets=None,
     outlets=None,
     residual=None,
-    bins=25,
+    bins: int = 25,
+    return_sizes: bool = False,
 ):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
@@ -50,10 +51,10 @@ def drainage(
     pc : ndarray
         An array containing precomputed capillary pressure values in each
         voxel. This can include gravity effects or not.
-    inlets : ndarray (default = x0)
+    inlets : ndarray, optional
         A boolean image the same shape as ``im``, with ``True`` values
-        indicating the inlet locations. See Notes. If not specified it is
-        assumed that the invading phase enters from the bottom (x=0).
+        indicating the inlet locations. If not specified then access limitations
+        are not applied so the result is essentially a local thickness filter.
     outlets : ndarray, optional
         Similar to ``inlets`` except defining the outlets. This image is used
         to assess trapping. If not provided then trapping is ignored,
@@ -71,6 +72,10 @@ def drainage(
         then bins will be created between the lowest and highest pressures
         in ``pc``. If a list is given, each value in the list is used
         in ascending order.
+    return_sizes : bool
+        If `True` then an array containing the size of the sphere which first
+        overlapped each pixel is returned. This array is not computed by default
+        as computing it increases computation time.
 
     Returns
     -------
@@ -86,6 +91,9 @@ def drainage(
                    saturation value at the point it was invaded
         im_seq     An ndarray with each voxel indicating the step number at
                    which it was first invaded by non-wetting phase
+        im_size    If `return_sizes` was set to `True`, then a numpy array with
+                   each voxel containing the radius of the sphere, in voxels, that
+                   first overlapped it.
         im_trapped A numpy array with ``True`` values indicating trapped voxels
         pc         1D array of capillary pressure values that were applied
         swnp       1D array of non-wetting phase saturations for each applied
@@ -114,6 +122,7 @@ def drainage(
         outlets=outlets,
         residual=residual,
         bins=bins,
+        return_sizes=return_sizes,
     )
     return results
 
@@ -126,15 +135,16 @@ def ibop(
     outlets=None,
     residual=None,
     bins=25,
+    return_sizes=False,
 ):
     im = np.array(im, dtype=bool)
 
     if dt is None:
         dt = edt(im)
 
-    if inlets is None:
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
+    # if inlets is None:
+    #     inlets = np.zeros_like(im)
+    #     inlets[0, ...] = True
 
     if outlets is not None:
         outlets = outlets*im
@@ -158,24 +168,38 @@ def ibop(
         # Find all locations in image invadable at current pressure
         invadable = (pc <= p)*im
         # Trim locations not connected to the inlets
-        new_seeds = trim_disconnected_blobs(invadable, inlets=inlets, strel=strel)
+        if inlets is not None:
+            invadable = trim_disconnected_blobs(
+                im=invadable,
+                inlets=inlets,
+                strel=strel,
+            )
         # Isolate only newly found locations to speed up inserting
-        temp = new_seeds*(~seeds)
+        temp = invadable*(~seeds)
         # Find (i, j, k) coordinates of new locations
         coords = np.where(temp)
         # Add new locations to list of invaded locations
-        seeds += new_seeds
+        seeds += invadable
         # Extract the local size of sphere to insert at each new location
-        radii = dt[coords].astype(int)
+        radii = dt[coords]
         # Insert spheres of given radii at new locations
         pc_inv = _insert_disks_at_points_parallel(
             im=pc_inv,
             coords=np.vstack(coords),
-            radii=radii,
+            radii=radii.astype(int),
             v=p,
             smooth=True,
             overwrite=False,
         )
+        if return_sizes:
+            pc_inv = _insert_disks_at_points_parallel(
+                im=pc_inv,
+                coords=np.vstack(coords),
+                radii=radii.astype(int),
+                v=max(radii),
+                smooth=True,
+                overwrite=False,
+            )
         # Deal with impact of residual, if present
         if residual is not None:
             # Find residual connected to current invasion front
@@ -194,7 +218,7 @@ def ibop(
                 pc_inv = _insert_disks_at_points_parallel(
                     im=pc_inv,
                     coords=np.vstack(coords),
-                    radii=radii,
+                    radii=radii.astype(int),
                     v=p,
                     smooth=True,
                     overwrite=False,
