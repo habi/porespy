@@ -66,7 +66,8 @@ def find_trapped_regions(
     seq : ndarray
         An image with invasion sequence values in each voxel.  Regions
         labelled -1 are considered uninvaded, and regions labelled 0 are
-        considered solid.
+        considered solid. Because sequence values are used, this function is
+        agnostic to whether the invasion followed drainage or imbibition.
     outlets : ndarray, optional
         An image the same size as ``seq`` with ``True`` indicating outlets
         and ``False`` elsewhere.  If not given then all image boundaries

@@ -108,8 +108,6 @@ def imbibition(
     --------
 
     """
-    raise Exception("This doesn't work!")
-
     if dt is None:
         dt = edt(im)
 
@@ -132,21 +130,22 @@ def imbibition(
     for i in tqdm(range(len(Ps)), **settings.tqdm):
         # This can be made faster if I find a way to get only seeds on edge, so
         # less spheres need to be drawn
-        invadable = (pc <= Ps[i])*im
-        # if inlets is not None:
-        #     mask = ~trim_disconnected_blobs(invadable, inlets=inlets, strel=strel)
-        #     invadable *= mask
+        invadable = (pc < Ps[i])*im
+        inv_mask = np.zeros_like(im, dtype=bool)
         if np.any(invadable):
             coords = np.where(invadable)
             radii = dt[coords].astype(int)
-            im_pc = _insert_disks_at_points_parallel(
-                im=im_pc,
+            inv_mask = _insert_disks_at_points_parallel(
+                im=inv_mask,
                 coords=np.vstack(coords),
                 radii=radii,
-                v=Ps[i],
+                v=True,
                 smooth=True,
                 overwrite=True,
             )
+        if inlets is not None:
+            mask = trim_disconnected_blobs((~inv_mask)*im, inlets=inlets, strel=strel)
+            im_pc += mask*Ps[i]*(im_pc == 0)
 
     # Collect data in a Results object
     result = Results()
@@ -205,128 +204,49 @@ if __name__ == '__main__':
     import numpy as np
     from edt import edt
     from copy import copy
-    from porespy import beta
+    ps.visualization.set_mpl_style()
 
     cm = copy(plt.cm.turbo)
     cm.set_under('grey')
     cm.set_over('k')
 
-    # %% Compare imbibition_dt with drainage_dt
-    if 0:
-        # im = ps.generators.blobs([400, 400], porosity=0.65, blobiness=1, seed=0)
-        im = ~ps.generators.random_spheres([400, 400], r=10, clearance=5, seed=0, edges='extended')
-        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
-        outlets = np.zeros_like(im)
-        outlets[-1, ...] = True
+    i = np.random.randint(1, 100000)
+    im = ps.generators.blobs([500, 500], porosity=0.55, blobiness=1.5, seed=i)
+    im = ps.filters.fill_blind_pores(im, surface=True)
 
-        imb = imbibition_dt(im=im, inlets=outlets)  # Inlets trigger trimming of disconnected wp
-        pc = ps.simulations.capillary_transform(im)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(
-            pc=pc,
-            im=im,
-            seq=imb.im_seq,
-            mode='imbibition',
-        )
-        plt.semilogx(pc_curve.pc, pc_curve.snwp, 'b-v', label='imbibition')
+    inlets = np.zeros_like(im)
+    inlets[0, ...] = True
+    outlets = np.zeros_like(im)
+    outlets[-1, ...] = True
+    pc = ps.simulations.capillary_transform(im=im, voxelsize=1e-4)
 
-        drn = beta.drainage_dt(im=im, inlets=inlets)
-        pc = 2*0.072/(drn.im_size*1e-5)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im, seq=drn.im_seq, mode='drainage')
-        plt.semilogx(pc_curve.pc, pc_curve.snwp, 'r-^', label='drainage')
-        plt.legend(loc='lower right')
+    imb = imbibition(im=im, pc=pc, inlets=inlets)
+    pc_curve1 = ps.metrics.pc_map_to_pc_curve(
+        pc=imb.im_pc,
+        im=im,
+        seq=imb.im_seq,
+        mode='imbibition',
+    )
 
-    # %% Compare imbibition with imbibition_dt
-    if 0:
-        im = ~ps.generators.random_spheres([200, 200, 200], r=10, clearance=10, seed=0, edges='extended')
-        # im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=1)
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
-        outlets = np.zeros_like(im)
-        outlets[-1, ...] = True
-        vx = 1e-5
-        pc = ps.simulations.capillary_transform(
-            im=im,
-            sigma=0.072,
-            theta=180,
-            voxelsize=vx,
-        )
+    fig, ax = plt.subplots(1, 2)
+    ax[0].imshow(imb.im_seq, origin='lower', cmap=cm)
 
+    mask = ps.filters.find_trapped_regions(seq=imb.im_seq, outlets=outlets)
+    imb.im_pc[mask] = np.inf
+    imb.im_seq[mask] = -1
+    ax[1].imshow(imb.im_pc, origin='lower', cmap=cm)
 
-        fig, ax = plt.subplots()
-        imb = imbibition(im=im, pc=pc, inlets=inlets, bins=25)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=imb.im_pc, im=im)
-        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'r->', label='imbibition')
+    pc_curve2 = ps.metrics.pc_map_to_pc_curve(
+        pc=imb.im_pc,
+        im=im,
+        seq=imb.im_seq,
+        mode='imbibition',
+    )
+    fig, ax = plt.subplots()
+    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, 'b->', label='imbibition')
+    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, 'r-<', label='imbibition with trapping')
+    ax.legend(loc='lower right')
 
-        imb_dt = imbibition_dt(im=im, inlets=inlets)
-        pc = 2*0.072/(imb_dt.im_size*vx)
-        pc_curve = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im)
-        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b-<', label='imbibition_dt')
-        ax.legend(loc='lower right')
-
-    # %% Compare imbibition with and without trapping
-    if 1:
-        im = ps.generators.blobs([750, 750], porosity=0.65, blobiness=1.5, seed=1)
-        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
-        im = ps.filters.fill_blind_pores(im)
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
-        outlets = np.zeros_like(im)
-        outlets[-1, ...] = True
-        vx = 1e-5
-        pc = 2*0.072/(np.around(edt(im))*vx)
-        pc[~im] = np.inf
-
-        imb = imbibition_dt(im=im, inlets=inlets)
-        imb.im_pc = (im.ndim-1)*0.01/(imb.im_size*1e-6)
-        pc_curve1 = ps.metrics.pc_map_to_pc_curve(
-            pc=imb.im_pc,
-            im=im,
-            seq=imb.im_seq,
-            mode='imbibition',
-        )
-
-        mask = ps.filters.find_trapped_regions(imb.im_seq, outlets=outlets)
-        imb.im_pc[mask] = np.inf
-        imb.im_seq[mask] = -1
-        pc_curve2 = ps.metrics.pc_map_to_pc_curve(
-            pc=imb.im_pc,
-            im=im,
-            seq=imb.im_seq,
-            mode='imbibition',
-        )
-
-        fig, ax = plt.subplots()
-        ax.semilogx(pc_curve1.pc, pc_curve1.snwp, 'b->', label='imbibition')
-        ax.semilogx(pc_curve2.pc, pc_curve2.snwp, 'r-<', label='imbibition with trapping')
-        ax.legend(loc='lower right')
-
-    # %% Compare imbibition and imbibition_dt with residual wp
-    if 0:
-        im = ps.generators.blobs([500, 500], porosity=0.65, blobiness=1.5, seed=0)
-        # im = ps.generators.blobs([300, 300, 300], porosity=0.65, blobiness=2, seed=0)
-        im = ps.filters.fill_blind_pores(im)
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
-        outlets = np.zeros_like(im)
-        outlets[-1, ...] = True
-        vx = 1e-5
-        pc = 2*0.072/(np.around(edt(im))*vx)
-        pc[~im] = np.inf
-
-        imb = imbibition(im=im, pc=pc, inlets=outlets, bins=None)
-        fig, ax = plt.subplots()
-        pc_curve = ps.metrics.pc_map_to_pc_curve(
-            pc=imb.im_pc,
-            im=im,
-            seq=imb.im_seq,
-            mode='imbibition',
-        )
-        ax.semilogx(pc_curve.pc, pc_curve.snwp, 'b->', label='imbibition')
-
-        drn = beta.drainage_dt(im=im, inlets=inlets)
-        wpr = ps.filters.find_trapped_regions(drn.im_seq, outlets=outlets)
 
 
 
