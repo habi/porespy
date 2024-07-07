@@ -18,6 +18,7 @@ try:
     from pyedt import edt
 except ModuleNotFoundError:
     from edt import edt
+import matplotlib.pyplot as plt
 
 
 __all__ = [
@@ -204,25 +205,35 @@ def ibop(
         if residual is not None:
             # Find residual connected to current invasion front
             inv_temp = (pc_inv > 0)
-            temp = trim_disconnected_blobs(residual, inv_temp, strel=strel)*~inv_temp
-            # Find invadable pixels connected to surviving residual
-            if np.any(temp):
-                new_seeds = trim_disconnected_blobs(invadable, temp, strel=strel)
-                # Find (i, j, k) coordinates of new locations
-                coords = np.where(new_seeds)
-                # Add new locations to list of invaded locations
-                seeds += new_seeds
-                # Extract the local size of sphere to insert at each new location
-                radii = dt[coords].astype(int)
-                # Insert spheres of given radii at new locations
-                pc_inv = _insert_disks_at_points_parallel(
-                    im=pc_inv,
-                    coords=np.vstack(coords),
-                    radii=radii.astype(int),
-                    v=p,
-                    smooth=True,
-                    overwrite=False,
-                )
+            if np.any(inv_temp):
+                # Find invadable pixels connected to surviving residual
+                temp = trim_disconnected_blobs(residual, inv_temp, strel=strel)*~inv_temp
+                if np.any(temp):
+                    new_seeds = trim_disconnected_blobs(invadable, temp, strel=strel)
+                    # Find (i, j, k) coordinates of new locations
+                    coords = np.where(new_seeds)
+                    # Add new locations to list of invaded locations
+                    seeds += new_seeds
+                    # Extract the local size of sphere to insert at each new location
+                    radii = dt[coords].astype(int)
+                    # Insert spheres of given radii at new locations
+                    pc_inv = _insert_disks_at_points_parallel(
+                        im=pc_inv,
+                        coords=np.vstack(coords),
+                        radii=radii.astype(int),
+                        v=p,
+                        smooth=True,
+                        overwrite=False,
+                    )
+                    if return_sizes:
+                        pc_inv = _insert_disks_at_points_parallel(
+                            im=pc_inv,
+                            coords=np.vstack(coords),
+                            radii=radii.astype(int),
+                            v=max(radii),
+                            smooth=True,
+                            overwrite=False,
+                        )
 
     # Set uninvaded voxels to inf
     pc_inv[(pc_inv == 0)*im] = np.inf
@@ -262,7 +273,6 @@ if __name__ == "__main__":
     from pyedt import edt
 
     # %% Run this cell to regenerate the variables in drainage
-    np.random.seed(6)
     bg = 'white'
     plots = True
     im = ps.generators.blobs(
@@ -287,11 +297,11 @@ if __name__ == "__main__":
         theta=180,
         rho_nwp=1000,
         rho_wp=0,
-        g=9.81,
+        g=0,
         voxelsize=1e-4,
     )
 
-    # %% Run 4 different drainage simulations
+    # %% Run different drainage simulations
     drn1 = ps.simulations.drainage(
         im=im,
         pc=pc,
@@ -316,6 +326,10 @@ if __name__ == "__main__":
         outlets=outlets,
         residual=residual,
     )
+    drn5 = ps.simulations.drainage(
+        im=im,
+        pc=pc,
+    )
 
     # %% Visualize the invasion configurations for each scenario
     if plots:
@@ -324,7 +338,7 @@ if __name__ == "__main__":
         cmap.set_over(color='grey')
         # cmap.set_bad(color='white')
         vmax = pc.max()*2
-        fig, ax = plt.subplots(2, 2, facecolor=bg)
+        fig, ax = plt.subplots(2, 3, facecolor=bg)
 
         tmp = np.copy(drn1.im_pc)
         tmp[~im] = -1
@@ -353,6 +367,13 @@ if __name__ == "__main__":
         tmp[tmp == np.inf] = -1
         ax[1][1].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[1][1].set_title("With trapping, with residual")
+
+        tmp = np.copy(drn5.im_pc)
+        tmp[~im] = -1
+        tmp[tmp == np.inf] = vmax*2
+        tmp[tmp == np.inf] = -1
+        ax[0][2].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
+        ax[0][2].set_title("No access limitations")
 
     # %% Plot the capillary pressure curves for each scenario
     if plots:
