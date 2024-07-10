@@ -16,7 +16,6 @@ import logging
 import numpy as np
 from porespy.tools import get_tqdm, ps_ball, ps_disk
 from porespy.filters import chunked_func
-import time
 from numba import jit
 
 
@@ -91,18 +90,20 @@ def magnet(im,
         diameter is returned. The default value is FALSE, for computational
         efficiency sake. See get_throat_area() documentation for more
         information.
-
+    
     Returns
     -------
-    net : dict
+    results : Results object
+        A custom object with the following data added as named attributes:
+        'network'
         A dictionary containing the most important pore and throat size data
         and topological data.
-    sk : ndarray
+        'sk'
         The skeleton of the image is also returned.
-    juncs : ndarray (boolean)
+        'juncs'
         An ndarray the same shape as `im` with clusters of junction voxels not
         uniquely labelled.
-    throat_area : ndarray
+        'throat_area'
         If throat_area argument is set to FALSE (default), then None is
         returned. However, if throat_area is set to TRUE, then the measured
         throat area from get_throat_area is returned here.
@@ -143,7 +144,13 @@ def magnet(im,
         throat_area = None
     # get network from junctions
     net = junctions_to_network(sk, juncs, throats, dt, throat_area, voxel_size)
-    return net, sk, juncs, throat_area
+    # results object
+    results = Results()
+    results.network = net
+    results.sk = sk
+    results.juncs = juncs
+    results.throat_area = throat_area
+    return results
 
 
 def skeleton(im, surface=False, parallel=False, **kwargs):
@@ -1249,100 +1256,3 @@ def get_throat_area(im,
             throat_area[x, y, z] = area * voxel_size**2
 
     return throat_area
-
-
-if __name__ == "__main__":
-    '''
-    Simulation using MAGNET extraction
-
-    '''
-    import matplotlib.pyplot as plt
-    import porespy as ps
-    import openpnm as op
-    np.random.seed(10)
-
-    # Define 2D image
-    im2 = ps.generators.blobs([100, 100], porosity=0.6, blobiness=2)
-    im2 = ps.filters.fill_blind_pores(im2, conn=8, surface=True)
-
-    # Define 3D image
-    im3 = ps.generators.blobs([1000, 100, 100], porosity=0.25, blobiness=1)
-    im3 = ps.filters.fill_blind_pores(im3, conn=26, surface=True)
-    im3 = ps.filters.trim_floating_solid(im3, conn=6, surface=False)
-
-    im = im2
-
-    # plot
-    if im.ndim == 2:
-        plt.figure(1)
-        plt.imshow(im)
-
-    # MAGNET Steps
-    sk=None
-    parallel=False
-    surface=False
-    voxel_size=1
-    s=None
-    l_max=7
-    throat_junctions="fast marching"
-    throat_area=True
-    step_size=0.5
-    max_n_steps = 10
-    net, sk, juncs, throat_area = magnet(im,
-                                         sk=None,
-                                         parallel=False,
-                                         surface=False,
-                                         voxel_size=1,
-                                         s=None,
-                                         l_max=7,
-                                         throat_junctions="fast marching",
-                                         throat_area=True,
-                                         step_size=step_size, 
-                                         max_n_steps=max_n_steps)
-
-    print(f'Total throat area: {np.sum(throat_area)}')
-    # for im2:
-    # dt: 867.1912159919743
-    # 0.5: 837.0000000000025
-    # for im3:
-    # dt: 34724.696861937264
-    # 0.5: 30774.378561650945
-
-    plt.figure(2)
-    plt.hist(net['throat.equivalent_diameter']/net['throat.max_diameter'])
-
-    # import network to openpnm
-    net = op.io.network_from_porespy(net)
-    net['pore.diameter'] = net['pore.inscribed_diameter']
-    net['throat.diameter'] = net['throat.avg_diameter']
-
-    # check network health
-    h = op.utils.check_network_health(net)
-    op.topotools.trim(net, throats=np.append(h['looped_throats'], h['duplicate_throats']))
-    h = op.utils.check_network_health(net)
-    print(h)
-
-    # visualize MAGNET network if 2d
-    if im.ndim == 2:
-        plt.figure(2)
-        fig, ax = plt.subplots(figsize=[5, 5]);
-        slice_m = im.T
-        ax.imshow(slice_m, cmap=plt.cm.bone)
-        op.visualization.plot_coordinates(ax=fig,
-                                          network=net,
-                                          size_by=net["pore.diameter"],
-                                          color_by=net["pore.diameter"],
-                                          markersize=200)
-        op.visualization.plot_connections(network=net, ax=fig)
-        ax.axis("off");
-        print('Visualization Complete')
-
-    # number of pore vs. skeleton clusters in network
-    from scipy.sparse import csgraph as csg
-    am = net.create_adjacency_matrix(fmt='coo', triu=True)
-    Np, cluster_num = csg.connected_components(am, directed=False)
-    print('Pore clusters:', Np)
-    # number of skeleton pieces
-    b = square(3) if im.ndim == 2 else cube(3)
-    _, Ns = spim.label(input=sk.astype('bool'), structure=b)
-    print('Skeleton clusters:', Ns)
