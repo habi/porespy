@@ -18,7 +18,6 @@ try:
     from pyedt import edt
 except ModuleNotFoundError:
     from edt import edt
-import matplotlib.pyplot as plt
 
 
 __all__ = [
@@ -209,6 +208,7 @@ def ibop(
                 # Find invadable pixels connected to surviving residual
                 temp = trim_disconnected_blobs(residual, inv_temp, strel=strel)*~inv_temp
                 if np.any(temp):
+                    # Trim invadable pixels not connected to residual
                     new_seeds = trim_disconnected_blobs(invadable, temp, strel=strel)
                     # Find (i, j, k) coordinates of new locations
                     coords = np.where(new_seeds)

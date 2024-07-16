@@ -210,7 +210,7 @@ if __name__ == '__main__':
     cm.set_under('grey')
     cm.set_over('k')
 
-    i = np.random.randint(1, 100000)
+    i = np.random.randint(1, 100000)  # bad: 38364, good: 65270, 71698
     im = ps.generators.blobs([500, 500], porosity=0.55, blobiness=1.5, seed=i)
     im = ps.filters.fill_blind_pores(im, surface=True)
 

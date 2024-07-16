@@ -310,6 +310,9 @@ class Results:
 
     """
 
+    # Resist the urge to add method to this class...the point is to keep
+    # the namespace clean!!
+
     def __init__(self, **kwargs):
         self._func = inspect.getouterframes(inspect.currentframe())[1].function
         self._time = time.asctime()
