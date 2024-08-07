@@ -1,7 +1,10 @@
 import numpy as np
 import porespy as ps
 import matplotlib.pyplot as plt
-from pyedt import edt
+try:
+    from pyedt import edt
+except ModuleNotFoundError:
+    from edt import edt
 
 
 def test_drainage():
