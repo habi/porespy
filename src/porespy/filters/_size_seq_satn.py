@@ -156,7 +156,7 @@ def size_to_satn(size, im=None, bins=None, mode='drainage'):
 
 def seq_to_satn(seq, im=None, mode='drainage'):
     r"""
-    Converts an image of invasion sequence values to non-wetting phase saturation
+    Converts an image of invasion sequence values to invading phase saturation
     values.
 
     Parameters
@@ -189,7 +189,7 @@ def seq_to_satn(seq, im=None, mode='drainage'):
     Notes
     -----
     If any ``-1`` values are present in `seq` the maximum saturation will be less
-    than 1.0 since this means that not all wetting phase was displaced.
+    than 1.0 since this means that not all defending phase was displaced.
 
     Examples
     --------
@@ -207,7 +207,7 @@ def seq_to_satn(seq, im=None, mode='drainage'):
         seq[seq < 0] = 0
         seq = seq.max() - seq + 1
         seq[solid_mask] = 0
-        seq[uninvaded_mask] = 1
+        seq[uninvaded_mask] = 0
     elif mode.startswith('drain'):
         seq[seq <= 0] = 0  # Set uninvaded to solid for next steps
     else:
@@ -392,8 +392,8 @@ def satn_to_seq(satn, im=None, mode='drainage'):
     uninvaded = satn == -1
     values = np.unique(satn)
     seq = np.digitize(satn, bins=values)
-    # Set uninvaded by to -1
-    seq[satn == -1] = -1
+    # Set uninvaded to 0
+    seq[uninvaded] = 0
     # Set solids back to 0
     seq[~im] = 0
     # Ensure values are contiguous while keeping -1 and 0

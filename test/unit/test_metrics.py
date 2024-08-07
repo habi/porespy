@@ -274,8 +274,8 @@ class MetricsTest():
     def test_pc_curve_from_ibip(self):
         im = ps.generators.blobs(shape=[100, 100], porosity=0.7026, seed=0)
         assert im.sum()/im.size == 0.7026
-        seq, sizes = ps.filters.ibip(im=im)
-        pc = ps.metrics.pc_curve(im=im, sizes=sizes, seq=seq)
+        results = ps.simulations.ibip(im=im)
+        pc = ps.metrics.pc_curve(im=im, sizes=results.im_size, seq=results.im_seq)
         assert hasattr(pc, 'pc')
         assert hasattr(pc, 'snwp')
 
