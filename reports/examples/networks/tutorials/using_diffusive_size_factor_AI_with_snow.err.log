@@ -45,11 +45,11 @@ Cell [0;32mIn[3], line 18[0m
 [0;32m---> 18[0m model [38;5;241m=[39m [43mps[49m[38;5;241;43m.[39;49m[43mnetworks[49m[38;5;241;43m.[39;49m[43mcreate_model[49m[43m([49m[43m)[49m
 [1;32m     19[0m model[38;5;241m.[39mload_weights(path_weights)
 
-File [0;32m~/work/porespy/porespy/src/porespy/networks/_size_factors.py:614[0m, in [0;36mcreate_model[0;34m()[0m
-[1;32m    612[0m [38;5;28;01mfrom[39;00m [38;5;21;01mtensorflow[39;00m[38;5;21;01m.[39;00m[38;5;21;01mkeras[39;00m[38;5;21;01m.[39;00m[38;5;21;01moptimizers[39;00m [38;5;28;01mimport[39;00m Adam
-[1;32m    613[0m model [38;5;241m=[39m _resnet3d()
-[0;32m--> 614[0m model[38;5;241m.[39mcompile(loss[38;5;241m=[39m[38;5;124m'[39m[38;5;124mmse[39m[38;5;124m'[39m, optimizer[38;5;241m=[39m[43mAdam[49m[43m([49m[43mlr[49m[38;5;241;43m=[39;49m[38;5;241;43m1e-4[39;49m[43m)[49m, metrics[38;5;241m=[39m[[38;5;124m'[39m[38;5;124mmse[39m[38;5;124m'[39m])
-[1;32m    615[0m [38;5;28;01mreturn[39;00m model
+File [0;32m~/work/porespy/porespy/src/porespy/networks/_size_factors.py:616[0m, in [0;36mcreate_model[0;34m()[0m
+[1;32m    614[0m [38;5;28;01mfrom[39;00m [38;5;21;01mtensorflow[39;00m[38;5;21;01m.[39;00m[38;5;21;01mkeras[39;00m[38;5;21;01m.[39;00m[38;5;21;01moptimizers[39;00m [38;5;28;01mimport[39;00m Adam
+[1;32m    615[0m model [38;5;241m=[39m _resnet3d()
+[0;32m--> 616[0m model[38;5;241m.[39mcompile(loss[38;5;241m=[39m[38;5;124m'[39m[38;5;124mmse[39m[38;5;124m'[39m, optimizer[38;5;241m=[39m[43mAdam[49m[43m([49m[43mlr[49m[38;5;241;43m=[39;49m[38;5;241;43m1e-4[39;49m[43m)[49m, metrics[38;5;241m=[39m[[38;5;124m'[39m[38;5;124mmse[39m[38;5;124m'[39m])
+[1;32m    617[0m [38;5;28;01mreturn[39;00m model
 
 File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/keras/src/optimizers/adam.py:62[0m, in [0;36mAdam.__init__[0;34m(self, learning_rate, beta_1, beta_2, epsilon, amsgrad, weight_decay, clipnorm, clipvalue, global_clipnorm, use_ema, ema_momentum, ema_overwrite_frequency, loss_scale_factor, gradient_accumulation_steps, name, **kwargs)[0m
 [1;32m     43[0m [38;5;28;01mdef[39;00m [38;5;21m__init__[39m(

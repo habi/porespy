@@ -184,10 +184,12 @@
               <article class="bd-article" role="main">
                 
   <h1>Source code for porespy.generators._noise</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">all_to_uniform</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Literal</span>
+
+<span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">all_to_uniform</span>
 
 
 <div class="viewcode-block" id="fractal_noise">
@@ -198,7 +200,7 @@
     <span class="n">frequency</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
     <span class="n">octaves</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
     <span class="n">gain</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s1">&#39;simplex&#39;</span><span class="p">,</span> <span class="s1">&#39;perlin&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;cubic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;simplex&#39;</span><span class="p">,</span>
+    <span class="n">mode</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;simplex&quot;</span><span class="p">,</span> <span class="s2">&quot;perlin&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;cubic&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;simplex&quot;</span><span class="p">,</span>
     <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">cores</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="n">uniform</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -211,9 +213,9 @@
 <span class="sd">    shape : array_like</span>
 <span class="sd">        The size of the image to generate, can be 2D or 3D.</span>
 <span class="sd">    porosity : float</span>
-<span class="sd">        If specified, this will convert the noise distribution to uniform </span>
-<span class="sd">        (no need to set uniform to ``True``), and then threshold the image </span>
-<span class="sd">        to the specified value prior to returning. </span>
+<span class="sd">        If specified, this will convert the noise distribution to uniform</span>
+<span class="sd">        (no need to set uniform to ``True``), and then threshold the image</span>
+<span class="sd">        to the specified value prior to returning.</span>
 <span class="sd">    frequency : scalar, default=0.05</span>
 <span class="sd">        Controls the overall scale of the generated noise, with larger</span>
 <span class="sd">        values giving smaller structures.</span>
@@ -275,14 +277,15 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">pyfastnoisesimd</span> <span class="kn">import</span> <span class="n">Noise</span><span class="p">,</span> <span class="n">NoiseType</span><span class="p">,</span> <span class="n">PerturbType</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span><span class="s2">&quot;You need to install `pyfastnoisesimd` using&quot;</span>
-                                  <span class="s2">&quot; `pip install pyfastnoisesimd`&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
+            <span class="s2">&quot;You need to install `pyfastnoisesimd` using&quot;</span> <span class="s2">&quot; `pip install pyfastnoisesimd`&quot;</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="n">cores</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">cores</span> <span class="o">=</span> <span class="n">psutil</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">(</span><span class="n">logical</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">seed</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">seed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">31</span><span class="p">)</span>
     <span class="n">perlin</span> <span class="o">=</span> <span class="n">Noise</span><span class="p">(</span><span class="n">numWorkers</span><span class="o">=</span><span class="n">cores</span><span class="p">)</span>
-    <span class="n">perlin</span><span class="o">.</span><span class="n">noiseType</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">NoiseType</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s1">Fractal&#39;</span><span class="p">)</span>
+    <span class="n">perlin</span><span class="o">.</span><span class="n">noiseType</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">NoiseType</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mode</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="si">}</span><span class="s2">Fractal&quot;</span><span class="p">)</span>
     <span class="n">perlin</span><span class="o">.</span><span class="n">frequency</span> <span class="o">=</span> <span class="n">frequency</span>
     <span class="n">perlin</span><span class="o">.</span><span class="n">fractal</span><span class="o">.</span><span class="n">octaves</span> <span class="o">=</span> <span class="n">octaves</span>
     <span class="n">perlin</span><span class="o">.</span><span class="n">fractal</span><span class="o">.</span><span class="n">gain</span> <span class="o">=</span> <span class="n">gain</span>

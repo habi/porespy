@@ -185,16 +185,15 @@
                 
   <h1>Source code for porespy.networks._getnet_orig</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">logging</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">spim</span>
-<span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">disk</span><span class="p">,</span> <span class="n">ball</span>
 <span class="kn">from</span> <span class="nn">edt</span> <span class="kn">import</span> <span class="n">edt</span>
-<span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">extend_slice</span>
-<span class="kn">from</span> <span class="nn">porespy</span> <span class="kn">import</span> <span class="n">settings</span>
-<span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">get_tqdm</span><span class="p">,</span> <span class="n">make_contiguous</span>
-<span class="kn">from</span> <span class="nn">porespy.metrics</span> <span class="kn">import</span> <span class="n">region_surface_areas</span><span class="p">,</span> <span class="n">region_interface_areas</span>
-<span class="kn">from</span> <span class="nn">porespy.metrics</span> <span class="kn">import</span> <span class="n">region_volumes</span>
+<span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">ball</span><span class="p">,</span> <span class="n">disk</span>
 
+<span class="kn">from</span> <span class="nn">porespy</span> <span class="kn">import</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">porespy.metrics</span> <span class="kn">import</span> <span class="n">region_interface_areas</span><span class="p">,</span> <span class="n">region_surface_areas</span><span class="p">,</span> <span class="n">region_volumes</span>
+<span class="kn">from</span> <span class="nn">porespy.tools</span> <span class="kn">import</span> <span class="n">extend_slice</span><span class="p">,</span> <span class="n">get_tqdm</span><span class="p">,</span> <span class="n">make_contiguous</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;regions_to_network&quot;</span><span class="p">,</span>

@@ -184,11 +184,12 @@
               <article class="bd-article" role="main">
                 
   <h1>Source code for porespy.filters._nlmeans</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">skimage.restoration.non_local_means</span> <span class="kn">import</span> <span class="n">denoise_nl_means</span>
+<span></span><span class="kn">import</span> <span class="nn">dask</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">match_histograms</span><span class="p">,</span> <span class="n">rescale_intensity</span>
 <span class="kn">from</span> <span class="nn">skimage.restoration</span> <span class="kn">import</span> <span class="n">estimate_sigma</span>
-<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="kn">import</span> <span class="n">rescale_intensity</span><span class="p">,</span> <span class="n">match_histograms</span>
-<span class="kn">import</span> <span class="nn">dask</span>
+<span class="kn">from</span> <span class="nn">skimage.restoration.non_local_means</span> <span class="kn">import</span> <span class="n">denoise_nl_means</span>
+
 <span class="n">dask</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;threads&quot;</span><span class="p">)</span>
 <span class="c1"># from dask.diagnostics import ProgressBar</span>
 
