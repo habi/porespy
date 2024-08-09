@@ -33,6 +33,6 @@ filters
       :toctree:
       :recursive:
    
-      porespy.filters.imagej
+      imagej
    
    
