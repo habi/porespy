@@ -3036,10 +3036,141 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_html"><pre style="white-space:pre;overflow-x:auto;line-height:normal;font-family:Menlo,'DejaVu Sans Mono',consolas,'Courier New',monospace"><span style="color: #7fbfbf; text-decoration-color: #7fbfbf">[15:53:33] </span><span style="color: #800000; text-decoration-color: #800000; font-weight: bold">ERROR   </span> PARDISO solver not installed, run `pip install pypardiso`. Otherwise,          <a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">_workspace.py</span></a><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">:</span><a href="file:///opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_workspace.py#56" target="_blank"><span style="color: #7f7f7f; text-decoration-color: #7f7f7f">56</span></a>
-<span style="color: #7fbfbf; text-decoration-color: #7fbfbf">           </span>         simulations will be slow. Apple M chips not supported.                         <span style="color: #7f7f7f; text-decoration-color: #7f7f7f">                </span>
-</pre>
-</div></div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">AttributeError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="n">Cell</span> <span class="n">In</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">line</span> <span class="mi">1</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">porespy</span> <span class="k">as</span> <span class="nn">ps</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">File</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">22</span>
+<span class="g g-Whitespace">     </span><span class="mi">20</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filters</span>
+<span class="g g-Whitespace">     </span><span class="mi">21</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">metrics</span>
+<span class="ne">---&gt; </span><span class="mi">22</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">networks</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">generators</span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">simulations</span>
+
+<span class="n">File</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">networks</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">26</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span><span class="w"> </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> </span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> Collection of functions for obtaining network representations of images</span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span><span class="sd"> </span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="ne">---&gt; </span><span class="mi">26</span> <span class="kn">from</span> <span class="nn">._funcs</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">     </span><span class="mi">27</span> <span class="kn">from</span> <span class="nn">._maximal_ball</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">     </span><span class="mi">28</span> <span class="kn">from</span> <span class="nn">._utils</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">File</span> <span class="o">~/</span><span class="n">work</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">porespy</span><span class="o">/</span><span class="n">networks</span><span class="o">/</span><span class="n">_funcs</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">4</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">logging</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">----&gt; </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">openpnm</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="kn">import</span> <span class="nn">scipy.ndimage</span> <span class="k">as</span> <span class="nn">spim</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="kn">from</span> <span class="nn">skimage.morphology</span> <span class="kn">import</span> <span class="n">ball</span><span class="p">,</span> <span class="n">cube</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">openpnm</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">22</span>
+<span class="g g-Whitespace">     </span><span class="mi">16</span> <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">17</span>     <span class="nb">format</span><span class="o">=</span><span class="n">FORMAT</span><span class="p">,</span> <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;[</span><span class="si">%X</span><span class="s2">]&quot;</span><span class="p">,</span> <span class="n">handlers</span><span class="o">=</span><span class="p">[</span><span class="n">RichHandler</span><span class="p">(</span><span class="n">rich_tracebacks</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+<span class="g g-Whitespace">     </span><span class="mi">18</span> <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">20</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_np</span>
+<span class="ne">---&gt; </span><span class="mi">22</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span>     <span class="n">_skgraph</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span>     <span class="n">algorithms</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">25</span>     <span class="n">contrib</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">26</span>     <span class="n">core</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">27</span>     <span class="n">integrators</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">28</span>     <span class="n">io</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">29</span>     <span class="n">models</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">30</span>     <span class="n">network</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">31</span>     <span class="n">phase</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">32</span>     <span class="n">solvers</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">33</span>     <span class="n">topotools</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">34</span>     <span class="n">utils</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">35</span>     <span class="n">visualization</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">36</span> <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">37</span> <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">Project</span><span class="p">,</span> <span class="n">Workspace</span>
+<span class="g g-Whitespace">     </span><span class="mi">39</span> <span class="n">_np</span><span class="o">.</span><span class="n">seterr</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">openpnm</span><span class="o">/</span><span class="n">_skgraph</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">43</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span><span class="w"> </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> ------------</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> scikit-graph</span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">     </span><span class="mi">40</span><span class="sd"> </span>
+<span class="g g-Whitespace">     </span><span class="mi">41</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">42</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">_np</span>
+<span class="ne">---&gt; </span><span class="mi">43</span> <span class="kn">from</span> <span class="nn">openpnm.utils</span> <span class="kn">import</span> <span class="n">PrintableDict</span> <span class="k">as</span> <span class="n">_pdict</span>
+<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="kn">from</span> <span class="nn">openpnm.utils</span> <span class="kn">import</span> <span class="n">SettingsAttr</span> <span class="k">as</span> <span class="n">_Settings</span>
+<span class="g g-Whitespace">     </span><span class="mi">47</span> <span class="n">settings</span> <span class="o">=</span> <span class="n">_Settings</span><span class="p">()</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">openpnm</span><span class="o">/</span><span class="n">utils</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">11</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span><span class="w"> </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> Utilities and helper classes/functions</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> ======================================</span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span><span class="sd"> </span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">from</span> <span class="nn">re</span> <span class="kn">import</span> <span class="n">L</span>
+<span class="ne">---&gt; </span><span class="mi">11</span> <span class="kn">from</span> <span class="nn">._misc</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="kn">from</span> <span class="nn">._settings</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">     </span><span class="mi">13</span> <span class="kn">from</span> <span class="nn">._workspace</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">openpnm</span><span class="o">/</span><span class="n">utils</span><span class="o">/</span><span class="n">_misc</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">8</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">----&gt; </span><span class="mi">8</span> <span class="kn">import</span> <span class="nn">numpy.lib.recfunctions</span> <span class="k">as</span> <span class="nn">rf</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sparse</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">from</span> <span class="nn">docrep</span> <span class="kn">import</span> <span class="n">DocstringProcessor</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">recfunctions</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">13</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">recarray</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="kn">from</span> <span class="nn">numpy.ma</span> <span class="kn">import</span> <span class="n">MaskedArray</span>
+<span class="ne">---&gt; </span><span class="mi">13</span> <span class="kn">from</span> <span class="nn">numpy.ma.mrecords</span> <span class="kn">import</span> <span class="n">MaskedRecords</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">from</span> <span class="nn">numpy.core.overrides</span> <span class="kn">import</span> <span class="n">array_function_dispatch</span>
+<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="kn">from</span> <span class="nn">numpy.lib._iotools</span> <span class="kn">import</span> <span class="n">_is_string_like</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">ma</span><span class="o">/</span><span class="n">mrecords</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">27</span>
+<span class="g g-Whitespace">     </span><span class="mi">23</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span> <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">25</span>     <span class="n">bool_</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span> <span class="n">recarray</span><span class="p">,</span> <span class="n">array</span> <span class="k">as</span> <span class="n">narray</span>
+<span class="g g-Whitespace">     </span><span class="mi">26</span> <span class="p">)</span>
+<span class="ne">---&gt; </span><span class="mi">27</span> <span class="kn">from</span> <span class="nn">numpy.core.records</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="g g-Whitespace">     </span><span class="mi">28</span>     <span class="n">fromarrays</span> <span class="k">as</span> <span class="n">recfromarrays</span><span class="p">,</span> <span class="n">fromrecords</span> <span class="k">as</span> <span class="n">recfromrecords</span>
+<span class="g g-Whitespace">     </span><span class="mi">29</span> <span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">31</span> <span class="n">_byteorderconv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">records</span><span class="o">.</span><span class="n">_byteorderconv</span>
+<span class="g g-Whitespace">     </span><span class="mi">34</span> <span class="n">_check_fill_value</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">_check_fill_value</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">records</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">44</span>
+<span class="g g-Whitespace">     </span><span class="mi">42</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">numerictypes</span> <span class="k">as</span> <span class="n">nt</span>
+<span class="g g-Whitespace">     </span><span class="mi">43</span> <span class="kn">from</span> <span class="nn">numpy.compat</span> <span class="kn">import</span> <span class="n">os_fspath</span>
+<span class="ne">---&gt; </span><span class="mi">44</span> <span class="kn">from</span> <span class="nn">.arrayprint</span> <span class="kn">import</span> <span class="n">_get_legacy_print_mode</span>
+<span class="g g-Whitespace">     </span><span class="mi">46</span> <span class="c1"># All of the functions allow formats to be a dtype</span>
+<span class="g g-Whitespace">     </span><span class="mi">47</span> <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+<span class="g g-Whitespace">     </span><span class="mi">48</span>     <span class="s1">&#39;record&#39;</span><span class="p">,</span> <span class="s1">&#39;recarray&#39;</span><span class="p">,</span> <span class="s1">&#39;format_parser&#39;</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">49</span>     <span class="s1">&#39;fromarrays&#39;</span><span class="p">,</span> <span class="s1">&#39;fromrecords&#39;</span><span class="p">,</span> <span class="s1">&#39;fromstring&#39;</span><span class="p">,</span> <span class="s1">&#39;fromfile&#39;</span><span class="p">,</span> <span class="s1">&#39;array&#39;</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">50</span> <span class="p">]</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">arrayprint</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">41</span>
+<span class="g g-Whitespace">     </span><span class="mi">37</span> <span class="kn">from</span> <span class="nn">.multiarray</span> <span class="kn">import</span> <span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">dragon4_positional</span><span class="p">,</span> <span class="n">dragon4_scientific</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">38</span>                          <span class="n">datetime_as_string</span><span class="p">,</span> <span class="n">datetime_data</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">39</span>                          <span class="n">set_legacy_print_mode</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">40</span> <span class="kn">from</span> <span class="nn">.fromnumeric</span> <span class="kn">import</span> <span class="nb">any</span>
+<span class="ne">---&gt; </span><span class="mi">41</span> <span class="kn">from</span> <span class="nn">.numeric</span> <span class="kn">import</span> <span class="n">concatenate</span><span class="p">,</span> <span class="n">asarray</span><span class="p">,</span> <span class="n">errstate</span>
+<span class="g g-Whitespace">     </span><span class="mi">42</span> <span class="kn">from</span> <span class="nn">.numerictypes</span> <span class="kn">import</span> <span class="p">(</span><span class="n">longlong</span><span class="p">,</span> <span class="n">intc</span><span class="p">,</span> <span class="n">int_</span><span class="p">,</span> <span class="n">float_</span><span class="p">,</span> <span class="n">complex_</span><span class="p">,</span> <span class="n">bool_</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">43</span>                            <span class="n">flexible</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="kn">from</span> <span class="nn">.overrides</span> <span class="kn">import</span> <span class="n">array_function_dispatch</span><span class="p">,</span> <span class="n">set_module</span>
+
+<span class="n">File</span> <span class="o">/</span><span class="n">opt</span><span class="o">/</span><span class="n">hostedtoolcache</span><span class="o">/</span><span class="n">Python</span><span class="o">/</span><span class="mf">3.10.14</span><span class="o">/</span><span class="n">x64</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.10</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">numpy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">numeric</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">2520</span>
+<span class="g g-Whitespace">   </span><span class="mi">2518</span> <span class="kn">from</span> <span class="nn">.fromnumeric</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">   </span><span class="mi">2519</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">arrayprint</span>
+<span class="ne">-&gt; </span><span class="mi">2520</span> <span class="kn">from</span> <span class="nn">.arrayprint</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="g g-Whitespace">   </span><span class="mi">2521</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_asarray</span>
+<span class="g g-Whitespace">   </span><span class="mi">2522</span> <span class="kn">from</span> <span class="nn">._asarray</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="ne">AttributeError</span>: partially initialized module &#39;numpy.core.arrayprint&#39; has no attribute &#39;array2string&#39; (most likely due to a circular import)
+</pre></div>
+</div>
+</div>
 </div>
 <section id="im-or-shape">
 <h2><code class="docutils literal notranslate"><span class="pre">im</span></code> or <code class="docutils literal notranslate"><span class="pre">shape</span></code><a class="headerlink" href="#im-or-shape" title="Link to this heading">¶</a></h2>
@@ -3056,7 +3187,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/e515b6ae72ad3d5f8c8a3250d979c84dee4ae7a99ee01c8e441a65dd30787927.png"><img alt="../../../_images/e515b6ae72ad3d5f8c8a3250d979c84dee4ae7a99ee01c8e441a65dd30787927.png" src="../../../_images/e515b6ae72ad3d5f8c8a3250d979c84dee4ae7a99ee01c8e441a65dd30787927.png" style="width: 383px; height: 383px;" />
+<a class="reference internal image-reference" href="../../../_images/f8d14b986792d187e0cfbb3d785597313c077c0d8b9a2ae103fbd6719445e483.png"><img alt="../../../_images/f8d14b986792d187e0cfbb3d785597313c077c0d8b9a2ae103fbd6719445e483.png" src="../../../_images/f8d14b986792d187e0cfbb3d785597313c077c0d8b9a2ae103fbd6719445e483.png" style="width: 383px; height: 383px;" />
 </a>
 </div>
 </div>
@@ -3072,7 +3203,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/c437dde6a86313fb207be2dc1795c5cada5419991b7225fbff39227b29628fd0.png"><img alt="../../../_images/c437dde6a86313fb207be2dc1795c5cada5419991b7225fbff39227b29628fd0.png" src="../../../_images/c437dde6a86313fb207be2dc1795c5cada5419991b7225fbff39227b29628fd0.png" style="width: 383px; height: 383px;" />
+<a class="reference internal image-reference" href="../../../_images/1465cbc88c53b2a073a209e909663f25296e25e127ddf77fe9d133331b50e29e.png"><img alt="../../../_images/1465cbc88c53b2a073a209e909663f25296e25e127ddf77fe9d133331b50e29e.png" src="../../../_images/1465cbc88c53b2a073a209e909663f25296e25e127ddf77fe9d133331b50e29e.png" style="width: 383px; height: 383px;" />
 </a>
 </div>
 </div>
@@ -3100,7 +3231,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/22d24e9433be4d2f9699136d345c1e11bc558495e2fd9b71f8eeb4791581ad42.png"><img alt="../../../_images/22d24e9433be4d2f9699136d345c1e11bc558495e2fd9b71f8eeb4791581ad42.png" src="../../../_images/22d24e9433be4d2f9699136d345c1e11bc558495e2fd9b71f8eeb4791581ad42.png" style="width: 744px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/a4b9e8b5e1aaa2ce3d227232bc3254d937450975ae049ed9793ce652d13d290a.png"><img alt="../../../_images/a4b9e8b5e1aaa2ce3d227232bc3254d937450975ae049ed9793ce652d13d290a.png" src="../../../_images/a4b9e8b5e1aaa2ce3d227232bc3254d937450975ae049ed9793ce652d13d290a.png" style="width: 745px; height: 384px;" />
 </a>
 </div>
 </div>
@@ -3127,7 +3258,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/5b12dc63e7602fcae38be53a5fdc3f74d87abe2a8c6a7b2d520803171b6bcd25.png"><img alt="../../../_images/5b12dc63e7602fcae38be53a5fdc3f74d87abe2a8c6a7b2d520803171b6bcd25.png" src="../../../_images/5b12dc63e7602fcae38be53a5fdc3f74d87abe2a8c6a7b2d520803171b6bcd25.png" style="width: 744px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/024eb2f7ac787891e0e71f308643f7c1d96e159518d2be1046e3013961006aca.png"><img alt="../../../_images/024eb2f7ac787891e0e71f308643f7c1d96e159518d2be1046e3013961006aca.png" src="../../../_images/024eb2f7ac787891e0e71f308643f7c1d96e159518d2be1046e3013961006aca.png" style="width: 745px; height: 384px;" />
 </a>
 </div>
 </div>
@@ -3149,7 +3280,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/70c9abb96b30f8cb33f6d4f07aa46de8d3e87876c54e9fe2d4f2169d6ab12972.png"><img alt="../../../_images/70c9abb96b30f8cb33f6d4f07aa46de8d3e87876c54e9fe2d4f2169d6ab12972.png" src="../../../_images/70c9abb96b30f8cb33f6d4f07aa46de8d3e87876c54e9fe2d4f2169d6ab12972.png" style="width: 984px; height: 313px;" />
+<a class="reference internal image-reference" href="../../../_images/76198099420e64c3e4a8ebd787fe8ab55d4d03d1683473b4f213c2fdbabed54b.png"><img alt="../../../_images/76198099420e64c3e4a8ebd787fe8ab55d4d03d1683473b4f213c2fdbabed54b.png" src="../../../_images/76198099420e64c3e4a8ebd787fe8ab55d4d03d1683473b4f213c2fdbabed54b.png" style="width: 984px; height: 313px;" />
 </a>
 </div>
 </div>
@@ -3169,7 +3300,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/e118c471103d0c6214704225fe9589a8ba5c687182a0705b754d9323f7fbf4b6.png"><img alt="../../../_images/e118c471103d0c6214704225fe9589a8ba5c687182a0705b754d9323f7fbf4b6.png" src="../../../_images/e118c471103d0c6214704225fe9589a8ba5c687182a0705b754d9323f7fbf4b6.png" style="width: 984px; height: 313px;" />
+<a class="reference internal image-reference" href="../../../_images/d2f70fdb72f0b4eda5d0eaf65b4746c576af295ff00195e7179810889abbe3e1.png"><img alt="../../../_images/d2f70fdb72f0b4eda5d0eaf65b4746c576af295ff00195e7179810889abbe3e1.png" src="../../../_images/d2f70fdb72f0b4eda5d0eaf65b4746c576af295ff00195e7179810889abbe3e1.png" style="width: 984px; height: 313px;" />
 </a>
 </div>
 </div>
@@ -3196,7 +3327,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/5db7e6aa8acef3b21a4bab552e558ae6d485a56cc4c1e595c7e961900854b800.png"><img alt="../../../_images/5db7e6aa8acef3b21a4bab552e558ae6d485a56cc4c1e595c7e961900854b800.png" src="../../../_images/5db7e6aa8acef3b21a4bab552e558ae6d485a56cc4c1e595c7e961900854b800.png" style="width: 744px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/1124ab0e2d60a97a4ade65d5da2e4e804ec36b6b9eab61d0b118bea826c6d184.png"><img alt="../../../_images/1124ab0e2d60a97a4ade65d5da2e4e804ec36b6b9eab61d0b118bea826c6d184.png" src="../../../_images/1124ab0e2d60a97a4ade65d5da2e4e804ec36b6b9eab61d0b118bea826c6d184.png" style="width: 745px; height: 384px;" />
 </a>
 </div>
 </div>
@@ -3223,7 +3354,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/0de40f0cfb5879827c00d0218251917d51a3f8dd4841aad4e8146acdeb25054e.png"><img alt="../../../_images/0de40f0cfb5879827c00d0218251917d51a3f8dd4841aad4e8146acdeb25054e.png" src="../../../_images/0de40f0cfb5879827c00d0218251917d51a3f8dd4841aad4e8146acdeb25054e.png" style="width: 744px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/a3828c7ee395b8bf5726cff368c7958be2bbede22ce43fc1b1c8dd07f0524be0.png"><img alt="../../../_images/a3828c7ee395b8bf5726cff368c7958be2bbede22ce43fc1b1c8dd07f0524be0.png" src="../../../_images/a3828c7ee395b8bf5726cff368c7958be2bbede22ce43fc1b1c8dd07f0524be0.png" style="width: 745px; height: 384px;" />
 </a>
 </div>
 </div>
@@ -3256,7 +3387,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/4e380125a148a5860d0d007240ea049b727a2017e78e29b31487cbc1cc9a0a46.png"><img alt="../../../_images/4e380125a148a5860d0d007240ea049b727a2017e78e29b31487cbc1cc9a0a46.png" src="../../../_images/4e380125a148a5860d0d007240ea049b727a2017e78e29b31487cbc1cc9a0a46.png" style="width: 1139px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/28436646508b404eb212c931b281bd7c5054204f2529a1924c7aa248341905c5.png"><img alt="../../../_images/28436646508b404eb212c931b281bd7c5054204f2529a1924c7aa248341905c5.png" src="../../../_images/28436646508b404eb212c931b281bd7c5054204f2529a1924c7aa248341905c5.png" style="width: 1140px; height: 383px;" />
 </a>
 </div>
 </div>
@@ -3287,7 +3418,7 @@
 </div>
 </div>
 <div class="cell_output docutils container">
-<a class="reference internal image-reference" href="../../../_images/4d8fe4f1cd9d462a3e6de92c026834a8b5eccb8d7ae94dd5b41fba3370ba1c3d.png"><img alt="../../../_images/4d8fe4f1cd9d462a3e6de92c026834a8b5eccb8d7ae94dd5b41fba3370ba1c3d.png" src="../../../_images/4d8fe4f1cd9d462a3e6de92c026834a8b5eccb8d7ae94dd5b41fba3370ba1c3d.png" style="width: 782px; height: 384px;" />
+<a class="reference internal image-reference" href="../../../_images/a1baadabcd6ea5d7a9a441bd8156cef65e263cc020235611e9c72993f25e8139.png"><img alt="../../../_images/a1baadabcd6ea5d7a9a441bd8156cef65e263cc020235611e9c72993f25e8139.png" src="../../../_images/a1baadabcd6ea5d7a9a441bd8156cef65e263cc020235611e9c72993f25e8139.png" style="width: 782px; height: 383px;" />
 </a>
 </div>
 </div>

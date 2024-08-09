@@ -1,0 +1,157 @@
+Traceback (most recent call last):
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/nbclient/client.py", line 1314, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/asyncio/base_events.py", line 649, in run_until_complete
+    return future.result()
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import porespy as ps
+import matplotlib.pyplot as plt
+import numpy as np
+ps.visualization.set_mpl_style()
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mAttributeError[0m                            Traceback (most recent call last)
+Cell [0;32mIn[1], line 1[0m
+[0;32m----> 1[0m [38;5;28;01mimport[39;00m [38;5;21;01mporespy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mps[39;00m
+[1;32m      2[0m [38;5;28;01mimport[39;00m [38;5;21;01mmatplotlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mpyplot[39;00m [38;5;28;01mas[39;00m [38;5;21;01mplt[39;00m
+[1;32m      3[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+
+File [0;32m~/work/porespy/porespy/src/porespy/__init__.py:22[0m
+[1;32m     20[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m filters
+[1;32m     21[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m metrics
+[0;32m---> 22[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m networks
+[1;32m     23[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m generators
+[1;32m     24[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m simulations
+
+File [0;32m~/work/porespy/porespy/src/porespy/networks/__init__.py:26[0m
+[1;32m      1[0m [38;5;124mr[39m[38;5;124;03m"""[39;00m
+[1;32m      2[0m 
+[1;32m      3[0m [38;5;124;03mCollection of functions for obtaining network representations of images[39;00m
+[0;32m   (...)[0m
+[1;32m     23[0m 
+[1;32m     24[0m [38;5;124;03m"""[39;00m
+[0;32m---> 26[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_funcs[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m     27[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_maximal_ball[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m     28[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_utils[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+
+File [0;32m~/work/porespy/porespy/src/porespy/networks/_funcs.py:4[0m
+[1;32m      1[0m [38;5;28;01mimport[39;00m [38;5;21;01mlogging[39;00m
+[1;32m      3[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[0;32m----> 4[0m [38;5;28;01mimport[39;00m [38;5;21;01mopenpnm[39;00m [38;5;28;01mas[39;00m [38;5;21;01mop[39;00m
+[1;32m      5[0m [38;5;28;01mimport[39;00m [38;5;21;01mscipy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mndimage[39;00m [38;5;28;01mas[39;00m [38;5;21;01mspim[39;00m
+[1;32m      6[0m [38;5;28;01mfrom[39;00m [38;5;21;01mskimage[39;00m[38;5;21;01m.[39;00m[38;5;21;01mmorphology[39;00m [38;5;28;01mimport[39;00m ball, cube
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/__init__.py:22[0m
+[1;32m     16[0m logging[38;5;241m.[39mbasicConfig(
+[1;32m     17[0m     [38;5;28mformat[39m[38;5;241m=[39mFORMAT, datefmt[38;5;241m=[39m[38;5;124m"[39m[38;5;124m[[39m[38;5;132;01m%X[39;00m[38;5;124m][39m[38;5;124m"[39m, handlers[38;5;241m=[39m[RichHandler(rich_tracebacks[38;5;241m=[39m[38;5;28;01mTrue[39;00m)]
+[1;32m     18[0m )
+[1;32m     20[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01m_np[39;00m
+[0;32m---> 22[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m (
+[1;32m     23[0m     _skgraph,
+[1;32m     24[0m     algorithms,
+[1;32m     25[0m     contrib,
+[1;32m     26[0m     core,
+[1;32m     27[0m     integrators,
+[1;32m     28[0m     io,
+[1;32m     29[0m     models,
+[1;32m     30[0m     network,
+[1;32m     31[0m     phase,
+[1;32m     32[0m     solvers,
+[1;32m     33[0m     topotools,
+[1;32m     34[0m     utils,
+[1;32m     35[0m     visualization,
+[1;32m     36[0m )
+[1;32m     37[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mutils[39;00m [38;5;28;01mimport[39;00m Project, Workspace
+[1;32m     39[0m _np[38;5;241m.[39mseterr(divide[38;5;241m=[39m[38;5;124m'[39m[38;5;124mignore[39m[38;5;124m'[39m, invalid[38;5;241m=[39m[38;5;124m'[39m[38;5;124mignore[39m[38;5;124m'[39m)
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/_skgraph/__init__.py:43[0m
+[1;32m      1[0m [38;5;124mr[39m[38;5;124;03m"""[39;00m
+[1;32m      2[0m [38;5;124;03m------------[39;00m
+[1;32m      3[0m [38;5;124;03mscikit-graph[39;00m
+[0;32m   (...)[0m
+[1;32m     40[0m 
+[1;32m     41[0m [38;5;124;03m"""[39;00m
+[1;32m     42[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01m_np[39;00m
+[0;32m---> 43[0m [38;5;28;01mfrom[39;00m [38;5;21;01mopenpnm[39;00m[38;5;21;01m.[39;00m[38;5;21;01mutils[39;00m [38;5;28;01mimport[39;00m PrintableDict [38;5;28;01mas[39;00m _pdict
+[1;32m     44[0m [38;5;28;01mfrom[39;00m [38;5;21;01mopenpnm[39;00m[38;5;21;01m.[39;00m[38;5;21;01mutils[39;00m [38;5;28;01mimport[39;00m SettingsAttr [38;5;28;01mas[39;00m _Settings
+[1;32m     47[0m settings [38;5;241m=[39m _Settings()
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/__init__.py:11[0m
+[1;32m      1[0m [38;5;124mr[39m[38;5;124;03m"""[39;00m
+[1;32m      2[0m [38;5;124;03mUtilities and helper classes/functions[39;00m
+[1;32m      3[0m [38;5;124;03m======================================[39;00m
+[0;32m   (...)[0m
+[1;32m      7[0m 
+[1;32m      8[0m [38;5;124;03m"""[39;00m
+[1;32m     10[0m [38;5;28;01mfrom[39;00m [38;5;21;01mre[39;00m [38;5;28;01mimport[39;00m L
+[0;32m---> 11[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_misc[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m     12[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_settings[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m     13[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_workspace[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/openpnm/utils/_misc.py:8[0m
+[1;32m      5[0m [38;5;28;01mfrom[39;00m [38;5;21;01mcollections[39;00m[38;5;21;01m.[39;00m[38;5;21;01mabc[39;00m [38;5;28;01mimport[39;00m Iterable
+[1;32m      7[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[0;32m----> 8[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01mrecfunctions[39;00m [38;5;28;01mas[39;00m [38;5;21;01mrf[39;00m
+[1;32m      9[0m [38;5;28;01mimport[39;00m [38;5;21;01mscipy[39;00m[38;5;21;01m.[39;00m[38;5;21;01msparse[39;00m [38;5;28;01mas[39;00m [38;5;21;01msparse[39;00m
+[1;32m     10[0m [38;5;28;01mfrom[39;00m [38;5;21;01mdocrep[39;00m [38;5;28;01mimport[39;00m DocstringProcessor
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/numpy/lib/recfunctions.py:13[0m
+[1;32m     11[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mimport[39;00m ndarray, recarray
+[1;32m     12[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mma[39;00m [38;5;28;01mimport[39;00m MaskedArray
+[0;32m---> 13[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mma[39;00m[38;5;21;01m.[39;00m[38;5;21;01mmrecords[39;00m [38;5;28;01mimport[39;00m MaskedRecords
+[1;32m     14[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcore[39;00m[38;5;21;01m.[39;00m[38;5;21;01moverrides[39;00m [38;5;28;01mimport[39;00m array_function_dispatch
+[1;32m     15[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mlib[39;00m[38;5;21;01m.[39;00m[38;5;21;01m_iotools[39;00m [38;5;28;01mimport[39;00m _is_string_like
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/numpy/ma/mrecords.py:27[0m
+[1;32m     23[0m [38;5;28;01mimport[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mas[39;00m [38;5;21;01mnp[39;00m
+[1;32m     24[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m [38;5;28;01mimport[39;00m (
+[1;32m     25[0m     bool_, dtype, ndarray, recarray, array [38;5;28;01mas[39;00m narray
+[1;32m     26[0m )
+[0;32m---> 27[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcore[39;00m[38;5;21;01m.[39;00m[38;5;21;01mrecords[39;00m [38;5;28;01mimport[39;00m (
+[1;32m     28[0m     fromarrays [38;5;28;01mas[39;00m recfromarrays, fromrecords [38;5;28;01mas[39;00m recfromrecords
+[1;32m     29[0m )
+[1;32m     31[0m _byteorderconv [38;5;241m=[39m np[38;5;241m.[39mcore[38;5;241m.[39mrecords[38;5;241m.[39m_byteorderconv
+[1;32m     34[0m _check_fill_value [38;5;241m=[39m ma[38;5;241m.[39mcore[38;5;241m.[39m_check_fill_value
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/numpy/core/records.py:44[0m
+[1;32m     42[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m numerictypes [38;5;28;01mas[39;00m nt
+[1;32m     43[0m [38;5;28;01mfrom[39;00m [38;5;21;01mnumpy[39;00m[38;5;21;01m.[39;00m[38;5;21;01mcompat[39;00m [38;5;28;01mimport[39;00m os_fspath
+[0;32m---> 44[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01marrayprint[39;00m [38;5;28;01mimport[39;00m _get_legacy_print_mode
+[1;32m     46[0m [38;5;66;03m# All of the functions allow formats to be a dtype[39;00m
+[1;32m     47[0m __all__ [38;5;241m=[39m [
+[1;32m     48[0m     [38;5;124m'[39m[38;5;124mrecord[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mrecarray[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mformat_parser[39m[38;5;124m'[39m,
+[1;32m     49[0m     [38;5;124m'[39m[38;5;124mfromarrays[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mfromrecords[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mfromstring[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124mfromfile[39m[38;5;124m'[39m, [38;5;124m'[39m[38;5;124marray[39m[38;5;124m'[39m,
+[1;32m     50[0m ]
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/numpy/core/arrayprint.py:41[0m
+[1;32m     37[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mmultiarray[39;00m [38;5;28;01mimport[39;00m (array, dragon4_positional, dragon4_scientific,
+[1;32m     38[0m                          datetime_as_string, datetime_data, ndarray,
+[1;32m     39[0m                          set_legacy_print_mode)
+[1;32m     40[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mfromnumeric[39;00m [38;5;28;01mimport[39;00m [38;5;28many[39m
+[0;32m---> 41[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mnumeric[39;00m [38;5;28;01mimport[39;00m concatenate, asarray, errstate
+[1;32m     42[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mnumerictypes[39;00m [38;5;28;01mimport[39;00m (longlong, intc, int_, float_, complex_, bool_,
+[1;32m     43[0m                            flexible)
+[1;32m     44[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01moverrides[39;00m [38;5;28;01mimport[39;00m array_function_dispatch, set_module
+
+File [0;32m/opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/numpy/core/numeric.py:2520[0m
+[1;32m   2518[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01mfromnumeric[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m   2519[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m arrayprint
+[0;32m-> 2520[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01marrayprint[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+[1;32m   2521[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m _asarray
+[1;32m   2522[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m[38;5;21;01m_asarray[39;00m [38;5;28;01mimport[39;00m [38;5;241m*[39m
+
+[0;31mAttributeError[0m: partially initialized module 'numpy.core.arrayprint' has no attribute 'array2string' (most likely due to a circular import)
+

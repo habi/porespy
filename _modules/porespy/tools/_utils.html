@@ -198,12 +198,12 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s1">&#39;sanitize_filename&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;get_tqdm&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;show_docstring&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;Results&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;tic&#39;</span><span class="p">,</span>
-    <span class="s1">&#39;toc&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;sanitize_filename&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;get_tqdm&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;show_docstring&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Results&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;tic&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;toc&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -213,14 +213,14 @@
     <span class="k">if</span> <span class="n">timespan</span> <span class="o">&gt;=</span> <span class="mf">60.0</span><span class="p">:</span>
         <span class="c1"># we have more than a minute, format that in a human readable form</span>
         <span class="c1"># Idea from http://snipplr.com/view/5713/</span>
-        <span class="n">parts</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">24</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="mi">60</span> <span class="o">*</span> <span class="mi">60</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="mi">60</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
         <span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">leftover</span> <span class="o">=</span> <span class="n">timespan</span>
         <span class="k">for</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">length</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">leftover</span> <span class="o">/</span> <span class="n">length</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">leftover</span> <span class="o">=</span> <span class="n">leftover</span> <span class="o">%</span> <span class="n">length</span>
-                <span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">suffix</span><span class="p">))</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">suffix</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">leftover</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">break</span>
         <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
@@ -230,11 +230,11 @@
     <span class="c1"># See bug: https://bugs.launchpad.net/ipython/+bug/348466</span>
     <span class="c1"># Try to prevent crashes by being more secure than it needs to</span>
     <span class="c1"># E.g. eclipse is able to print a µ, but has no sys.stdout.encoding set.</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;us&#39;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">]</span>  <span class="c1"># the save value</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">encoding</span><span class="p">:</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;us&quot;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">]</span>  <span class="c1"># the save value</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="s2">&quot;encoding&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">encoding</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\xb5</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="sa">u</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;</span><span class="se">\xb5</span><span class="s1">s&#39;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">]</span>
+            <span class="s2">&quot;</span><span class="se">\xb5</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\xb5</span><span class="s2">s&quot;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
             <span class="k">pass</span>
     <span class="n">scaling</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1e3</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">1e9</span><span class="p">]</span>
@@ -243,7 +243,7 @@
         <span class="n">order</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">timespan</span><span class="p">))</span> <span class="o">//</span> <span class="mi">3</span><span class="p">),</span> <span class="mi">3</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">order</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="k">return</span> <span class="sa">u</span><span class="s2">&quot;</span><span class="si">%.*g</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="n">timespan</span> <span class="o">*</span> <span class="n">scaling</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">units</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.*g</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">precision</span><span class="p">,</span> <span class="n">timespan</span> <span class="o">*</span> <span class="n">scaling</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">units</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
 
 
 <span class="k">def</span> <span class="nf">tic</span><span class="p">():</span>
@@ -287,13 +287,13 @@
 <span class="k">def</span> <span class="nf">_is_ipython_notebook</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">shell</span> <span class="o">=</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
-        <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="s1">&#39;ZMQInteractiveShell&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>     <span class="c1"># Jupyter notebook or qtconsole</span>
-        <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="s1">&#39;TerminalInteractiveShell&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># Terminal running IPython</span>
-        <span class="k">return</span> <span class="kc">False</span>        <span class="c1"># Other type (?)</span>
+        <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="s2">&quot;ZMQInteractiveShell&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>  <span class="c1"># Jupyter notebook or qtconsole</span>
+        <span class="k">if</span> <span class="n">shell</span> <span class="o">==</span> <span class="s2">&quot;TerminalInteractiveShell&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Terminal running IPython</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Other type (?)</span>
     <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">False</span>        <span class="c1"># Probably standard Python interpreter</span>
+        <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Probably standard Python interpreter</span>
 
 
 <span class="nd">@dataclass</span>
@@ -326,13 +326,16 @@
 <span class="sd">        &quot;ERROR&quot; (40), &quot;CRITICAL&quot; (50)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="n">__instance__</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="c1"># Might need to add &#39;file&#39;: sys.stdout to tqdm dict</span>
-    <span class="n">tqdm</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;disable&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-            <span class="s1">&#39;colour&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;ncols&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;leave&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s1">&#39;file&#39;</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">}</span>
+    <span class="n">tqdm</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;disable&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;colour&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;ncols&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;leave&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span>
+    <span class="p">}</span>
     <span class="n">_loglevel</span> <span class="o">=</span> <span class="mi">40</span> <span class="k">if</span> <span class="n">_is_ipython_notebook</span><span class="p">()</span> <span class="k">else</span> <span class="mi">30</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -348,13 +351,13 @@
     <span class="k">def</span> <span class="nf">loglevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">options</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s2">&quot;TRACE&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
-                <span class="s2">&quot;DEBUG&quot;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-                <span class="s2">&quot;INFO&quot;</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
-                <span class="s2">&quot;SUCESS&quot;</span> <span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
-                <span class="s2">&quot;WARNING&quot;</span> <span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
-                <span class="s2">&quot;ERROR&quot;</span> <span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
-                <span class="s2">&quot;CRITICAL&quot;</span> <span class="p">:</span> <span class="mi">50</span>
+                <span class="s2">&quot;TRACE&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                <span class="s2">&quot;DEBUG&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">&quot;INFO&quot;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+                <span class="s2">&quot;SUCESS&quot;</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span>
+                <span class="s2">&quot;WARNING&quot;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+                <span class="s2">&quot;ERROR&quot;</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span>
+                <span class="s2">&quot;CRITICAL&quot;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
             <span class="p">}</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">options</span><span class="p">[</span><span class="n">value</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loglevel</span> <span class="o">=</span> <span class="n">value</span>
@@ -368,16 +371,16 @@
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">indent</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
                 <span class="n">indent</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">indent</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
-                <span class="n">s</span> <span class="o">+=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">))))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
+                <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">item</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">indent</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">item</span><span class="p">))))</span>
                 <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
-                <span class="n">temp</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">attr</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(),</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">((</span><span class="n">attr</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(),</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">))</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">indent</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                    <span class="n">temp</span> <span class="o">=</span> <span class="n">temp</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="p">(</span><span class="n">indent</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
                 <span class="n">s</span> <span class="o">+=</span> <span class="n">temp</span>
         <span class="k">return</span> <span class="n">s</span>
 
@@ -391,7 +394,7 @@
         <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">cpu_count</span>
         <span class="k">elif</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="n">cpu_count</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Value is more than the available number of cores&#39;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Value is more than the available number of cores&quot;</span><span class="p">)</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">cpu_count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ncores</span> <span class="o">=</span> <span class="n">val</span>
 
@@ -403,7 +406,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_notebook</span>
 
     <span class="k">def</span> <span class="nf">_set_notebook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;This value is determined automatically at runtime&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;This value is determined automatically at runtime&quot;</span><span class="p">)</span>
 
     <span class="n">notebook</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">fget</span><span class="o">=</span><span class="n">_get_notebook</span><span class="p">,</span> <span class="n">fset</span><span class="o">=</span><span class="n">_set_notebook</span><span class="p">)</span>
 
@@ -424,9 +427,9 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">Settings</span><span class="p">()</span><span class="o">.</span><span class="n">notebook</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">tqdm</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s1">&#39;tqdm.notebook&#39;</span><span class="p">)</span>
+        <span class="n">tqdm</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;tqdm.notebook&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">tqdm</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s1">&#39;tqdm&#39;</span><span class="p">)</span>
+        <span class="n">tqdm</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">&quot;tqdm&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span></div>
 
 
@@ -452,13 +455,14 @@
 <span class="sd">        function.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;---</span><span class="se">\n</span><span class="s1"> ## Documentation for ``</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">``</span><span class="se">\n</span><span class="s1"> ---</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;---</span><span class="se">\n</span><span class="s2"> ## Documentation for ``</span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">``</span><span class="se">\n</span><span class="s2"> ---</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span> <span class="nn">npdoc_to_md</span> <span class="kn">import</span> <span class="n">render_md_from_obj_docstring</span>
+
         <span class="n">txt</span> <span class="o">=</span> <span class="n">render_md_from_obj_docstring</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">obj_namespace</span><span class="o">=</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
         <span class="n">txt</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
-    <span class="k">return</span> <span class="n">title</span> <span class="o">+</span> <span class="n">txt</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">---&#39;</span></div>
+    <span class="k">return</span> <span class="n">title</span> <span class="o">+</span> <span class="n">txt</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">---&quot;</span></div>
 
 
 
@@ -513,7 +517,7 @@
 
     <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="n">v</span>
 
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
@@ -530,12 +534,12 @@
             <span class="n">header</span><span class="p">,</span>
         <span class="p">]</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">])</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0:&lt;25s}</span><span class="s2"> Array of size </span><span class="si">{1}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="s1">&#39;keys&#39;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">],</span> <span class="s2">&quot;keys&quot;</span><span class="p">):</span>
                 <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">[</span><span class="n">item</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
                 <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0:&lt;25s}</span><span class="s2"> Dictionary with </span><span class="si">{1}</span><span class="s2"> items&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
