@@ -25,7 +25,7 @@ __all__ = [
 
 def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     r"""
-    Performs invasion percolation on given image using the IBIP algorithm
+    Performs invasion percolation on given image using the IBIP algorithm [1]_
 
     Parameters
     ----------
@@ -69,10 +69,16 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     See Also
     --------
     porosimetry
+    drainage
+    qbip
+    ibop
 
     References
     ----------
-    [1]
+    .. [1] Gostick JT, Misaghian N, Yang J, Boek ES. Simulating volume-controlled
+       invasion of a non-wetting fluid in volumetric images using basic image
+       processing tools. Computers & Geosciences. 158(1), 104978 (2022). `Link.
+       <https://doi.org/10.1016/j.cageo.2021.104978>`_
 
     Examples
     --------

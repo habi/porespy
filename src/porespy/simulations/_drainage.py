@@ -14,6 +14,9 @@ from porespy.filters import (
     pc_to_satn,
     pc_to_seq,
 )
+from porespy.generators import (
+    borders,
+)
 try:
     from pyedt import edt
 except ModuleNotFoundError:
@@ -142,12 +145,14 @@ def ibop(
     if dt is None:
         dt = edt(im)
 
-    # if inlets is None:
-    #     inlets = np.zeros_like(im)
-    #     inlets[0, ...] = True
+    if inlets is None:
+        inlets = borders(shape=im.shape, mode='faces') * im
 
     if outlets is not None:
         outlets = outlets*im
+
+    if np.any(inlets == outlets):
+        raise Exception('Specified inlets and outlets overlap')
 
     pc[~im] = 0  # Remove any infs or nans from pc computation
 

@@ -40,8 +40,8 @@ class IBIPTest():
         return im
 
     def test_ibip(self):
-        inv, size = ps.simulations.ibip(self.im, inlets=self.bd)
-        assert inv.max() == 318
+        x = ps.simulations.ibip(self.im, inlets=self.bd)
+        assert x.im_seq.max() == 318
 
     def test_ibip_w_trapping(self):
         im = self.sc_lattice_with_trapped_region()
