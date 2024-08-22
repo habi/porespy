@@ -1,5 +1,4 @@
 import sys
-
 import matplotlib.pyplot as plt
 import numpy as np
 import porespy as ps
@@ -312,14 +311,17 @@ class ToolsTest():
     condition = sys.platform.startswith("win")  # and sys.version_info[:2] == (3, 8)
 
     @pytest.mark.skipif(condition, reason="scikit-fmm clashes with numpy")
+    @pytest.mark.skipif(np.__version__ >= '2',
+                        reason="scikit-fmm clashes with numpy")
     def test_marching_map(self):
-        im = ps.generators.lattice_spheres(shape=[101, 101],
-                                           r=5, spacing=25,
-                                           offset=[5, 5], lattice='tri')
-        bd = np.zeros_like(im)
-        bd[:, 0] = True
-        fmm = ps.tools.marching_map(path=im, start=bd)
-        assert fmm.max() > 100
+        if np.__version__ < '2':
+            im = ps.generators.lattice_spheres(shape=[101, 101],
+                                               r=5, spacing=25,
+                                               offset=[5, 5], lattice='tri')
+            bd = np.zeros_like(im)
+            bd[:, 0] = True
+            fmm = ps.tools.marching_map(path=im, start=bd)
+            assert fmm.max() > 100
 
     def test_ps_strels(self):
         c = ps.tools.ps_disk(r=3)
