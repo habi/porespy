@@ -1,17 +1,15 @@
 import logging
+
 import numpy as np
 import scipy.ndimage as spim
 import scipy.spatial as sptl
+from deprecated import deprecated
+from numba import njit
 from scipy import fft as sp_ft
 from skimage.measure import regionprops
-from deprecated import deprecated
-from porespy.tools import extend_slice
-from porespy.tools import _check_for_singleton_axes
-from porespy.tools import Results
-from porespy import settings
-from porespy.tools import get_tqdm
-from numba import njit
 
+from porespy import settings
+from porespy.tools import Results, _check_for_singleton_axes, extend_slice, get_tqdm
 
 __all__ = [
     "boxcount",
@@ -295,8 +293,7 @@ def radial_density_distribution(dt, bins=10, log=False, voxel_size=1):
     Parameters
     ----------
     dt : ndarray
-        A distance transform of the pore space (the ``edt`` package is
-        recommended).  Note that it is recommended to apply
+        A distance transform of the pore space.  Note that it is recommended to apply
         ``find_dt_artifacts`` to this image first, and set potentially
         erroneous values to 0 with ``dt[mask] = 0`` where
         ``mask = porespy.filters.find_dt_artifaces(dt)``.
@@ -771,11 +768,11 @@ def _radial_profile(autocorr, bins, pf=None, voxel_size=1):
 
 @njit(parallel=False)
 def _get_radial_sum(dt, bins, bin_size, autocorr):
-    radial_sum = np.zeros_like(bins[:-1])
+    radial_sum = np.zeros_like(bins[:-1], dtype=np.float64)
     for i, r in enumerate(bins[:-1]):
-        mask = (dt <= r) * (dt > (r - bin_size[i]))
-        radial_sum[i] = np.sum(np.ravel(autocorr)[np.ravel(mask)], dtype=np.int64) \
-            / np.sum(mask)
+        mask = (dt <= r) & (dt > (r - bin_size[i])) 
+        if np.any(mask):
+            radial_sum[i] = np.sum(autocorr[mask], dtype=np.float64) / np.sum(mask, dtype=np.float64)
     return radial_sum
 
 
