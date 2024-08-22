@@ -109,14 +109,29 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
         dt_thresh = dt >= r_max
         # Extract the actual coordinates of the insertion sites
         pt = _where(edge*dt_thresh)
-        inv = _insert_disk_at_points(im=inv, coords=pt,
-                                     r=int(r_max), v=step, smooth=True)
+        inv = _insert_disk_at_points(
+            im=inv,
+            coords=pt,
+            r=int(r_max),
+            v=step,
+            smooth=True,
+        )
         if return_sizes:
-            sizes = _insert_disk_at_points(im=sizes, coords=pt,
-                                           r=int(r_max), v=int(r_max), smooth=True)
+            sizes = _insert_disk_at_points(
+                im=sizes,
+                coords=pt,
+                r=int(r_max),
+                v=int(r_max),
+                smooth=True,
+            )
         dt, bd = _update_dt_and_bd(dt, bd, pt)
-        scratch = _insert_disk_at_points(im=scratch, coords=pt,
-                                         r=1, v=1, smooth=False)
+        scratch = _insert_disk_at_points(
+            im=scratch,
+            coords=pt,
+            r=1,
+            v=1,
+            smooth=False,
+        )
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
     temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
     inv[~im] = 0
