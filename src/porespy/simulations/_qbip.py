@@ -348,7 +348,7 @@ def _insert_disk_at_point(im, i, j, r, v, k=0, overwrite=False):  # pragma: no c
                 for b, y in enumerate(range(j-r, j+r+1)):
                     if (y >= 0) and (y < ylim):
                         R = ((a - r)**2 + (b - r)**2)**0.5
-                        if R <= r:
+                        if R < r:
                             if overwrite or (im[x, y] == 0):
                                 im[x, y] = v
     else:
@@ -361,12 +361,12 @@ def _insert_disk_at_point(im, i, j, r, v, k=0, overwrite=False):  # pragma: no c
                             for c, z in enumerate(range(k-1, k+r+1)):
                                 if (z >= 0) and (z < zlim):
                                     R = ((a - r)**2 + (b - r)**2 + (c - r)**2)**0.5
-                                    if R <= r:
+                                    if R < r:
                                         if overwrite or (im[x, y, z] == 0):
                                             im[x, y, z] = v
                         else:  # For 3D image with singleton 3rd dimension
                             R = ((a - r)**2 + (b - r)**2)**0.5
-                            if R <= r:
+                            if R < r:
                                 if overwrite or (im[x, y, 0] == 0):
                                     im[x, y, 0] = v
     return im

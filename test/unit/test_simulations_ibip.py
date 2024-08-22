@@ -40,18 +40,26 @@ class IBIPTest():
         im = ~spim.binary_dilation(~im, structure=square(3))
         return im
 
+    def test_ibip_equals_qbip(self):
+        x = ps.simulations.ibip(self.im, inlets=self.bd)
+        temp1 = x.im_seq
+        pc = ps.simulations.capillary_transform(im=self.im)
+        y = ps.simulations.qbip(self.im, inlets=self.bd, pc=pc, conn='min')
+        temp2 = ps.tools.make_contiguous(y.im_seq)
+        assert np.all(temp1 == temp2)
+
     def test_ibip(self):
         x = ps.simulations.ibip(self.im, inlets=self.bd)
         assert x.im_seq.max() == 318
 
     def test_ibip_w_trapping(self):
         im = self.sc_lattice_with_trapped_region()
-        inv, size = ps.simulations.ibip(im, inlets=self.bd)
-        assert inv.max() == 391
-        inv_w_trapping = ps.filters.find_trapped_regions(seq=inv,
+        x = ps.simulations.ibip(im, inlets=self.bd)
+        assert x.im_seq.max() == 391
+        inv_w_trapping = ps.filters.find_trapped_regions(seq=x.im_seq,
                                                          return_mask=True)
         assert inv_w_trapping.sum() == 467
-        inv_w_trapping = ps.filters.find_trapped_regions(seq=inv,
+        inv_w_trapping = ps.filters.find_trapped_regions(seq=x.im_seq,
                                                          return_mask=False)
         assert (inv_w_trapping == -1).sum() == 467
 
