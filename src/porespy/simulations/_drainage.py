@@ -150,9 +150,8 @@ def ibop(
 
     if outlets is not None:
         outlets = outlets*im
-
-    if np.any(inlets == outlets):
-        raise Exception('Specified inlets and outlets overlap')
+        if np.sum(inlets * outlets):
+            raise Exception('Specified inlets and outlets overlap')
 
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
