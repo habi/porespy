@@ -772,11 +772,11 @@ def _radial_profile(autocorr, bins, pf=None, voxel_size=1):
 
 @njit(parallel=False)
 def _get_radial_sum(dt, bins, bin_size, autocorr):
-    radial_sum = np.zeros_like(bins[:-1])
+    radial_sum = np.zeros_like(bins[:-1], dtype=np.float64)
     for i, r in enumerate(bins[:-1]):
         mask = (dt <= r) * (dt > (r - bin_size[i]))
-        radial_sum[i] = np.sum(np.ravel(autocorr)[np.ravel(mask)], dtype=np.int64) \
-            / np.sum(mask)
+        radial_sum[i] = (np.sum(np.ravel(autocorr)[np.ravel(mask)], dtype=np.int64) /
+                         np.sum(mask, dtype=np.int64))
     return radial_sum
 
 
