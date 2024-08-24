@@ -1021,7 +1021,7 @@
 <h1>subdivide<a class="headerlink" href="#subdivide" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.tools.subdivide">
-<span class="sig-name descname"><span class="pre">subdivide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/tools/_funcs.html#subdivide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.tools.subdivide" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">subdivide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">divs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overlap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'offset'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/tools/_funcs.html#subdivide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.tools.subdivide" title="Link to this definition">¶</a></dt>
 <dd><p>Returns slices into an image describing the specified number of sub-arrays.</p>
 <p>This function is useful for performing operations on smaller images for
 memory or speed.  Note that for most typical operations this will NOT work,
@@ -1031,18 +1031,48 @@ since the image borders would cause artifacts (e.g. <code class="docutils litera
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>im</strong> (<em>ndarray</em>) – The image of the porous media</p></li>
 <li><p><strong>divs</strong> (<em>scalar</em><em> or </em><em>array_like</em>) – The number of sub-divisions to create in each axis of the image.  If a
-scalar is given it is assumed this value applies in all dimensions.</p></li>
+scalar is given it is assumed this value applies in all dimensions. If
+<cite>block_size</cite> is given this is ignored.</p></li>
+<li><p><strong>block_size</strong> (<em>scalar</em><em> or </em><em>array_like</em>) – The size of the divisions to create. If a scalar is given then cubic
+blocks are created. If this argument is given then <cite>divs</cite> is ignored.</p></li>
 <li><p><strong>overlap</strong> (<em>scalar</em><em> or </em><em>array_like</em>) – The amount of overlap to use when dividing along each axis.  If a
 scalar is given it is assumed this value applies in all dimensions.</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – <p>This argument is only used if <cite>block_size</cite> is given and it controls how
+to handle the situation when block sizes is not a clean multiple of
+the image shape. The options are:</p>
+<table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>mode</p></th>
+<th class="head"><p>description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>’whole’</p></td>
+<td><p>Blocks start at the beginning of each axis, and only “whole”
+blocks (that fit within the image) are included in the returned
+list of slice objects.</p></td>
+</tr>
+<tr class="row-odd"><td><p>’offset’</p></td>
+<td><p>Only whole blocks are included, but an offset is applied to the
+start of each axis so that an equal amount of voxels are missed
+at the start and end of each axis.</p></td>
+</tr>
+<tr class="row-even"><td><p>’partial’</p></td>
+<td><p>Blocks start at the beginning of each axis, and any blocks which
+partially extend beyond the end of the image are returned.</p></td>
+</tr>
+<tr class="row-odd"><td><p>’strict’</p></td>
+<td><p>Raises an Exception of the image cannot be evenly divided by the
+given block size.</p></td>
+</tr>
+</tbody>
+</table>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>slices</strong> – An ndarray containing sets of slice objects for indexing into <code class="docutils literal notranslate"><span class="pre">im</span></code>
-that extract subdivisions of an image.  If <code class="docutils literal notranslate"><span class="pre">flatten</span></code> was <code class="docutils literal notranslate"><span class="pre">True</span></code>,
-then this array is suitable for iterating.  If <code class="docutils literal notranslate"><span class="pre">flatten</span></code> was
-<code class="docutils literal notranslate"><span class="pre">False</span></code> then the slice objects must be accessed by row, col, layer
-indices.  An ndarray is the preferred container since its shape can
-be easily queried.</p>
+that extract subdivisions of an image.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>ndarray</p>

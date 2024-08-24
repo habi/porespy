@@ -460,7 +460,7 @@
 
 <div class="viewcode-block" id="subdivide">
 <a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.subdivide.html#porespy.tools.subdivide">[docs]</a>
-<span class="k">def</span> <span class="nf">subdivide</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">divs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">subdivide</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">divs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">overlap</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;offset&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns slices into an image describing the specified number of sub-arrays.</span>
 
@@ -474,20 +474,39 @@
 <span class="sd">        The image of the porous media</span>
 <span class="sd">    divs : scalar or array_like</span>
 <span class="sd">        The number of sub-divisions to create in each axis of the image.  If a</span>
-<span class="sd">        scalar is given it is assumed this value applies in all dimensions.</span>
+<span class="sd">        scalar is given it is assumed this value applies in all dimensions. If</span>
+<span class="sd">        `block_size` is given this is ignored.</span>
+<span class="sd">    block_size : scalar or array_like</span>
+<span class="sd">        The size of the divisions to create. If a scalar is given then cubic</span>
+<span class="sd">        blocks are created. If this argument is given then `divs` is ignored.</span>
 <span class="sd">    overlap : scalar or array_like</span>
 <span class="sd">        The amount of overlap to use when dividing along each axis.  If a</span>
 <span class="sd">        scalar is given it is assumed this value applies in all dimensions.</span>
+<span class="sd">    mode : str</span>
+<span class="sd">        This argument is only used if `block_size` is given and it controls how</span>
+<span class="sd">        to handle the situation when block sizes is not a clean multiple of</span>
+<span class="sd">        the image shape. The options are:</span>
+
+<span class="sd">        ========== ==================================================================</span>
+<span class="sd">        mode       description</span>
+<span class="sd">        ========== ==================================================================</span>
+<span class="sd">        &#39;whole&#39;    Blocks start at the beginning of each axis, and only &quot;whole&quot;</span>
+<span class="sd">                   blocks (that fit within the image) are included in the returned</span>
+<span class="sd">                   list of slice objects.</span>
+<span class="sd">        &#39;offset&#39;   Only whole blocks are included, but an offset is applied to the</span>
+<span class="sd">                   start of each axis so that an equal amount of voxels are missed</span>
+<span class="sd">                   at the start and end of each axis.</span>
+<span class="sd">        &#39;partial&#39;  Blocks start at the beginning of each axis, and any blocks which</span>
+<span class="sd">                   partially extend beyond the end of the image are returned.</span>
+<span class="sd">        &#39;strict&#39;   Raises an Exception of the image cannot be evenly divided by the</span>
+<span class="sd">                   given block size.</span>
+<span class="sd">        ========== ==================================================================</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    slices : ndarray</span>
 <span class="sd">        An ndarray containing sets of slice objects for indexing into ``im``</span>
-<span class="sd">        that extract subdivisions of an image.  If ``flatten`` was ``True``,</span>
-<span class="sd">        then this array is suitable for iterating.  If ``flatten`` was</span>
-<span class="sd">        ``False`` then the slice objects must be accessed by row, col, layer</span>
-<span class="sd">        indices.  An ndarray is the preferred container since its shape can</span>
-<span class="sd">        be easily queried.</span>
+<span class="sd">        that extract subdivisions of an image.</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
@@ -507,27 +526,51 @@
 <span class="sd">    to view online example.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">)</span>
-    <span class="n">overlap</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">*</span> <span class="p">(</span><span class="n">divs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
-
+    <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">block_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">)</span>
+        <span class="n">overlap</span> <span class="o">=</span> <span class="n">overlap</span> <span class="o">*</span> <span class="p">(</span><span class="n">divs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">spacing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">shape</span><span class="o">/</span><span class="n">divs</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">block_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">spacing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">im</span><span class="o">.</span><span class="n">ndim</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span> <span class="o">*</span> <span class="n">block_size</span>
+        <span class="n">divs</span> <span class="o">=</span> <span class="n">shape</span><span class="o">/</span><span class="n">spacing</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;offset&#39;</span><span class="p">:</span>
+            <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">offset</span> <span class="o">=</span> <span class="p">((</span><span class="n">shape</span> <span class="o">-</span> <span class="n">block_size</span><span class="o">*</span><span class="n">divs</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;whole&#39;</span><span class="p">:</span>
+            <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;partial&#39;</span><span class="p">:</span>
+            <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">divs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;strict&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">shape</span> <span class="o">%</span> <span class="n">block_size</span><span class="p">):</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="s1">&#39;The image cannot be evenly divided by the given block_size&#39;</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+            <span class="n">divs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">divs</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unsupported mode&#39;</span><span class="p">)</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">divs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
-    <span class="n">spacing</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span><span class="o">/</span><span class="n">divs</span><span class="p">,</span> <span class="n">decimals</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">spacing</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">sx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">i</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">offset</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">sx</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="o">*</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
             <span class="n">y</span> <span class="o">=</span> <span class="n">spacing</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">sy</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">y</span><span class="o">*</span><span class="n">j</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="o">*</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">o</span> <span class="o">=</span> <span class="n">offset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">sy</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">y</span><span class="o">*</span><span class="n">j</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="o">*</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">im</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]):</span>
                     <span class="n">z</span> <span class="o">=</span> <span class="n">spacing</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="n">sz</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">z</span><span class="o">*</span><span class="n">k</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">z</span><span class="o">*</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">)),</span> <span class="kc">None</span><span class="p">)</span>
+                    <span class="n">o</span> <span class="o">=</span> <span class="n">offset</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">sz</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">z</span><span class="o">*</span><span class="n">k</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">z</span><span class="o">*</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="n">o</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                     <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">,</span> <span class="n">sz</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">sx</span><span class="p">,</span> <span class="n">sy</span><span class="p">])</span>
     <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
-        <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">extend_slice</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="n">item</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">overlap</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">overlap</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+            <span class="n">s</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">extend_slice</span><span class="p">(</span><span class="n">slices</span><span class="o">=</span><span class="n">item</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">overlap</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">s</span></div>
 
 
@@ -536,7 +579,7 @@
 <a class="viewcode-back" href="../../../modules/generated/generated/porespy.tools.recombine.html#porespy.tools.recombine">[docs]</a>
 <span class="k">def</span> <span class="nf">recombine</span><span class="p">(</span><span class="n">ims</span><span class="p">,</span> <span class="n">slices</span><span class="p">,</span> <span class="n">overlap</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Recombines image chunks back into full image of original shape</span>
+<span class="sd">    Recombines image chunks back into full image</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -551,8 +594,7 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    im : ndarray</span>
-<span class="sd">        An image constituted from the chunks in ``ims`` of the same shape</span>
-<span class="sd">        as the original image.</span>
+<span class="sd">        An image constituted from the chunks in ``ims``</span>
 
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
