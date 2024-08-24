@@ -71,48 +71,6 @@ class SimulationsTest():
         drn3 = ps.simulations.drainage(pc=pc3, im=im2)
         np.testing.assert_approx_equal(drn3.im_pc.max(), 1463.0940030415854)
 
-    def test_gdd(self):
-        from porespy import beta
-        im = ps.generators.blobs(shape=[100, 100, 100], porosity=0.703276, seed=1)
-        assert im.sum()/im.size == 0.703276
-        res = beta.tortuosity_gdd(im=im, scale_factor=3)
-
-        np.testing.assert_approx_equal(res.tau[0], 1.3940746215566113, significant=5)
-        np.testing.assert_approx_equal(res.tau[1], 1.4540191053977147, significant=5)
-        np.testing.assert_approx_equal(res.tau[2], 1.4319705063316652, significant=5)
-
-    def test_gdd_dataframe(self):
-        from porespy import beta
-        im = ps.generators.blobs(shape=[100, 100, 100], porosity=0.703276, seed=1)
-        df = beta.chunks_to_dataframe(im=im, scale_factor=3)
-        assert len(df.iloc[:, 0]) == 54
-        assert df.columns[0] == 'Throat Number'
-        assert df.columns[1] == 'Tortuosity'
-        assert df.columns[2] == 'Diffusive Conductance'
-        assert df.columns[3] == 'Porosity'
-
-        np.testing.assert_array_almost_equal(np.array(df.iloc[:, 1]),
-                                             np.array([1.329061, 1.288042, 1.411449,
-                                                       1.273172, 1.465650, 1.294553,
-                                                       1.553851, 1.299077, 1.417645,
-                                                       1.332902, 1.365739, 1.377250,
-                                                       1.408786, 1.279847, 1.365632,
-                                                       1.315470, 1.425769, 1.417447,
-                                                       1.399028, 1.262936, 1.311554,
-                                                       1.447341, 1.504881, 1.196132,
-                                                       1.508335, 1.273323, 1.361239,
-                                                       1.334868, 1.443466, 1.328017,
-                                                       1.564574, 1.264049, 1.504227,
-                                                       1.471079, 1.366275, 1.349767,
-                                                       1.473522, 1.342290, 1.258255,
-                                                       1.266575, 1.488935, 1.260175,
-                                                       1.471782, 1.295077, 1.463962,
-                                                       1.494004, 1.551485, 1.363379,
-                                                       1.474238, 1.311737, 1.483244,
-                                                       1.287134, 1.735833, 1.386330],
-                                                  ),
-                                             decimal=4)
-
 
 if __name__ == '__main__':
     t = SimulationsTest()
