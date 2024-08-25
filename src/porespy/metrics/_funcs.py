@@ -141,10 +141,12 @@ def representative_elementary_volume(im, npoints=1000):
     result : Results object
         A custom object with the following data added as named attributes:
 
-        'volume'
-            The total volume of each cubic subdomain tested
-        'porosity'
-            The porosity of each subdomain tested
+        ========== ==================================================================
+        Attribute  Description
+        ========== ==================================================================
+        volume     The total volume of each cubic subdomain tested
+        porosity   The porosity of each subdomain tested
+        ========== ==================================================================
 
         These attributes can be conveniently plotted by passing the Results
         object to matplotlib's ``plot`` function using the
