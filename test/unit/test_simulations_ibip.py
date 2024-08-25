@@ -43,7 +43,7 @@ class IBIPTest():
     def test_ibip_equals_qbip(self):
         x = ps.simulations.ibip(self.im, inlets=self.bd)
         temp1 = x.im_seq
-        pc = ps.simulations.capillary_transform(im=self.im)
+        pc = ps.filters.capillary_transform(im=self.im)
         y = ps.simulations.qbip(self.im, inlets=self.bd, pc=pc, conn='min')
         temp2 = ps.tools.make_contiguous(y.im_seq)
         assert np.all(temp1 == temp2)

@@ -352,11 +352,11 @@ class MetricsTest():
         im = ps.generators.blobs(shape=[200, 200], porosity=0.5088, blobiness=2, seed=0)
         assert im.sum()/im.size == 0.5088
         ibip = ps.simulations.ibip(im=im)
-        pc = -2*0.072*np.cos(np.radians(110))/(ibip.inv_sizes*vx)
-        trapped = ibip.inv_sequence == -1
+        pc = -2*0.072*np.cos(np.radians(110))/(ibip.im_size*vx)
+        trapped = ibip.im_seq == -1
         # residual = pc*im > 500
         pc[trapped] = np.inf
-        seq = ibip.inv_sequence
+        seq = ibip.im_seq
         d = ps.metrics.pc_map_to_pc_curve(pc=pc, im=im, seq=seq)
         # assert d.snwp[0] == residual.sum()/im.sum()
         assert d.snwp[-1] == (im.sum() - trapped.sum())/im.sum()
@@ -379,9 +379,9 @@ class MetricsTest():
 
         # Using the original ibip, which requires that sequence be supplied
         ibip = ps.simulations.ibip(im=im)
-        pc2 = -2*0.072*np.cos(np.radians(110))/(ibip.inv_sizes*vx)
-        pc2[ibip.inv_sequence < 0] = np.inf
-        seq = ibip.inv_sequence
+        pc2 = -2*0.072*np.cos(np.radians(110))/(ibip.im_size*vx)
+        pc2[ibip.im_seq < 0] = np.inf
+        seq = ibip.im_seq
         d2 = ps.metrics.pc_map_to_pc_curve(pc=pc2, im=im, seq=seq)
 
         # Ensure they all return the same Pc values

@@ -29,7 +29,7 @@ class SimulationsTest():
         # im = ps.generators.blobs(shape=[400, 400], porosity=0.7066, seed=2)
         assert im.sum()/im.size == 0.7066
         dt = edt(im)
-        pc = ps.simulations.capillary_transform(
+        pc = ps.filters.capillary_transform(
             im=im,
             dt=dt,
             sigma=0.072,
@@ -47,7 +47,7 @@ class SimulationsTest():
         im2 = ps.filters.fill_blind_pores(im, conn=2*im.ndim, surface=True)
         assert im2.sum()/im2.size < 0.7066
         dt2 = edt(im2)
-        pc2 = ps.simulations.capillary_transform(
+        pc2 = ps.filters.capillary_transform(
             im=im2,
             dt=dt2,
             sigma=0.072,
@@ -59,7 +59,7 @@ class SimulationsTest():
         drn2 = ps.simulations.drainage(pc=pc2*im2, im=im2)
         np.testing.assert_approx_equal(drn2.im_pc[im2].max(), 0.14630939404790602)
 
-        pc3 = ps.simulations.capillary_transform(
+        pc3 = ps.filters.capillary_transform(
             im=im2,
             dt=dt2,
             sigma=0.072,
