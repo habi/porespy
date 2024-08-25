@@ -417,24 +417,21 @@ def lineal_path_distribution(im, bins=10, voxel_size=1, log=False):
     result : Results object
         A custom object with the following data added as named attributes:
 
-        *L* or *LogL*
-            Length, equivalent to ``bin_centers``
-        *pdf*
-            Probability density function
-        *cdf*
-            Cumulative density function
-        *relfreq*
-            Relative frequency chords in each bin.  The sum of all bin
-            heights is 1.0.  For the cumulative relativce, use *cdf* which is
-            already normalized to 1.
-        *bin_centers*
-            The center point of each bin
-        *bin_edges*
-            Locations of bin divisions, including 1 more value than
-            the number of bins
-        *bin_widths*
-            Useful for passing to the ``width`` argument of
-            ``matplotlib.pyplot.bar``
+        =============== =============================================================
+        Description     Attribute
+        =============== =============================================================
+        *L* or *LogL*   Length, equivalent to ``bin_centers``
+        *pdf*           Probability density function
+        *cdf*           Cumulative density function
+        *relfreq*       Relative frequency chords in each bin.  The sum of all bin
+                        heights is 1.0.  For the cumulative relativce, use *cdf*
+                        which is already normalized to 1.
+        *bin_centers*   The center point of each bin
+        *bin_edges*     Locations of bin divisions, including 1 more value than
+                        the number of bins
+        *bin_widths*    Useful for passing to the ``width`` argument of
+                        ``matplotlib.pyplot.bar``
+        =============== =============================================================
 
     References
     ----------
@@ -509,24 +506,21 @@ def chord_length_distribution(im, bins=10, log=False, voxel_size=1,
     result : Results object
         A custom object with the following data added as named attributes:
 
-        *L* or *LogL*
-            Chord length, equivalent to ``bin_centers``
-        *pdf*
-            Probability density function
-        *cdf*
-            Cumulative density function
-        *relfreq*
-            Relative frequency chords in each bin.  The sum of all bin
-            heights is 1.0.  For the cumulative relativce, use *cdf* which is
-            already normalized to 1.
-        *bin_centers*
-            The center point of each bin
-        *bin_edges*
-            Locations of bin divisions, including 1 more value than
-            the number of bins
-        *bin_widths*
-            Useful for passing to the ``width`` argument of
-            ``matplotlib.pyplot.bar``
+        =============== =============================================================
+        Attribute       Description
+        =============== =============================================================
+        *L* or *LogL*   Chord length, equivalent to ``bin_centers``
+        *pdf*           Probability density function
+        *cdf*           Cumulative density function
+        *relfreq*       Relative frequency chords in each bin.  The sum of all bin
+                        heights is 1.0.  For the cumulative relativce, use *cdf*
+                        which is already normalized to 1.
+        *bin_centers*   The center point of each bin
+        *bin_edges*     Locations of bin divisions, including 1 more value than
+                        the number of bins
+        *bin_widths*    Useful for passing to the ``width`` argument of
+                        ``matplotlib.pyplot.bar``
+        =============== =============================================================
 
     References
     ----------
@@ -597,30 +591,20 @@ def pore_size_distribution(im, bins=10, log=True, voxel_size=1):
     result : Results object
         A custom object with the following data added as named attributes:
 
-        *R* or *logR*
-            Radius, equivalent to ``bin_centers``
-        *pdf*
-            Probability density function
-        *cdf*
-            Cumulative density function
-        *satn*
-            Phase saturation in differential form.  For the cumulative
-            saturation, just use *cfd* which is already normalized to 1.
-        *bin_centers*
-            The center point of each bin
-        *bin_edges*
-            Locations of bin divisions, including 1 more value than
-            the number of bins
-        *bin_widths*
-            Useful for passing to the ``width`` argument of
-            ``matplotlib.pyplot.bar``
-
-    Notes
-    -----
-    (1) To ensure the returned values represent actual sizes you can manually
-    scale the input image by the voxel size first (``im *= voxel_size``)
-
-    plt.bar(psd.R, psd.satn, width=psd.bin_widths, edgecolor='k')
+        =============== =============================================================
+        Attribute       Description
+        =============== =============================================================
+        *R* or *logR*   Radius, equivalent to ``bin_centers``
+        *pdf*           Probability density function
+        *cdf*           Cumulative density function
+        *satn*          Phase saturation in differential form.  For the cumulative
+                        saturation, just use *cfd* which is already normalized to 1.
+        *bin_centers*   The center point of each bin
+        *bin_edges*     Locations of bin divisions, including 1 more value than
+                        the number of bins
+        *bin_widths*    Useful for passing to the ``width`` argument of
+                        ``matplotlib.pyplot.bar``
+        =============== =============================================================
 
     Examples
     --------
@@ -814,24 +798,27 @@ def two_point_correlation(im, voxel_size=1, bins=100):
     Returns
     -------
     result : tpcf
-        The two-point correlation function object, with named attributes:
+        A dataclass-like object with following named attributes:
 
-        *distance*
-            The distance between two points, equivalent to bin_centers
-        *bin_centers*
-            The center point of each bin. See distance
-        *bin_edges*
-            Locations of bin divisions, including 1 more value than
-            the number of bins
-        *bin_widths*
-            Useful for passing to the ``width`` argument of
-            ``matplotlib.pyplot.bar``
-        *probability_normalized*
-            The probability that two points of the stated separation distance
-            are within the same phase normalized to 1 at r = 0
-        *probability* or *pdf*
-            The probability that two points of the stated separation distance
-            are within the same phase scaled to the phase fraction at r = 0
+        =========================== =================================================
+        Attribute                   Description
+        =========================== =================================================
+        *distance*                  The distance between two points, equivalent to
+                                    bin_centers
+        *bin_centers*               The center point of each bin. See distance
+        *bin_edges*                 Locations of bin divisions, including 1 more
+                                    value than the number of bins
+        *bin_widths*                Useful for passing to the ``width`` argument of
+                                    ``matplotlib.pyplot.bar``
+        *probability_normalized*    The probability that two points of the stated
+                                    separation distance are within the same phase
+                                    normalized to 1 at r = 0
+        *probability*               The probability that two points of the stated
+                                    separation distance are within the same phase
+                                    scaled to the phase fraction at r = 0
+        *pdf*                       Same as probability
+        =========================== =================================================
+
 
     Notes
     -----

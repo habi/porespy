@@ -528,28 +528,25 @@ def flood(
         An array the same shape as ``im`` with each region labeled.
     mode : string
         Specifies how to determine the value to flood each region. Options
-        taken from the ``scipy.ndimage.measurements`` functions:
+        taken from the ``scipy.ndimage.measurements`` function include:
 
-            'maximum'
-                Floods each region with the local max in that region. The
-                keyword ``max`` is also accepted.
-            'minimum'
-                Floods each region the local minimum in that region. The
-                keyword ``min`` is also accepted.
-            'median'
-                Floods each region the local median in that region
-            'mean'
-                Floods each region the local mean in that region
-            'size'
-                Floods each region with the size of that region.  This is
-                actually accomplished with ``scipy.ndimage.sum`` by converting
-                ``im`` to a boolean image (``im = im > 0``).
-            'standard_deviation'
-                Floods each region with the value of the standard deviation
-                of the voxels in ``im``.
-            'variance'
-                Floods each region with the value of the variance of the voxels
-                in ``im``.
+        ===================== ======================================================
+        Option                Description
+        ===================== ======================================================
+        maximum               Floods each region with the local max in that region.
+                              The keyword ``max`` is also accepted.
+        minimum               Floods each region the local minimum in that region.
+                              The keyword ``min`` is also accepted.
+        median                Floods each region the local median in that region
+        mean                  Floods each region the local mean in that region
+        size                  Floods each region with the size of that region.  This
+                              is actually accomplished with ``scipy.ndimage.sum`` by
+                              converting ``im`` to a boolean image (``im = im > 0``).
+        standard_deviation    Floods each region with the value of the standard
+                              deviation of the voxels in ``im``.
+        variance              Floods each region with the value of the variance of
+                              the voxels in ``im``.
+        ===================== ======================================================
 
     Returns
     -------
@@ -642,10 +639,6 @@ def find_dt_artifacts(dt):
     Label points in a distance transform that are closer to image boundary
     than solid
 
-    These points could *potentially* be erroneously high since their
-    distance values do not reflect the possibility that solid may have
-    been present beyond the border of the image but was lost by trimming.
-
     Parameters
     ----------
     dt : ndarray
@@ -661,6 +654,12 @@ def find_dt_artifacts(dt):
         that would be found if there were a solid voxel lurking just
         beyond the nearest edge of the image.  Obviously, voxels with a
         value of zero have no error.
+
+    Notes
+    -----
+    These points could *potentially* be erroneously high since their
+    distance values do not reflect the possibility that solid may have
+    been present beyond the border of the image but was lost by trimming.
 
     Examples
     --------
@@ -1364,13 +1363,15 @@ def prune_branches(skel, branch_points=None, iterations: int = 1):
     return im_result
 
 
-def chunked_func(func,
-                 overlap=None,
-                 divs=2,
-                 cores=None,
-                 im_arg=["input", "image", "im"],
-                 strel_arg=["strel", "structure", "footprint"],
-                 **kwargs):
+def chunked_func(
+    func,
+    overlap=None,
+    divs=2,
+    cores=None,
+    im_arg=["input", "image", "im"],
+    strel_arg=["strel", "structure", "footprint"],
+    **kwargs,
+):
     r"""
     Performs the specfied operation "chunk-wise" in parallel using ``dask``.
 
