@@ -24,7 +24,6 @@ tqdm = get_tqdm()
 __all__ = [
     'qbip',
     'invasion',
-    "find_trapped_regions2",
 ]
 
 
@@ -398,11 +397,6 @@ def invasion(
 invasion.__doc__ = qbip.__doc__
 
 
-
-
-
-
-
 if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
@@ -421,7 +415,7 @@ if __name__ == "__main__":
     outlets[-1, :] = True
     outlets = outlets*im
     ps.tools.tic()
-    trapped_new = find_trapped_regions2(
+    trapped_new = ps.filters.find_trapped_regions2(
         seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
     ps.tools.toc()
     ps.tools.tic()

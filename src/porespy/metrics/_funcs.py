@@ -1,25 +1,25 @@
 import logging
-from skimage.morphology import skeletonize_3d
 import numpy as np
 import numpy.typing as npt
 import scipy.ndimage as spim
 import scipy.spatial as sptl
 import scipy.stats as spst
-from scipy.ndimage import maximum_filter, label
-from deprecated import deprecated
+from skimage.morphology import skeletonize_3d
 from numba import njit
 from scipy import fft as sp_ft
 from skimage.measure import regionprops
 from porespy import settings
-from scipy.filters import local_thickness
+from porespy.filters import local_thickness
 from porespy.tools import (
     Results,
     _check_for_singleton_axes,
     extend_slice,
     get_tqdm,
-    ps_round,
-    ps_rect,
 )
+try:
+    from pyedt import edt
+except ModuleNotFoundError:
+    from edt import edt
 
 
 __all__ = [
@@ -38,6 +38,7 @@ __all__ = [
     "phase_fraction",
     "pc_curve",
     "pc_map_to_pc_curve",
+    "bond_number",
 ]
 
 
@@ -1326,3 +1327,85 @@ def find_h(saturation, position=None, srange=[0.01, 0.99]):
     r.h = abs(zmax-zmin)
 
     return r
+
+
+def bond_number(
+    im: npt.NDArray,
+    delta_rho: float,
+    g: float,
+    sigma: float,
+    voxelsize: float,
+    source: str = 'lt',
+    method: str = 'median',
+    mask: bool = False,
+):
+    r"""
+    Computes the Bond number for an image
+
+    Parameters
+    ----------
+    im : ndarray
+        The image of the domain with `True` values indicating the phase of interest
+        space
+    delta_rho : float
+        The difference in the density of the non-wetting and wetting phase
+    g : float
+        The gravitational constant for the system
+    sigma : float
+        The surface tension of the fluid pair
+    voxelsize : float
+        The size of the voxels
+    source : str
+        The source of the pore size values to use when computing the characteristic
+        length *R*. Options are:
+
+        ============== =============================================================
+        Option         Description
+        ============== =============================================================
+        dt             Uses the distance transform
+        lt             Uses the local thickness
+        ============== =============================================================
+
+    method : str
+        The method to use for finding the characteristic length *R* from the
+        values in `source`. Options are:
+
+        ============== =============================================================
+        Option         Description
+        ============== =============================================================
+        mean           The arithmetic mean (using `numpy.mean`)
+        min (or amin)  The minimum value (using `numpy.amin`)
+        max (or amax)  The maximum value (using `numpy.amax`)
+        mode           The mode of the values (using `scipy.stats.mode`)
+        gmean          The geometric mean of the values (using `scipy.stats.gmean`)
+        hmean          The harmonic mean of the values (using `scipy.stats.hmean`)
+        pmean          The power mean of the values (using `scipy.stats.pmean`)
+        ============== =============================================================
+
+    mask : bool
+        If `True` then the distance values in `source` are masked by the skeleton
+        before computing the average value using the specified `method`.
+    """
+    if mask is True:
+        mask = skeletonize_3d(im)
+    else:
+        mask = im
+
+    if source == 'dt':
+        dvals = edt(im)
+    elif source == 'lt':
+        dvals = local_thickness(im)
+    else:
+        raise Exception(f"Unrecognized source {source}")
+
+    if method in ['median', 'mean', 'amin', 'amax']:
+        f = getattr(np, method)
+    elif method in ['min', 'max']:
+        f = getattr(np, 'a' + method)
+    elif method in ['pmean', 'hmean', 'gmean', 'mode']:
+        f = getattr(spst, method)
+    else:
+        raise Exception(f"Unrecognized method {method}")
+    R = f(dvals[mask])
+    Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
+    return Bo
