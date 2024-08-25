@@ -1,26 +1,20 @@
 import logging
 import heapq as hq
 import numpy as np
-import scipy.stats as spst
 import numpy.typing as npt
-from edt import edt
 from numba import njit
-from skimage.morphology import skeletonize_3d
-from scipy.ndimage import maximum_filter, label
-from porespy.generators import ramp
 from porespy.filters import (
-    region_size,
     seq_to_satn,
-    local_thickness,
-    flood_func,
 )
 from porespy.tools import (
     get_tqdm,
     make_contiguous,
     Results,
-    ps_round,
-    ps_rect,
 )
+try:
+    from pyedt import edt
+except ModuleNotFoundError:
+    from edt import edt
 
 
 logger = logging.getLogger(__name__)
@@ -30,10 +24,7 @@ tqdm = get_tqdm()
 __all__ = [
     'qbip',
     'invasion',
-    "capillary_transform",
     "find_trapped_regions2",
-    "fill_trapped_voxels",
-    "bond_number",
 ]
 
 
@@ -407,374 +398,9 @@ def invasion(
 invasion.__doc__ = qbip.__doc__
 
 
-def capillary_transform(
-    im: npt.NDArray,
-    dt: npt.NDArray = None,
-    sigma: float = 0.01,
-    theta: float = 180,
-    g: float = 9.81,
-    rho_wp: float = 0,
-    rho_nwp: float = 0,
-    voxelsize: float = 1e-6,
-    spacing: float = None,
-):
-    r"""
-    Uses the Washburn equation to convert distance transform values to capillary
-    space
-
-    Parameters
-    ----------
-    im : ndarray
-        A boolean image describing the porous medium with ``True`` values indicating
-        the phase of interest.
-    dt : ndarray
-        The distance transform of the void phase. If not provided it will be
-        calculated, so some time can be save if a pre-computed array is already
-        available.
-    sigma : scalar
-        The surface tension of the fluid-fluid interface.
-    theta : scalar
-        The contact angle of the fluid-fluid-solid system, in degrees.
-    g : scalar
-        The gravitational constant acting on the fluids. Gravity is assumed to act
-        toward the x=0 axis.  To have gravity act in different directions just
-        use `np.swapaxes(im, 0, ax)` where `ax` is the desired direction. If gravity
-        is not acting directly along one of the principle axes, then use the
-        component that is.
-    delta_rho : scalar
-        The density difference between the fluids.
-    voxelsize : scalar
-        The resolution of the image
-    spacing : scalar
-        If a 2D image is provided, this value is used to compute the second
-        radii of curvature.  Setting it to `inf` will make the calculation truly
-        2D since only one radii of curvature is considered. Setting it to `None`
-        will force the calculation to be 3D.  If `im` is 3D this argument is
-        ignored.
-
-    Notes
-    -----
-    All physical properties should be in self-consistent units, and it is strongly
-    recommended to use SI for everything.
-
-    """
-    delta_rho = rho_nwp - rho_wp
-    if dt is None:
-        dt = edt(im)
-    if (im.ndim == 2) and (spacing is not None):
-        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 2/spacing)
-    else:
-        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
-    if delta_rho > 0:
-        h = ramp(im.shape, inlet=0, outlet=im.shape[0], axis=0)*voxelsize
-        pc = pc + delta_rho*g*h
-    elif delta_rho < 0:
-        h = ramp(im.shape, inlet=im.shape[0], outlet=0, axis=0)*voxelsize
-        pc = pc + delta_rho*g*h
-    return pc
 
 
-def bond_number(
-    im: npt.NDArray,
-    delta_rho: float,
-    g: float,
-    sigma: float,
-    voxelsize: float,
-    source: str = 'lt',
-    method: str = 'median',
-    mask: bool = False,
-):
-    r"""
-    Computes the Bond number for an image
 
-    Parameters
-    ----------
-    im : ndarray
-        The image of the domain with `True` values indicating the phase of interest
-        space
-    delta_rho : float
-        The difference in the density of the non-wetting and wetting phase
-    g : float
-        The gravitational constant for the system
-    sigma : float
-        The surface tension of the fluid pair
-    voxelsize : float
-        The size of the voxels
-    source : str
-        The source of the pore size values to use when computing the characteristic
-        length *R*. Options are:
-
-        ============== =============================================================
-        Option         Description
-        ============== =============================================================
-        dt             Uses the distance transform
-        lt             Uses the local thickness
-        ============== =============================================================
-
-    method : str
-        The method to use for finding the characteristic length *R* from the
-        values in `source`. Options are:
-
-        ============== =============================================================
-        Option         Description
-        ============== =============================================================
-        mean           The arithmetic mean (using `numpy.mean`)
-        min (or amin)  The minimum value (using `numpy.amin`)
-        max (or amax)  The maximum value (using `numpy.amax`)
-        mode           The mode of the values (using `scipy.stats.mode`)
-        gmean          The geometric mean of the values (using `scipy.stats.gmean`)
-        hmean          The harmonic mean of the values (using `scipy.stats.hmean`)
-        pmean          The power mean of the values (using `scipy.stats.pmean`)
-        ============== =============================================================
-
-    mask : bool
-        If `True` then the distance values in `source` are masked by the skeleton
-        before computing the average value using the specified `method`.
-    """
-    if mask is True:
-        mask = skeletonize_3d(im)
-    else:
-        mask = im
-
-    if source == 'dt':
-        dvals = edt(im)
-    elif source == 'lt':
-        dvals = local_thickness(im)
-    else:
-        raise Exception(f"Unrecognized source {source}")
-
-    if method in ['median', 'mean', 'amin', 'amax']:
-        f = getattr(np, method)
-    elif method in ['min', 'max']:
-        f = getattr(np, 'a' + method)
-    elif method in ['pmean', 'hmean', 'gmean', 'mode']:
-        f = getattr(spst, method)
-    else:
-        raise Exception(f"Unrecognized method {method}")
-    R = f(dvals[mask])
-    Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
-    return Bo
-
-
-def fill_trapped_voxels(
-    seq: npt.NDArray,
-    trapped: npt.NDArray = None,
-    max_size: int = 1,
-    conn: str = 'min',
-):
-    r"""
-    Finds small isolated clusters of voxels which were identified as trapped and
-    sets them to invaded.
-
-    Parameters
-    ----------
-    seq : ndarray
-        The sequence map resulting from an invasion process where trapping has
-        been applied, such that trapped voxels are labelled -1.
-    trapped : ndarray, optional
-        The boolean array of the trapped voxels. If this is not available than all
-        voxels in `seq` with a value < 0 are used.
-    max_size : int
-        The maximum size of the clusters which are to be filled. Clusters larger
-        than this size are left trapped.
-    conn : str
-        Controls the shape of the structuring element used to find neighboring
-        voxels when looking for sequence values to place into un-trapped voxels.
-        Options are:
-
-        ========= ==================================================================
-        Option    Description
-        ========= ==================================================================
-        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
-                  in 3D.
-        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
-                  26 neighbors in 3D.
-        ========= ==================================================================
-
-    Notes
-    -----
-    This function has to essentially guess which sequence value to put into each
-    un-trapped voxel so the sequence values can differ between the output of
-    this function and the result returned by the various invasion algorithms where
-    the trapping is computed internally. However, the fluid configuration for a
-    given saturation will be nearly identical.
-
-    """
-    if trapped is None:
-        trapped = seq < 0
-
-    strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
-    size = region_size(trapped, strel=strel)
-    mask = (size <= max_size)*(size > 0)
-    trapped[mask] = False
-
-    if conn == 'min':
-        strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
-    else:
-        strel = ps_rect(w=3, ndim=seq.ndim)
-    mx = maximum_filter(seq*~trapped, footprint=strel)
-    mx = flood_func(mx, np.amax, labels=label(mask, structure=strel)[0])
-    seq[mask] = mx[mask]
-
-    results = Results()
-    results.im_seq = seq
-    results.im_trapped = trapped
-    return results
-
-
-def find_trapped_regions2(
-    seq: npt.NDArray,
-    im: npt.NDArray,
-    outlets: npt.NDArray,
-    return_mask: bool = True,
-    conn: str = 'min',
-    max_size: int = 0,
-    mode: str = 'queue',
-):
-    r"""
-    Finds clusters of trapped voxels given a set of outlets
-
-    Parameters
-    ----------
-    seq : ndarray
-        The image containing the invasion sequence values from the drainage or
-        invasion simulation.
-    im : ndarray
-        The boolean image of the porous material with `True` indicating the phase
-        of interest.
-    outlets : ndarray
-        A boolean image the same shape as `seq` with `True` values indicating the
-        outlet locations for the defending phase.
-    return_mask : boolean
-        If `True` (default) a boolean image is returned with `True` values indicating
-        which voxels were trapped. If `False`, then an image containing updated
-        invasion sequence values is returned, with -1 indicating the trapped
-        voxels.
-    mode : str
-        Controls the method used to find trapped voxels. Options are:
-
-        ========== =================================================================
-        Option     Description
-        ========== =================================================================
-        'cluster'  This method finds clusters of disconnected voxels with an
-                   invasion sequence less than or equal to the values on the outlet.
-                   It works well for invasion sequence maps which were produced by
-                   pressure-based simulations (IBOP).
-        'queue'    This method uses a queue-based method which is much faster if
-                   the invasion was performed using IBIP or QBIP, but can end up
-                   being slower than `'cluster'` if IBOP was used.
-        ========== =================================================================
-
-    conn : str
-        Controls the shape of the structuring element used to find neighboring
-        voxels.  Options are:
-
-        ========= ==================================================================
-        Option    Description
-        ========= ==================================================================
-        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
-                  in 3D.
-        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
-                  26 neighbors in 3D.
-        ========= ==================================================================
-
-    max_size : int
-        Any cluster of trapped voxels smaller than this size will be set to *not
-        trapped*. This is useful to remove small voxels along edges of the void
-        space, which appear to be trapped due to the jagged nature of the digital
-        image. The default is 0, meaning this adjustment is not applied, but a
-        value of 3 or 4 is probably suitable to activate this adjustment.
-
-    Returns
-    -------
-    Depending on the value of `return_mask` this function either returns a
-    boolean image with `True` value indicating trapped voxels, or a image
-    containing updated invasion sequence values with trapped voxels given a
-    value of -1.
-
-    Notes
-    -----
-    This currently only works if the image has been completely filled to the outlets
-    so needs to get the special case treatment that I added to the original
-    function.
-    """
-    im = im > 0
-    if mode == 'queue':
-        # Make sure outlets are masked correctly and convert to 3d
-        out_temp = np.atleast_3d(outlets*(seq > 0))
-        # Initialize im_trapped array
-        im_trapped = np.ones_like(out_temp, dtype=bool)
-        # Convert seq to negative numbers and convert to 3d
-        seq_temp = np.atleast_3d(-1*seq)
-        # Note which sites have been added to heap already
-        edge = out_temp*np.atleast_3d(im) + np.atleast_3d(~im)
-        # seq = np.copy(np.atleast_3d(seq))
-        trapped = _trapped_regions_inner_loop(
-            seq=seq_temp,
-            edge=edge,
-            trapped=im_trapped,
-            outlets=out_temp,
-            conn=conn,
-        )
-
-        if return_mask:
-            trapped = trapped.squeeze()
-            trapped[~im] = 0
-            return trapped
-        else:
-            if max_size > 0:  # Fix pixels on solid surfaces
-                seq, trapped = fill_trapped_voxels(seq_temp, max_size=10)
-            seq = np.squeeze(seq)
-            trapped = np.squeeze(trapped)
-            seq[trapped] = -1
-            seq[~im] = 0
-            seq = make_contiguous(im=seq, mode='symmetric')
-            return seq
-    else:
-        raise NotImplementedError("Sorry, cluster is not implemented yet")
-
-
-@njit
-def _trapped_regions_inner_loop(
-    seq,
-    edge,
-    trapped,
-    outlets,
-    conn,
-):  # pragma: no cover
-    # Initialize the binary heap
-    inds = np.where(outlets)
-    bd = []
-    for row, (i, j, k) in enumerate(zip(inds[0], inds[1], inds[2])):
-        bd.append([seq[i, j, k], i, j, k])
-    hq.heapify(bd)
-    minseq = np.amin(seq)
-    step = 1
-    maxiter = np.sum(seq < 0)
-    for _ in range(1, maxiter):
-        if len(bd):  # Put next site into pts list
-            pts = [hq.heappop(bd)]
-        else:
-            print(f"Exiting after {step} steps")
-            break
-        # Also pop any other points in list with same value
-        while len(bd) and (bd[0][0] == pts[0][0]):
-            pts.append(hq.heappop(bd))
-        while len(pts):
-            pt = pts.pop()
-            if (pt[0] >= minseq) and (pt[0] < 0):
-                trapped[pt[1], pt[2], pt[3]] = False
-                minseq = pt[0]
-            # Add neighboring points to heap and edge
-            neighbors = \
-                _find_valid_neighbors(i=pt[1], j=pt[2], k=pt[3], im=edge, conn=conn)
-            for n in neighbors:
-                hq.heappush(bd, [seq[n], n[0], n[1], n[2]])
-                edge[n[0], n[1], n[2]] = True
-        # if step % 1000 == 0:
-        #     print(f'completed {str(step)} steps')
-        step += 1
-    return trapped
 
 
 if __name__ == "__main__":
@@ -788,7 +414,7 @@ if __name__ == "__main__":
     inlets = np.zeros_like(im)
     inlets[0, :] = True
     inlets = inlets*im
-    pc = capillary_transform(im)
+    pc = ps.filters.capillary_transform(im)
     ip = qbip(im, pc=pc, inlets=inlets)
 
     outlets = np.zeros_like(im)

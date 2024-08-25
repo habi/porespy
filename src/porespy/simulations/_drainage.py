@@ -164,6 +164,7 @@ def ibop(
 
     # Initialize empty arrays to accumulate results of each loop
     pc_inv = np.zeros_like(im, dtype=float)
+    pc_size = np.zeros_like(im, dtype=float)
     seeds = np.zeros_like(im, dtype=bool)
 
     # Begin IBOP algorithm
@@ -195,12 +196,12 @@ def ibop(
             smooth=True,
             overwrite=False,
         )
-        if return_sizes:
-            pc_inv = _insert_disks_at_points_parallel(
-                im=pc_inv,
+        if return_sizes and (np.size(radii) > 0):
+            pc_size = _insert_disks_at_points_parallel(
+                im=pc_size,
                 coords=np.vstack(coords),
                 radii=radii.astype(int),
-                v=max(radii),
+                v=np.amax(radii),
                 smooth=True,
                 overwrite=False,
             )
@@ -229,12 +230,12 @@ def ibop(
                         smooth=True,
                         overwrite=False,
                     )
-                    if return_sizes:
-                        pc_inv = _insert_disks_at_points_parallel(
-                            im=pc_inv,
+                    if return_sizes and (np.size(radii) > 0):
+                        pc_size = _insert_disks_at_points_parallel(
+                            im=pc_size,
                             coords=np.vstack(coords),
                             radii=radii.astype(int),
-                            v=max(radii),
+                            v=np.amax(radii),
                             smooth=True,
                             overwrite=False,
                         )
@@ -262,6 +263,10 @@ def ibop(
     results.im_pc = pc_inv
     if trapped is not None:
         results.im_trapped = trapped
+    if return_sizes:
+        pc_size[pc_inv == np.inf] = np.inf
+        pc_size[pc_inv == -np.inf] = -np.inf
+        results.im_size = pc_size
     results.pc, results.snwp = pc_curve(im=im, pc=pc_inv)
     return results
 

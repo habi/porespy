@@ -9,9 +9,9 @@ from skimage.morphology import reconstruction
 from skimage.segmentation import clear_border
 from skimage.morphology import ball, disk, square, cube, diamond, octahedron
 from porespy.tools import _check_for_singleton_axes
-from porespy.tools import get_border, subdivide, recombine, make_contiguous
+from porespy.tools import get_border, subdivide, recombine
 from porespy.tools import unpad, extract_subsection
-from porespy.tools import ps_disk, ps_ball, ps_round, ps_rect
+from porespy.tools import ps_disk, ps_ball, ps_round
 from porespy import settings
 from porespy.tools import get_tqdm
 from typing import Literal
@@ -29,7 +29,6 @@ __all__ = [
     "distance_transform_lin",
     "fill_blind_pores",
     "find_disconnected_voxels",
-    "find_trapped_regions",
     "find_dt_artifacts",
     "flood",
     "flood_func",
@@ -49,113 +48,6 @@ __all__ = [
 
 tqdm = get_tqdm()
 logger = logging.getLogger(__name__)
-
-
-def find_trapped_regions(
-    seq: npt.ArrayLike,
-    outlets: npt.ArrayLike = None,
-    bins: int = 25,
-    return_mask: bool = True,
-    conn: str = 'min',
-):
-    r"""
-    Find the trapped regions given an invasion sequence image
-
-    Parameters
-    ----------
-    seq : ndarray
-        An image with invasion sequence values in each voxel.  Regions
-        labelled -1 are considered uninvaded, and regions labelled 0 are
-        considered solid. Because sequence values are used, this function is
-        agnostic to whether the invasion followed drainage or imbibition.
-    outlets : ndarray, optional
-        An image the same size as ``seq`` with ``True`` indicating outlets
-        and ``False`` elsewhere.  If not given then all image boundaries
-        are considered outlets.
-    bins : int
-        The resolution to use when thresholding the ``seq`` image.  By default
-        the invasion sequence will be broken into 25 discrete steps and
-        trapping will be identified at each step. A higher value of ``bins``
-        will provide a more accurate trapping analysis, but is more time
-        consuming. If ``None`` is specified, then *all* the steps will
-        analyzed, providing the highest accuracy.
-    return_mask : bool
-        If ``True`` (default) then the returned image is a boolean mask
-        indicating which voxels are trapped.  If ``False``, then a copy of
-        ``seq`` is returned with the trapped voxels set to uninvaded and
-        the invasion sequence values adjusted accordingly.
-    conn : str
-        Controls the shape of the structuring element used to determin if voxels
-        are connected.  Options are:
-
-        ========= ==================================================================
-        Option    Description
-        ========= ==================================================================
-        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
-                  in 3D.
-        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
-                  26 neighbors in 3D.
-        ========= ==================================================================
-
-    Returns
-    -------
-    trapped : ND-image
-        An image, the same size as ``seq``.  If ``return_mask`` is ``True``,
-        then the image has ``True`` values indicating the trapped voxels.  If
-        ``return_mask`` is ``False``, then a copy of ``seq`` is returned with
-        trapped voxels set to 0.
-
-    Examples
-    --------
-    `Click here
-    <https://porespy.org/examples/filters/reference/find_trapped_regions.html>`_
-    to view online example.
-
-    """
-    im = ~(seq == 0)
-    seq = np.copy(seq)
-    if outlets is None:
-        outlets = get_border(seq.shape, mode='faces')
-    if conn == 'min':
-        strel = ps_round(r=1, ndim=seq.ndim, smooth=False)
-    elif conn == 'max':
-        strel = ps_rect(w=3, ndim=seq.ndim)
-    # All uninvaded regions should be given sequence number of lowest nearby fluid
-    mask = seq < 0  # This is used again at the end of the function to fix seq
-    if np.any(mask):
-        mask_dil = spim.binary_dilation(mask, structure=strel)*im
-        tmp = seq*mask_dil
-        new_seq = flood(im=tmp, labels=spim.label(mask_dil)[0], mode='maximum')
-        seq = seq*~mask + new_seq*mask
-    # Convert outlets to indices instead of mask to save time (maybe?)
-    outlets = np.where(outlets)
-    # Remove all trivially trapped regions (i.e. invaded after last outlet)
-    trapped = np.zeros_like(seq, dtype=bool)
-    Lmax = seq[outlets].max()
-    trapped[seq > Lmax] = True
-    # Scan image for each value of sequence in the outlets
-    if bins is None:
-        bins = np.unique(seq[seq <= Lmax])[-1::-1]
-        bins = bins[bins > 0]
-    elif isinstance(bins, int):
-        bins_start = seq.max()
-        bins = np.linspace(bins_start, 1, bins)
-    for i in tqdm(range(len(bins)), **settings.tqdm):
-        s = bins[i]
-        temp = seq >= s
-        labels = spim.label(temp, structure=strel)[0]
-        keep = np.unique(labels[outlets])
-        keep = keep[keep > 0]
-        trapped += temp*np.isin(labels, keep, invert=True)
-    # Set uninvaded locations back to -1, and set to untrapped
-    seq[mask] = -1
-    trapped[mask] = False
-    if return_mask:
-        return trapped
-    else:
-        seq[trapped] = -1
-        seq = make_contiguous(seq, mode='symmetric')
-        return seq
 
 
 def apply_padded(im, pad_width, func, pad_val=1, **kwargs):

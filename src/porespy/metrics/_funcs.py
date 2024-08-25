@@ -1,15 +1,26 @@
 import logging
-
+from skimage.morphology import skeletonize_3d
 import numpy as np
+import numpy.typing as npt
 import scipy.ndimage as spim
 import scipy.spatial as sptl
+import scipy.stats as spst
+from scipy.ndimage import maximum_filter, label
 from deprecated import deprecated
 from numba import njit
 from scipy import fft as sp_ft
 from skimage.measure import regionprops
-
 from porespy import settings
-from porespy.tools import Results, _check_for_singleton_axes, extend_slice, get_tqdm
+from scipy.filters import local_thickness
+from porespy.tools import (
+    Results,
+    _check_for_singleton_axes,
+    extend_slice,
+    get_tqdm,
+    ps_round,
+    ps_rect,
+)
+
 
 __all__ = [
     "boxcount",
@@ -26,8 +37,6 @@ __all__ = [
     "two_point_correlation",
     "phase_fraction",
     "pc_curve",
-    "pc_curve_from_ibip",
-    "pc_curve_from_mio",
     "pc_map_to_pc_curve",
 ]
 
@@ -959,27 +968,8 @@ def phase_fraction(im, normed=True):
     return results
 
 
-@deprecated("This function is deprecated, use pc_curve instead")
-def pc_curve_from_ibip(*args, **kwargs):
-    r"""
-    This function is deprecated.  Use ``pc_curve`` instead.  Note that the
-    ``stepped`` argument is no longer supported since this can be done
-    directly in matplotlib with ``plt.step(...)``.
-
-    """
-    return pc_curve(*args, **kwargs)
-
-
-@deprecated("This function is deprecated, use pc_curve instead")
-def pc_curve_from_mio(*args, **kwargs):
-    r"""
-    This function is deprecated.  Use ``pc_curve`` instead.
-    """
-    return pc_curve(*args, **kwargs)
-
-
 def pc_curve(im, sizes=None, pc=None, seq=None,
-             sigma=0.072, theta=180, voxel_size=1):
+             sigma=1.0, theta=180, voxel_size=1.0):
     r"""
     Produces a Pc-Snwp curve given a map of meniscus radii or capillary
     pressures at which each voxel was invaded

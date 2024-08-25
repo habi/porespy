@@ -62,8 +62,6 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
         im_size       If `return_sizes` was set to `True`, then a numpy array with
                       each voxel containing the radius of the sphere, in voxels,
                       that first overlapped it.
-        inv_sequence  (Deprecated) This is the same as `im_seq`
-        inv_size      (Deprecated) This is the same as `im_size`
         ============= ===============================================================
 
     See Also
@@ -142,8 +140,6 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
     sizes[~im] = 0
     sizes[temp] = -1
     results = Results()
-    results.inv_sequence = inv
-    results.inv_sizes = sizes
     results.im_size = np.copy(sizes)
     results.im_seq = np.copy(inv)
     results.im_satn = seq_to_satn(inv)
