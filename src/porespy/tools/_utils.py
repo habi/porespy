@@ -254,7 +254,7 @@ def show_docstring(func):  # pragma: no cover
     Parameters
     ----------
     func : object
-        Function handle to function whose docstring is desired
+        Handle to function whose docstring is desired
 
     Returns
     -------
@@ -264,7 +264,7 @@ def show_docstring(func):  # pragma: no cover
         function.
 
     """
-    # Note: The follow could work too:
+    # Note: The following could work too:
     # import pandoc
     # Markdown(pandoc.write(pandoc.read(func, format='rst'), format='markdown'))
     # Although the markdown conversion is not numpydoc specific so is less pretty
