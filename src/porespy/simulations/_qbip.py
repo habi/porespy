@@ -5,6 +5,7 @@ import numpy.typing as npt
 from numba import njit
 from porespy.filters import (
     seq_to_satn,
+    find_trapped_regions2,
 )
 from porespy.tools import (
     get_tqdm,
