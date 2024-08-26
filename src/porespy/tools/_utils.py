@@ -264,14 +264,17 @@ def show_docstring(func):  # pragma: no cover
         function.
 
     """
-    title = f"---\n ## Documentation for ``{func.__name__}``\n ---\n"
+    # Note: The follow could work too:
+    # import pandoc
+    # Markdown(pandoc.write(pandoc.read(func, format='rst'), format='markdown'))
+    # Although the markdown conversion is not numpydoc specific so is less pretty
     try:
-        from npdoc_to_md import render_md_from_obj_docstring
-
-        txt = render_md_from_obj_docstring(obj=func, obj_namespace=func.__name__)
+        from npdoc_to_md import render_obj_docstring
+        name = func.__module__.rsplit('.', 1)[0] + '.' + func.__name__
+        txt = render_obj_docstring(name)
     except ModuleNotFoundError:
         txt = func.__doc__
-    return title + txt + "\n---"
+    return txt
 
 
 def sanitize_filename(filename, ext, exclude_ext=False):
