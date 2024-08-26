@@ -25,11 +25,6 @@ from . import simulations
 from . import visualization
 from . import io
 
-# TODO: Deprecate dns module once v3 is out
-from . import dns
-
-from .visualization import imshow
-
 import numpy as _np
 
 _np.seterr(divide="ignore", invalid="ignore")
