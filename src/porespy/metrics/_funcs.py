@@ -766,7 +766,7 @@ def _radial_profile(autocorr, bins, pf=None, voxel_size=1):
     return tpcf
 
 
-@njit(parallel=False)
+@njit(parallel=False)  # pragma: no cover
 def _get_radial_sum(dt, bins, bin_size, autocorr):
     radial_sum = np.zeros_like(bins[:-1], dtype=np.float64)
     for i, r in enumerate(bins[:-1]):
@@ -1323,7 +1323,7 @@ def bond_number(
     delta_rho: float,
     g: float,
     sigma: float,
-    voxelsize: float,
+    voxel_size: float,
     source: str = 'lt',
     method: str = 'median',
     mask: bool = False,
@@ -1396,5 +1396,5 @@ def bond_number(
     else:
         raise Exception(f"Unrecognized method {method}")
     R = f(dvals[mask])
-    Bo = abs(delta_rho*g*(R*voxelsize)**2/sigma)
+    Bo = abs(delta_rho*g*(R*voxel_size)**2/sigma)
     return Bo

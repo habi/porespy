@@ -401,6 +401,24 @@ class MetricsTest():
         # plt.step(d3.pc, d3.snwp, 'b--', where='post')
         # plt.step(d2.pc, d2.snwp, 'g.-', where='post')
 
+    def test_bond_number(self):
+        im = ~ps.generators.borders([200, 20], mode='faces')
+        bo = ps.metrics.bond_number(
+            im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
+            source='lt')
+        assert bo == 0.79461
+        bo = ps.metrics.bond_number(
+            im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
+            source='lt', method='min')
+        assert bo == 0.08829000000000001
+        bo = ps.metrics.bond_number(
+            im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4, source='dt')
+        assert bo == 0.24524997
+        bo = ps.metrics.bond_number(
+            im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
+            source='dt', method='max')
+        assert bo == 0.7946099
+
 
 if __name__ == '__main__':
     t = MetricsTest()

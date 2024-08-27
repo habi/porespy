@@ -20,7 +20,7 @@ def capillary_transform(
     g: float = 0.0,
     rho_wp: float = 0.0,
     rho_nwp: float = 0.0,
-    voxelsize: float = 1.0,
+    voxel_size: float = 1.0,
     spacing: float = None,
 ):
     r"""
@@ -65,13 +65,13 @@ def capillary_transform(
     if dt is None:
         dt = edt(im)
     if (im.ndim == 2) and (spacing is not None):
-        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxelsize) + 2/spacing)
+        pc = -sigma*np.cos(np.deg2rad(theta))*(1/(dt*voxel_size) + 2/spacing)
     else:
-        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxelsize)
+        pc = -2*sigma*np.cos(np.deg2rad(theta))/(dt*voxel_size)
     if delta_rho > 0:
-        h = ramp(im.shape, inlet=0, outlet=im.shape[0], axis=0)*voxelsize
+        h = ramp(im.shape, inlet=0, outlet=im.shape[0], axis=0)*voxel_size
         pc = pc + delta_rho*g*h
     elif delta_rho < 0:
-        h = ramp(im.shape, inlet=im.shape[0], outlet=0, axis=0)*voxelsize
+        h = ramp(im.shape, inlet=im.shape[0], outlet=0, axis=0)*voxel_size
         pc = pc + delta_rho*g*h
     return pc
