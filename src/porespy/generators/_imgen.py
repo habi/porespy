@@ -454,22 +454,22 @@ def random_spheres(
 
 
 @njit
-def _set_seed(a):
+def _set_seed(a):  # pragma: no cover
     np.random.seed(a)
 
 
 @njit
-def _get_rand_float(*args):
+def _get_rand_float(*args):  # pragma: no cover
     return np.random.rand(*args)
 
 
 @njit
-def _get_rand_int(*args):
+def _get_rand_int(*args):  # pragma: no cover
     return np.random.randint(*args)
 
 
 @njit
-def _make_choice(options_im, free_sites):
+def _make_choice(options_im, free_sites):  # pragma: no cover
     r"""
     This function is called by _begin_inserting to find valid insertion
     points.
