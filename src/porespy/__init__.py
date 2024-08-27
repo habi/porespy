@@ -24,6 +24,7 @@ from . import generators
 from . import simulations
 from . import visualization
 from . import io
+from .visualization import imshow
 
 import numpy as _np
 
