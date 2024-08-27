@@ -218,7 +218,7 @@ if __name__ == '__main__':
     inlets[0, ...] = True
     outlets = np.zeros_like(im)
     outlets[-1, ...] = True
-    pc = ps.simulations.capillary_transform(im=im, voxelsize=1e-4)
+    pc = ps.simulations.capillary_transform(im=im, voxel_size=1e-4)
 
     imb = imbibition(im=im, pc=pc, inlets=inlets)
     pc_curve1 = ps.metrics.pc_map_to_pc_curve(

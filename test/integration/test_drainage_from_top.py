@@ -36,7 +36,7 @@ def test_drainage_from_top():
         theta=theta,
         rho_wp=delta_rho,
         rho_nwp=0,
-        voxelsize=voxel_size,
+        voxel_size=voxel_size,
         g=0,
     )
 

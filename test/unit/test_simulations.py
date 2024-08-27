@@ -35,7 +35,7 @@ class SimulationsTest():
             sigma=0.072,
             theta=180,
             rho_nwp=997,
-            voxelsize=1e0,
+            voxel_size=1e0,
             g=0,
         )
         np.testing.assert_approx_equal(pc[im].max(), 0.144)
@@ -53,7 +53,7 @@ class SimulationsTest():
             sigma=0.072,
             theta=180,
             rho_nwp=997,
-            voxelsize=1e0,
+            voxel_size=1e0,
             g=0,
         )
         drn2 = ps.simulations.drainage(pc=pc2*im2, im=im2)
@@ -65,7 +65,7 @@ class SimulationsTest():
             sigma=0.072,
             theta=180,
             rho_nwp=997,
-            voxelsize=1e-4,
+            voxel_size=1e-4,
             g=0,
         )
         drn3 = ps.simulations.drainage(pc=pc3, im=im2)

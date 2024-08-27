@@ -41,7 +41,7 @@ def test_inverse_Bo_study():
             g=g,
             rho_wp=0,
             rho_nwp=delta_rho,
-            voxelsize=vx,
+            voxel_size=vx,
         )
         sim1[i] = ps.simulations.drainage(
             im=im,

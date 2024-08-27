@@ -328,7 +328,7 @@ if __name__ == "__main__":
         rho_nwp=1000,
         rho_wp=0,
         g=0,
-        voxelsize=1e-4,
+        voxel_size=1e-4,
     )
 
     # %% Run different drainage simulations

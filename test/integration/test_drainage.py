@@ -43,7 +43,7 @@ def test_drainage():
         g=g,
         rho_nwp=delta_rho,
         rho_wp=0,
-        voxelsize=voxel_size,
+        voxel_size=voxel_size,
     )
 
     drn1 = ps.simulations.drainage(im=im,
@@ -112,7 +112,7 @@ def test_drainage():
         g=g,
         rho_nwp=delta_rho,
         rho_wp=0,
-        voxelsize=voxel_size,
+        voxel_size=voxel_size,
     )
 
     drn1 = ps.simulations.drainage(im=im,

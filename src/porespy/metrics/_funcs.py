@@ -1342,7 +1342,7 @@ def bond_number(
         The gravitational constant for the system
     sigma : float
         The surface tension of the fluid pair
-    voxelsize : float
+    voxel_size : float
         The size of the voxels
     source : str
         The source of the pore size values to use when computing the characteristic

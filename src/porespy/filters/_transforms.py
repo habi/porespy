@@ -46,7 +46,7 @@ def capillary_transform(
         use `np.swapaxes(im, 0, ax)` where `ax` is the desired direction.
     delta_rho : scalar (default = 0.0)
         The density difference between the fluids.
-    voxelsize : scalar (default = 0.0)
+    voxel_size : scalar (default = 0.0)
         The resolution of the image
     spacing : scalar (default = None)
         If a 2D image is provided, this value is used to compute the second

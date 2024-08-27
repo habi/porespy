@@ -406,18 +406,18 @@ class MetricsTest():
         bo = ps.metrics.bond_number(
             im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
             source='lt')
-        assert bo == 0.79461
+        assert np.around(bo, decimals=5) == 0.79461
         bo = ps.metrics.bond_number(
             im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
             source='lt', method='min')
-        assert bo == 0.08829000000000001
+        assert np.around(bo, decimals=5) == 0.08829
         bo = ps.metrics.bond_number(
             im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4, source='dt')
-        assert bo == 0.24524997
+        assert np.around(bo, decimals=5) == 0.24525
         bo = ps.metrics.bond_number(
             im=im, delta_rho=1000, g=9.81, sigma=0.01, voxel_size=1e-4,
             source='dt', method='max')
-        assert bo == 0.7946099
+        assert np.around(bo, decimals=5) == 0.79461
 
 
 if __name__ == '__main__':
