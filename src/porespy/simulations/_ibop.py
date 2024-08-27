@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 from skimage.morphology import ball, disk
 from porespy import settings
 from porespy.metrics import pc_curve
@@ -32,14 +33,14 @@ __all__ = [
 tqdm = get_tqdm()
 
 
-def drainage(
-    im,
-    pc,
-    dt=None,
-    inlets=None,
-    outlets=None,
-    residual=None,
-    bins: int = 25,
+def ibop(
+    im: npt.NDArray,
+    pc: npt.NDArray = None,
+    dt: npt.NDArray = None,
+    inlets: npt.NDArray = None,
+    outlets: npt.NDArray = None,
+    residual: npt.NDArray = None,
+    bins: int = None,
     return_sizes: bool = False,
 ):
     r"""
@@ -51,18 +52,22 @@ def drainage(
     im : ndarray
         The image of the porous media with ``True`` values indicating the
         void space.
-    pc : ndarray
-        An array containing precomputed capillary pressure values in each
-        voxel. This can include gravity effects or not.
+    pc : ndarray, optional
+        Precomputed capillary pressure transform which is used to determine
+        the invadability of each voxel. If not provided then the negative of
+        the distance transform of `im` is used.
+    dt : ndarray (optional)
+        The distance transform of ``im``.  If not provided it will be
+        calculated, so supplying it saves time.
     inlets : ndarray, optional
         A boolean image the same shape as ``im``, with ``True`` values
         indicating the inlet locations. If not specified then access limitations
         are not applied so the result is essentially a local thickness filter.
     outlets : ndarray, optional
-        Similar to ``inlets`` except defining the outlets. This image is used
-        to assess trapping. If not provided then trapping is ignored,
-        otherwise a mask indicating which voxels were trapped is included
-        among the returned data.
+        A boolean image with ``True`` values indicating the outlet locations.
+        If this is provided then trapped voxels of wetting phase are found and
+        all the output images are adjusted accordingly. Note that trapping can
+        be assessed during postprocessing as well.
     residual : ndarray, optional
         A boolean array indicating the locations of any residual invading
         phase. This is added to the intermediate image prior to trimming
@@ -70,12 +75,13 @@ def drainage(
         that would otherwise be removed. The residual phase is indicated
         in the final image by ``-np.inf`` values, since these are invaded at
         all applied capillary pressures.
-    bins : int or array_like (default = 25)
-        The range of pressures to apply. If an integer is given
-        then bins will be created between the lowest and highest pressures
-        in ``pc``. If a list is given, each value in the list is used
-        in ascending order.
-    return_sizes : bool
+    bins : int or array_like (default = None)
+        The range of pressures to apply. If an integer is given then the given
+        number of bins will be created between the lowest and highest values in
+        ``pc``. If a list is given, each value in the list is used in ascending
+        order. If `None` is given (default) then all the possible values in `pc`
+        are used (or `dt` if `pc` is not given).
+    return_sizes : bool, default = `False`
         If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
         as computing it increases computation time.
@@ -88,27 +94,30 @@ def drainage(
         ========== ============================================================
         Attribute  Description
         ========== ============================================================
-        im_pc      A numpy array with each voxel value indicating the
-                   capillary pressure at which it was invaded
-        im_satn    A numpy array with each voxel value indicating the global
-                   saturation value at the point it was invaded
         im_seq     An ndarray with each voxel indicating the step number at
                    which it was first invaded by non-wetting phase
+        im_satn    A numpy array with each voxel value indicating the global
+                   saturation value at the point it was invaded
         im_size    If `return_sizes` was set to `True`, then a numpy array with
                    each voxel containing the radius of the sphere, in voxels, that
                    first overlapped it.
+        im_pc      A numpy array with each voxel value indicating the
+                   capillary pressure at which it was invaded.
         im_trapped A numpy array with ``True`` values indicating trapped voxels
         pc         1D array of capillary pressure values that were applied
         swnp       1D array of non-wetting phase saturations for each applied
                    value of capillary pressure (``pc``).
         ========== ============================================================
 
+    See Also
+    --------
+    drainage
+
     Notes
     -----
-    - The direction of gravity is always towards the x=0 axis
-    - This algorithm has only been tested for gravity stabilized
-      configurations, meaning the more dense fluid is on the bottom.
-      Be sure that ``inlets`` are specified accordingly.
+    This algorithm only provides sensible results for gravity stabilized
+    configurations, meaning the more dense fluid is on the bottom. Be sure that
+    ``inlets`` are specified accordingly.
 
     Examples
     --------
@@ -117,29 +126,6 @@ def drainage(
     to view online example.
 
     """
-    results = ibop(
-        im=im,
-        pc=pc,
-        dt=dt,
-        inlets=inlets,
-        outlets=outlets,
-        residual=residual,
-        bins=bins,
-        return_sizes=return_sizes,
-    )
-    return results
-
-
-def ibop(
-    im,
-    pc,
-    dt=None,
-    inlets=None,
-    outlets=None,
-    residual=None,
-    bins=25,
-    return_sizes=False,
-):
     im = np.array(im, dtype=bool)
 
     if dt is None:
@@ -153,12 +139,16 @@ def ibop(
         if np.sum(inlets * outlets):
             raise Exception('Specified inlets and outlets overlap')
 
+    if pc is None:
+        pc = -1.0*dt
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
     if isinstance(bins, int):  # Use values in pc for invasion steps
         vmax = pc[pc < np.inf].max()
         vmin = pc[im][pc[im] > -np.inf].min()
         Ps = np.linspace(vmin, vmax*1.1, bins)
+    elif bins is None:
+        Ps = np.unique(pc[im])
     else:
         Ps = np.unique(bins)  # To ensure they are in ascending order
 
@@ -251,7 +241,12 @@ def ibop(
     trapped = None
     if outlets is not None:
         seq = pc_to_seq(pc_inv, im=im, mode='drainage')
-        trapped = find_trapped_regions(seq=seq, outlets=outlets)
+        trapped = find_trapped_regions(
+            im=im,
+            seq=seq,
+            outlets=outlets,
+            method='cluster',
+        )
         trapped[seq == -1] = True
         pc_inv[trapped] = np.inf
         if residual is not None:  # Re-add residual to inv
@@ -260,9 +255,12 @@ def ibop(
     # Initialize results object
     results = Results()
     results.im_satn = pc_to_satn(pc=pc_inv, im=im, mode='drainage')
+    results.im_seq = pc_to_seq(pc=pc_inv, im=im, mode='drainage')
     results.im_pc = pc_inv
     if trapped is not None:
-        results.im_trapped = trapped
+        results.im_seq[trapped] = -1
+        results.im_satn[trapped] = -1
+        results.im_pc[trapped] = -1
     if return_sizes:
         pc_size[pc_inv == np.inf] = np.inf
         pc_size[pc_inv == -np.inf] = -np.inf
@@ -271,7 +269,30 @@ def ibop(
     return results
 
 
-ibop.__doc__ = drainage.__doc__
+def drainage(
+    im: npt.NDArray,
+    pc: npt.NDArray = None,
+    dt: npt.NDArray = None,
+    inlets: npt.NDArray = None,
+    outlets: npt.NDArray = None,
+    residual: npt.NDArray = None,
+    bins: int = 25,
+    return_sizes: bool = False,
+):
+    results = ibop(
+        im=im,
+        pc=pc,
+        dt=dt,
+        inlets=inlets,
+        outlets=outlets,
+        residual=residual,
+        bins=bins,
+        return_sizes=return_sizes,
+    )
+    return results
+
+
+drainage.__doc__ = ibop.__doc__
 
 
 if __name__ == "__main__":

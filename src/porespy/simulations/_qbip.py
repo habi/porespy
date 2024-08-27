@@ -2,10 +2,11 @@ import logging
 import heapq as hq
 import numpy as np
 import numpy.typing as npt
+from typing import Literal
 from numba import njit
 from porespy.filters import (
     seq_to_satn,
-    find_trapped_regions2,
+    find_trapped_regions,
 )
 from porespy.tools import (
     get_tqdm,
@@ -30,46 +31,49 @@ __all__ = [
 
 def qbip(
     im: npt.NDArray,
-    pc: npt.NDArray,
+    pc: npt.NDArray = None,
     dt: npt.NDArray = None,
     inlets: npt.NDArray = None,
     outlets: npt.NDArray = None,
     maxiter: int = None,
     return_sizes: bool = False,
     return_pressures: bool = False,
-    conn: str = 'min',
-    max_size: int = 0,
+    conn: Literal['min', 'max'] = 'min',
+    min_size: int = 0,
 ):
     r"""
     Performs invasion percolation using a priority queue, optionally including
     the effect of gravity
-
-    The queue-based approach is much faster than the original image-based
-    approach [1]_.
 
     Parameters
     ----------
     im : ndarray
         A boolean image of the porous media with ``True`` values indicating
         the void space
-    pc : ndarray
+    pc : ndarray, optional
         Precomputed capillary pressure transform which is used to determine
-        the invadability of each voxel, in Pa.
+        the invadability of each voxel. If not provided then the negative of
+        the distance transform of `im` is used.
+    dt : ndarray (optional)
+        The distance transform of ``im``.  If not provided it will be
+        calculated, so supplying it saves time.
     inlets : ndarray, optional
         A boolean image with ``True`` values indicating the inlet locations.
         If not provided then the beginning of the x-axis is assumed.
-    outlets : ndarray, options
-        A boolean image with ``True`` values indicating the oulets locations.
+    outlets : ndarray, optional
+        A boolean image with ``True`` values indicating the outlet locations.
         If this is provided then trapped voxels of wetting phase are found and
-        all the output images are adjusted accordingly.
-    return_sizes : bool
+        all the output images are adjusted accordingly. Note that trapping can
+        be assessed during postprocessing as well.
+    return_sizes : bool, default = `False`
         If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
         as computing it increases computation time.
-    return_pressures : bool
+    return_pressures : bool, default = `False`
         If `True` then an array containing the capillary pressure at which
         each pixels was first invaded is returned. This array is not computed by
-        default as computing it increases computation time.
+        default as computing it increases computation time. If `pc` is not provided
+        then this arugment is ignored
     maxiter : int
         The maximum number of iteration to perform.  The default is equal to the
         number of void pixels `im`.
@@ -85,6 +89,14 @@ def qbip(
         'max'     This corresponds to a square or cube with 8 neighbors in 2D and
                   26 neighbors in 3D.
         ========= ==================================================================
+
+    min_size : int, default = 0
+        Any clusters of trapped voxels smaller than this size will be set to *not
+        trapped*. This is useful to prevent small voxels along edges of the void
+        space from being set to trapped. These can appear to be trapped due to the
+        jagged nature of the digital image. The default is 0, meaning this
+        adjustment is not applied, but a value of 3 or 4 is recommended to activate
+        this adjustment.
 
     Returns
     -------
@@ -109,32 +121,43 @@ def qbip(
 
     Notes
     -----
-    This function operates differently than the original ``ibip``.  Here a
-    priority queue (via the `heapq` module from the standard libary) is used to
-    maintain an up-to-date list of which voxels should be invaded next.  This
-    is much faster than the original approach.
+    * This algorithm is described in [1]_. It operates differently than the original
+      ``ibip`` [2]_.  It is much faster and can include the effect of gravity. Here
+      a priority queue (via the `heapq` module from the standard libary) is used to
+      maintain an up-to-date list of which voxels should be invaded next.
+    * If `pc` is not given, then the negative of the distance transform is used to
+      determine the priority of each voxels.  This allows for `qbip` to be used in an
+      abstract way, based only on voxel sizes instead of having to define the fluid
+      properties necesssary to compute the capillary transform.
 
     References
     ----------
-    .. [1] Gostick JT, Misaghian N, Yang J, Boek ES. *Simulating volume-controlled
+    .. [1] Gostick JT, Misaghian N*, A Irannezhad, B Zhao. A computationally
+       efficient queue-based algorithm for simulating volume-controlled drainage
+       under the influence of gravity on volumetric images. Advances in Water
+       Resources.
+    .. [2] Gostick JT, Misaghian N, Yang J, Boek ES. *Simulating volume-controlled
        invasion of a non-wetting fluid in volumetric images using basic image
        processing tools*. `Computers and the Geosciences
        <https://doi.org/10.1016/j.cageo.2021.104978>`_. 158(1), 104978 (2022)
 
     """
+    im = np.atleast_3d(im == 1)
     if maxiter is None:  # Compute numpy of pixels in image
         maxiter = (im == 1).sum()
 
     if inlets is None:
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
+    inlets = np.atleast_3d(inlets)
 
     if dt is None:
         dt = edt(im)
-
     dt = np.atleast_3d(dt)
-    inlets = np.atleast_3d(inlets)
-    im = np.atleast_3d(im == 1)
+
+    if pc is None:
+        pc = np.copy(dt)*-1
+        return_pressures = False  # Does not make sense if pc is not given
     pc = np.atleast_3d(pc)
 
     # Initialize arrays and do some preprocessing
@@ -176,16 +199,17 @@ def qbip(
     if return_sizes:
         size[sequence < 0] = np.inf
         size[~im] = 0
-
+    # Deal with trapping if outlets were specified
     if outlets is not None:
         logger.info('Computing trapping and adjusting outputs')
-        sequence = find_trapped_regions2(
-            seq=sequence,
+        sequence = find_trapped_regions(
             im=im,
+            seq=sequence,
             outlets=outlets,
             return_mask=False,
             conn=conn,
-            max_size=max_size,
+            min_size=min_size,
+            method='queue',
         )
         trapped = (sequence == -1).squeeze()
         pressure = pressure.astype(float).squeeze()

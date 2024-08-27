@@ -1092,7 +1092,7 @@ def pc_curve(im, sizes=None, pc=None, seq=None,
             y.append((temp <= p).sum(dtype=np.int64)/Vp)
         pc_curve = Results()
         pc_curve.pc = Ps
-        pc_curve.snwp = y
+        pc_curve.snwp = np.array(y)
     return pc_curve
 
 

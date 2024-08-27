@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.typing as npt
 from porespy.filters import seq_to_satn
 from numba import njit
 from porespy import settings
@@ -23,7 +24,13 @@ __all__ = [
 ]
 
 
-def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
+def ibip(
+    im: npt.NDArray,
+    inlets: npt.NDArray = None,
+    dt: npt.NDArray = None,
+    maxiter: int = 10000,
+    return_sizes: bool = True,
+):
     r"""
     Performs invasion percolation on given image using the IBIP algorithm [1]_
 
@@ -43,8 +50,8 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
         image is smaller than about 250-cubed.
     return_sizes : bool
         If `True` then an array containing the size of the sphere which first
-        overlapped each pixel is returned. This array is not computed by default
-        as computing it increases computation time.
+        overlapped each voxel is returned. This array is not computed by default
+        as it increases computation time.
 
     Returns
     -------
@@ -77,6 +84,11 @@ def ibip(im, inlets=None, dt=None, maxiter=10000, return_sizes=True):
        invasion of a non-wetting fluid in volumetric images using basic image
        processing tools. Computers & Geosciences. 158(1), 104978 (2022). `Link.
        <https://doi.org/10.1016/j.cageo.2021.104978>`_
+
+    Notes
+    -----
+    This function is slower and is less capable than `qbip`, which returns identical
+    results, so it is recommended to use that instead.
 
     Examples
     --------
@@ -188,6 +200,6 @@ if __name__ == "__main__":
         cmap.set_over(color='grey')
         cmap.set_bad('grey')
         fig, ax = plt.subplots(1, 1)
-        kw = ps.visualization.prep_for_imshow(ip.inv_sequence/im, im)
+        kw = ps.visualization.prep_for_imshow(ip.im_seq/im, im)
         kw['vmin'] = 0
         ax.imshow(**kw, cmap=cmap)

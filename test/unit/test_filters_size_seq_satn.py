@@ -273,6 +273,14 @@ class SeqTest():
         assert seq[0, -1] == 19
         assert seq[0, -5] == -1
 
+    def test_size_to_seq(self):
+        im = self.im2D
+        sz = ps.filters.porosimetry(im)
+        nsizes = np.size(np.unique(sz))
+        sq = ps.filters.size_to_seq(sz)
+        nsteps = np.size(np.unique(sq))
+        assert nsteps == nsizes
+
 
 if __name__ == '__main__':
     t = SeqTest()
