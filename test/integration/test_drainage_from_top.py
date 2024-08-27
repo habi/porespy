@@ -29,7 +29,7 @@ def test_drainage_from_top():
     g = 9.81
     bg = 'grey'
     plot = False
-    pc = ps.simulations.capillary_transform(
+    pc = ps.filters.capillary_transform(
         im=im,
         dt=dt,
         sigma=sigma,

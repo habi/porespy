@@ -260,12 +260,12 @@ def ibop(
     if trapped is not None:
         results.im_seq[trapped] = -1
         results.im_satn[trapped] = -1
-        results.im_pc[trapped] = -1
+        results.im_pc[trapped] = np.inf
     if return_sizes:
         pc_size[pc_inv == np.inf] = np.inf
         pc_size[pc_inv == -np.inf] = -np.inf
         results.im_size = pc_size
-    results.pc, results.snwp = pc_curve(im=im, pc=pc_inv)
+    results.pc, results.snwp = pc_curve(im=im, pc=results.im_pc)
     return results
 
 
@@ -300,7 +300,7 @@ if __name__ == "__main__":
     import porespy as ps
     import matplotlib.pyplot as plt
     from copy import copy
-    from pyedt import edt
+    from edt import edt
 
     # %% Run this cell to regenerate the variables in drainage
     bg = 'white'
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     dt = edt(im)
     residual = lt > 25
     bins = 25
-    pc = ps.simulations.capillary_transform(
+    pc = ps.filters.capillary_transform(
         im=im,
         dt=dt,
         sigma=0.072,

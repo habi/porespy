@@ -18,6 +18,7 @@ def test_inverse_Bo_study():
     sigma = 0.072
     theta=180
     g = 9.81
+     # To get the trends observed in the WRR paper the image must be way bigger
     im = ps.generators.overlapping_spheres(shape=[600, 200], r=8, porosity=0.65)
 
     inlets = np.zeros_like(im, dtype=bool)
@@ -32,7 +33,7 @@ def test_inverse_Bo_study():
     for i, dr in enumerate(inv_Bo):
         Bo = 1/inv_Bo[i]
         delta_rho = Bo*sigma/(g*a**2)  # delta_rho is found given the Bo
-        pc = ps.simulations.capillary_transform(
+        pc = ps.filters.capillary_transform(
             im=im,
             dt=dt,
             sigma=sigma,
