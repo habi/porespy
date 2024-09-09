@@ -47,7 +47,7 @@ def fill_trapped_voxels(
     trapped : ndarray, optional
         The boolean array of the trapped voxels. If this is not available than all
         voxels in `seq` with a value < 0 are used.
-    max_size : int
+    min_size : int
         The maximum size of the clusters which are to be filled. Clusters larger
         than this size are left trapped.
     conn : str
@@ -63,6 +63,21 @@ def fill_trapped_voxels(
         'max'     This corresponds to a square or cube with 8 neighbors in 2D and
                   26 neighbors in 3D.
         ========= ==================================================================
+
+    Returns
+    -------
+    results
+        A dataclass-like object with the following images as attributes:
+
+        ========== ==================================================================
+        Attribute  Description
+        ========== ==================================================================
+        'seq'      The invasion sequence image with erroneously trapped voxels set
+                   back to untrapped, and given the sequence number of their
+                   nearby voxels.
+        'trapped'  An updated mask of trapped voxels with the erroneously trapped
+                   voxels removed (i.e. set to `False`).
+        ========== ==================================================================
 
     Notes
     -----
@@ -138,6 +153,21 @@ def find_trapped_regions(
                   26 neighbors in 3D.
         ========= ==================================================================
 
+    method : str
+        Controls which method is used to analyze the invasion sequence. Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'cluster' Uses `scipy.ndimage.label` to find all clusters of invading phase
+                  connected to the outlet at each value of sequence found on the
+                  outlet face. This method is faster if `ibop` was used for the
+                  simulation.
+        'queue'   Uses a priority queue and walks the invasion process in reverse
+                  to find all trapped voxels. This method is faster if `ibip` or
+                  `qbip` was used for the simulation.
+        ========= ==================================================================
+
     min_size : int
         Any clusters of trapped voxels smaller than this size will be set to *not
         trapped*. This is useful to prevent small voxels along edges of the void
@@ -162,34 +192,37 @@ def find_trapped_regions(
 
     """
     if method == 'queue':
-        return _find_trapped_regions_queue(
+        seq_temp = _find_trapped_regions_queue(
             im=im,
             seq=seq,
             outlets=outlets,
-            return_mask=return_mask,
             conn=conn,
-            min_size=min_size,
         )
     elif method == 'cluster':
-        return _find_trapped_regions_cluster(
+        seq_temp = _find_trapped_regions_cluster(
             im=im,
             seq=seq,
             outlets=outlets,
-            return_mask=return_mask,
             conn=conn,
-            min_size=min_size,
         )
     else:
         raise Exception(f'{method} is not a supported method')
+
+    if min_size > 0:  # Fix pixels on solid surfaces
+        seq_temp, trapped = fill_trapped_voxels(seq_temp, max_size=min_size)
+    else:
+        trapped = (seq_temp == -1)*im
+    if return_mask:
+        return trapped
+    else:
+        return seq_temp
 
 
 def _find_trapped_regions_cluster(
     im: npt.ArrayLike,
     seq: npt.ArrayLike,
     outlets: npt.ArrayLike,
-    return_mask: bool = True,
     conn: Literal['min', 'max'] = 'min',
-    min_size: int = 0,
 ):
     r"""
     This version is meant for IBOP (i.e. drainage or MIO) simulations
@@ -210,7 +243,7 @@ def _find_trapped_regions_cluster(
         tmp = seq*mask_dil
         new_seq = flood(im=tmp, labels=spim.label(mask_dil)[0], mode='maximum')
         seq = seq*~mask + new_seq*mask
-    # Convert outlets to indices instead of mask to save time (maybe?)
+    # TODO: Convert outlets to indices instead of mask to save time (maybe?)
     outlets = np.where(outlets)
     # Remove all trivially trapped regions (i.e. invaded after last outlet)
     trapped = np.zeros_like(seq, dtype=bool)
@@ -229,30 +262,20 @@ def _find_trapped_regions_cluster(
     # Set uninvaded locations back to -1, and set to untrapped
     seq[mask] = -1
     trapped[mask] = False
-    if return_mask:
-        return trapped
-    else:
-        seq[trapped] = -1
-        seq = make_contiguous(seq, mode='symmetric')
-        return seq
+    seq[trapped] = -1
+    seq = make_contiguous(seq, mode='symmetric')
+    return seq
 
 
 def _find_trapped_regions_queue(
     im: npt.NDArray,
     seq: npt.NDArray,
     outlets: npt.NDArray,
-    return_mask: bool = True,
     conn: Literal['min', 'max'] = 'min',
-    min_size: int = 0,
 ):
     r"""
     This version is meant for IBIP or QBIP (ie. invasion) simulations.
 
-    Notes
-    -----
-    This currently only works if the image has been completely filled to the outlets
-    so needs to get the special case treatment that I added to the original
-    function.
     """
     im = im > 0
     # Make sure outlets are masked correctly and convert to 3d
@@ -271,20 +294,13 @@ def _find_trapped_regions_queue(
         outlets=out_temp,
         conn=conn,
     )
-
-    if return_mask:
-        trapped = trapped.squeeze()
-        trapped[~im] = 0
-        return trapped
-    else:
-        if min_size > 0:  # Fix pixels on solid surfaces
-            seq, trapped = fill_trapped_voxels(seq_temp, max_size=min_size)
-        seq = np.squeeze(seq)
-        trapped = np.squeeze(trapped)
-        seq[trapped] = -1
-        seq[~im] = 0
-        seq = make_contiguous(im=seq, mode='symmetric')
-        return seq
+    # Finalize images
+    seq = np.squeeze(seq)
+    trapped = np.squeeze(trapped)
+    seq[trapped] = -1
+    seq[~im] = 0
+    seq = make_contiguous(im=seq, mode='symmetric')
+    return seq
 
 
 @njit
