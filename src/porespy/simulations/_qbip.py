@@ -440,12 +440,24 @@ if __name__ == "__main__":
     outlets[-1, :] = True
     outlets = outlets*im
     ps.tools.tic()
-    trapped_new = ps.filters.find_trapped_regions2(
-        seq=ip.im_seq, im=im, outlets=outlets, return_mask=False)
+    trapped_new = ps.filters.find_trapped_regions(
+        im=im,
+        seq=ip.im_seq,
+        outlets=outlets,
+        return_mask=False,
+        method='queue',
+        min_size=5,
+    )
     ps.tools.toc()
     ps.tools.tic()
     trapped = ps.filters.find_trapped_regions(
-        seq=ip.im_seq, outlets=outlets, bins=None, return_mask=False)
+        im=im,
+        seq=ip.im_seq,
+        outlets=outlets,
+        return_mask=False,
+        method='cluster',
+        min_size=5,
+    )
     ps.tools.toc()
 
     # %%

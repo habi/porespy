@@ -192,6 +192,7 @@ def find_trapped_regions(
 
     """
     if method == 'queue':
+        seq = np.copy(seq)  # Need a copy since the queue method updates 'in-place'
         seq_temp = _find_trapped_regions_queue(
             im=im,
             seq=seq,
