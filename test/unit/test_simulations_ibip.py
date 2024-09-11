@@ -49,14 +49,14 @@ class IBIPTest(GenericTest):
         assert np.all(temp1 == temp2)
 
     def test_ibip(self):
-        # The test valuew below was changed since ibip no longer
+        # The test value below was changed since ibip no longer
         # convert the dt to ints, which allows it to match qbip
         # perfectly
         x = ps.simulations.ibip(self.im, inlets=self.bd)
         assert x.im_seq.max() == 268  # 318
 
     def test_ibip_w_trapping(self):
-        # The test valuew below was changed since ibip no longer
+        # The test value below was changed since ibip no longer
         # convert the dt to ints, which allows it to match qbip
         # perfectly
         im = self.sc_lattice_with_trapped_region()
