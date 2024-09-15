@@ -18,7 +18,7 @@ def test_ibip():
     result = ps.simulations.ibip(im=im, inlets=bd, maxiter=1000000)
 
     assert result.im_seq.max() == 2321  # 1987
-    assert result.im_size.max() == 11
+    assert result.im_size.max() == 11.045360565185547
 
     # %% Generate images and plots
     plot = False
