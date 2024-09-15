@@ -156,7 +156,7 @@ def qbip(
     dt = np.atleast_3d(dt)
 
     if pc is None:
-        pc = np.copy(dt)*-1
+        pc = 1.0/dt
         return_pressures = False  # Does not make sense if pc is not given
     pc = np.atleast_3d(pc)
 
@@ -434,7 +434,7 @@ if __name__ == "__main__":
     inlets[0, :] = True
     inlets = inlets*im
     pc = ps.filters.capillary_transform(im)
-    ip = qbip(im, pc=pc, inlets=inlets)
+    ip = qbip(im, pc=pc, inlets=inlets, return_sizes=True)
 
     outlets = np.zeros_like(im)
     outlets[-1, :] = True

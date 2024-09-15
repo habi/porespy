@@ -105,8 +105,8 @@ def ibip(
     if dt is None:  # Find dt if not given
         dt = edt(im)
     # Initialize inv image with -1 in the solid, and 0's in the void
-    inv = -1*(~im)
-    sizes = -1*(~im)
+    seq = -1*(~im)
+    sizes = -1.0*(~im)
     scratch = np.copy(bd)
     for step in tqdm(range(1, maxiter), **settings.tqdm):
         # Find insertion points
@@ -119,8 +119,8 @@ def ibip(
         dt_thresh = dt >= r_max
         # Extract the actual coordinates of the insertion sites
         pt = _where(edge*dt_thresh)
-        inv = _insert_disk_at_points(
-            im=inv,
+        seq = _insert_disk_at_points(
+            im=seq,
             coords=pt,
             r=int(r_max),
             v=step,
@@ -131,7 +131,7 @@ def ibip(
                 im=sizes,
                 coords=pt,
                 r=int(r_max),
-                v=int(r_max),
+                v=r_max,
                 smooth=True,
             )
         dt, bd = _update_dt_and_bd(dt, bd, pt)
@@ -143,18 +143,18 @@ def ibip(
             smooth=False,
         )
     # Convert inv image so that uninvaded voxels are set to -1 and solid to 0
-    temp = inv == 0  # Uninvaded voxels are set to -1 after _ibip
-    inv[~im] = 0
-    inv[temp] = -1
-    inv = make_contiguous(im=inv, mode='symmetric')
+    temp = seq == 0  # Uninvaded voxels are set to -1 after _ibip
+    seq[~im] = 0
+    seq[temp] = -1
+    seq = make_contiguous(im=seq, mode='symmetric')
     # Deal with invasion sizes similarly
     temp = sizes == 0
     sizes[~im] = 0
     sizes[temp] = -1
     results = Results()
     results.im_size = np.copy(sizes)
-    results.im_seq = np.copy(inv)
-    results.im_satn = seq_to_satn(inv)
+    results.im_seq = np.copy(seq)
+    results.im_satn = seq_to_satn(seq)
     return results
 
 

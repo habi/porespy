@@ -10,6 +10,7 @@ __all__ = [
     'pc_to_satn',
     'pc_to_seq',
     'satn_to_seq',
+    'size_to_pc',
 ]
 
 
@@ -403,3 +404,88 @@ def satn_to_seq(satn, im=None, mode='drainage'):
         seq[~im] = 0
     seq[uninvaded] = -1
     return seq
+
+
+def size_to_pc(im, size, f=None, **kwargs):
+    r"""
+    Converts size map into capillary pressure map
+
+    Parameters
+    ----------
+    im : ndarray
+        A Numpy array with ``True`` values indicating the void space.
+    size : ndarray
+        The image containing invasion size values in each voxel. Solid
+        should be indicated as 0's and uninvaded voxels as -1.
+    f : function handle, optional
+        A function to compute the capillary pressure which receives `size` as
+        the first argument, followed by any additional `**kwargs`. If not
+        provided then the Washburn equation is used, which requires `theta` and
+        `sigma` to be specified as `kwargs`.
+    **kwargs : Key word arguments
+        All additional keyword arguments are passed on to `f`.
+
+    Returns
+    -------
+    pc : ndarray
+        An image with each voxel containing the capillary pressure at which it was
+        invaded. Any uninvaded voxels in `size` are set to `np.inf` which is meant
+        to indicate that these voxels are never invaded.
+
+    Notes
+    -----
+    The function `f` should be of the form:
+
+    .. code-block::
+
+        def func(r, a, b):
+            pc = ...  # Some equation for capillary pressure using r, a and b
+            return pc
+
+    """
+    if f is None:
+        def f(r, sigma, theta, voxel_size):
+            pc = -2*sigma*np.cos(np.deg2rad(theta))/(r*voxel_size)
+            return pc
+    pc = f(size, **kwargs)
+    pc[~im] = 0.0
+    pc[im == -1] = np.inf
+    return pc
+
+
+# def satn_to_time(im, satn, flow_rate):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

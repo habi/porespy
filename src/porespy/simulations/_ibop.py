@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.typing as npt
-from skimage.morphology import ball, disk
+from typing import Literal
+from skimage.morphology import ball, disk, cube, square
 from porespy import settings
 from porespy.metrics import pc_curve
 from porespy.tools import (
@@ -42,6 +43,7 @@ def ibop(
     residual: npt.NDArray = None,
     bins: int = None,
     return_sizes: bool = False,
+    conn: Literal['min', 'max'] = 'min',
 ):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
@@ -54,7 +56,7 @@ def ibop(
         void space.
     pc : ndarray, optional
         Precomputed capillary pressure transform which is used to determine
-        the invadability of each voxel. If not provided then the negative of
+        the invadability of each voxel. If not provided then twice the inverse of
         the distance transform of `im` is used.
     dt : ndarray (optional)
         The distance transform of ``im``.  If not provided it will be
@@ -85,6 +87,18 @@ def ibop(
         If `True` then an array containing the size of the sphere which first
         overlapped each pixel is returned. This array is not computed by default
         as computing it increases computation time.
+    conn : str
+        Controls the shape of the structuring element used to find neighboring
+        voxels when looking connectivity of invading blobs.  Options are:
+
+        ========= ==================================================================
+        Option    Description
+        ========= ==================================================================
+        'min'     This corresponds to a cross with 4 neighbors in 2D and 6 neighbors
+                  in 3D.
+        'max'     This corresponds to a square or cube with 8 neighbors in 2D and
+                  26 neighbors in 3D.
+        ========= ==================================================================
 
     Returns
     -------
@@ -140,7 +154,7 @@ def ibop(
             raise Exception('Specified inlets and outlets overlap')
 
     if pc is None:
-        pc = -1.0*dt
+        pc = 1.0/dt
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
     if isinstance(bins, int):  # Use values in pc for invasion steps
@@ -158,7 +172,12 @@ def ibop(
     seeds = np.zeros_like(im, dtype=bool)
 
     # Begin IBOP algorithm
-    strel = ball(1) if im.ndim == 3 else disk(1)
+    if conn == 'min':
+        strel = ball(1) if im.ndim == 3 else disk(1)
+    elif conn == 'max':
+        strel = cube(3) if im.ndim == 3 else square(3)
+    else:
+        raise Exception(f"Unrecognized value for conn ({conn})")
     for p in tqdm(Ps, **settings.tqdm):
         # Find all locations in image invadable at current pressure
         invadable = (pc <= p)*im
@@ -191,7 +210,7 @@ def ibop(
                 im=pc_size,
                 coords=np.vstack(coords),
                 radii=radii.astype(int),
-                v=np.amax(radii),
+                v=np.amin(radii),
                 smooth=True,
                 overwrite=False,
             )
@@ -225,7 +244,7 @@ def ibop(
                             im=pc_size,
                             coords=np.vstack(coords),
                             radii=radii.astype(int),
-                            v=np.amax(radii),
+                            v=np.amin(radii),
                             smooth=True,
                             overwrite=False,
                         )
@@ -405,17 +424,12 @@ if __name__ == "__main__":
         ax[0][2].imshow(tmp, cmap=cmap, vmin=0, vmax=vmax)
         ax[0][2].set_title("No access limitations")
 
-    # %% Plot the capillary pressure curves for each scenario
-    if plots:
-        plt.figure(facecolor=bg)
-        ax = plt.axes()
-        ax.set_facecolor(bg)
-        plt.step(drn1.pc, drn1.snwp, 'b-o', where='post',
-                 label="No trapping, no residual")
-        plt.step(drn2.pc, drn2.snwp, 'r--o', where='post',
-                 label="With trapping, no residual")
-        plt.step(drn3.pc, drn3.snwp, 'g--o', where='post',
-                 label="No trapping, with residual")
-        plt.step(drn4.pc, drn4.snwp, 'm--o', where='post',
-                 label="With trapping, with residual")
-        plt.legend()
+        ax[1][2].step(drn1.pc, drn1.snwp, 'b-o', where='post',
+                      label="No trapping, no residual")
+        ax[1][2].step(drn2.pc, drn2.snwp, 'r--o', where='post',
+                      label="With trapping, no residual")
+        ax[1][2].step(drn3.pc, drn3.snwp, 'g--o', where='post',
+                      label="No trapping, with residual")
+        ax[1][2].step(drn4.pc, drn4.snwp, 'm--o', where='post',
+                      label="With trapping, with residual")
+        ax[1][2].legend()
