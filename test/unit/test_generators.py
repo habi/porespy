@@ -699,6 +699,14 @@ class GeneratorTest():
         )
         assert im3.sum() > im4.sum()
 
+    def test_elevation(self):
+        im = ps.generators.elevation([20, 20, 20], voxel_size=1.0, axis=0)
+        assert np.all(im[0, ...] == 0)
+        assert np.all(im[-1, ...] == 19.0)
+        im = ps.generators.elevation([20, 20, 20], voxel_size=0.1, axis=2)
+        assert np.all(im[..., 0] == 0)
+        assert np.all(np.around(im[..., -1], decimals=3) == 1.900)
+
 
 if __name__ == '__main__':
     t = GeneratorTest()

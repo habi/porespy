@@ -2,7 +2,10 @@ from typing import Literal
 
 import numpy as np
 
-__all__ = ['faces', 'borders']
+__all__ = [
+    'faces',
+    'borders',
+]
 
 
 def faces(shape, inlet: int = None, outlet: int = None):

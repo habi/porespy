@@ -11,12 +11,14 @@ except ModuleNotFoundError:
 
 def test_inverse_Bo_study():
     np.random.seed(0)
-    plot = False
+    plot = True
 
     # Generate image
     vx = 0.0001
     sigma = 0.072
+    theta=180
     g = 9.81
+     # To get the trends observed in the WRR paper the image must be way bigger
     im = ps.generators.overlapping_spheres(shape=[600, 200], r=8, porosity=0.65)
 
     inlets = np.zeros_like(im, dtype=bool)
@@ -31,13 +33,22 @@ def test_inverse_Bo_study():
     for i, dr in enumerate(inv_Bo):
         Bo = 1/inv_Bo[i]
         delta_rho = Bo*sigma/(g*a**2)  # delta_rho is found given the Bo
-        sim1[i] = ps.simulations.drainage(im=im,
-                                          voxel_size=vx,
-                                          inlets=inlets,
-                                          delta_rho=delta_rho,
-                                          sigma=sigma,
-                                          g=g,
-                                          bins=25)
+        pc = ps.filters.capillary_transform(
+            im=im,
+            dt=dt,
+            sigma=sigma,
+            theta=theta,
+            g=g,
+            rho_wp=0,
+            rho_nwp=delta_rho,
+            voxel_size=vx,
+        )
+        sim1[i] = ps.simulations.drainage(
+            im=im,
+            inlets=inlets,
+            pc=pc,
+            bins=25,
+        )
 
     # %%  Process data to make 1/Bo vs H plot
     data = []
@@ -60,3 +71,6 @@ def test_inverse_Bo_study():
         plt.loglog((inv_Bo[0], inv_Bo[-1]), (a/vx, a/vx), 'k-')
         plt.loglog((inv_Bo[0], inv_Bo[-1]), (im.shape[0], im.shape[0]), 'k-')
         plt.ylim([1, 10000])
+
+if __name__ == "__main__":
+    test_inverse_Bo_study()

@@ -139,6 +139,7 @@ class SeqTest():
         assert satn[0, 0] == 0.0
         assert satn[0, 1] == -1
         assert satn[0, 2] == 0.05
+
         satn = ps.filters.seq_to_satn(seq, mode='imbibition')
         assert satn.max() == 0.95
         assert satn[-1, -1] == 0.05
@@ -162,6 +163,7 @@ class SeqTest():
         assert satn[-1, -1] == 1.0
         assert sz[0, 0] == sz.min()
         assert satn[0, 0] == 0
+
         satn = ps.filters.size_to_satn(sz, mode='drainage')
         assert satn.max() == 1.0
         assert sz[-1, -1] == sz.max()
@@ -180,6 +182,7 @@ class SeqTest():
         assert satn[0, 0] == 0
         assert satn[0, 1] == -1
         assert satn[0, 2] == 0.05
+
         satn = ps.filters.size_to_satn(sz, mode='drainage')
         assert satn.max() == 0.95
         assert sz[-1, -1] == sz.max()
@@ -227,6 +230,7 @@ class SeqTest():
         assert satn.min() == 0
         assert satn[0, -1] == 0.05
         assert satn[0, 1] == 1.0
+
         # set some to uninvaded
         pc[:, -1] = np.inf
         satn = ps.filters.pc_to_satn(pc=pc, im=im, mode='imbibition')
@@ -249,6 +253,7 @@ class SeqTest():
         assert satn[0, -2] == 0.9
         assert satn[0, 0] == 0.0
         assert satn[0, 1] == 0.1
+
         satn = ps.filters.pc_to_satn(pc=pc, im=im, mode='imbibition')
         assert satn.max() == 0.9
         assert satn.min() == -1
@@ -267,6 +272,14 @@ class SeqTest():
         assert seq[0, 1] == 1
         assert seq[0, -1] == 19
         assert seq[0, -5] == -1
+
+    def test_size_to_seq(self):
+        im = self.im2D
+        sz = ps.filters.porosimetry(im)
+        nsizes = np.size(np.unique(sz))
+        sq = ps.filters.size_to_seq(sz)
+        nsteps = np.size(np.unique(sq))
+        assert nsteps == nsizes
 
 
 if __name__ == '__main__':

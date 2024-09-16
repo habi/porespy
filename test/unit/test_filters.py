@@ -4,7 +4,7 @@ import pytest
 import scipy.ndimage as spim
 from skimage.morphology import ball, disk, skeletonize_3d
 from skimage.util import random_noise
-
+import matplotlib.pyplot as plt
 try:
     from pyedt import edt
 except ModuleNotFoundError:
@@ -598,6 +598,83 @@ class FilterTest():
         s = ps.filters.region_size(im)
         hits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 16, 17, 19, 31, 32, 37]
         assert np.all(hits == np.unique(s)[1:])
+
+    def test_find_trapped_regions_return_mask_side_outlet(self):
+        im = ps.generators.blobs(shape=[100, 100], porosity=0.6, seed=7)
+        inlets = np.zeros_like(im)
+        inlets[0, :] = True
+        outlets = np.zeros_like(im)
+        outlets[:, -1] = True
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp1 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='cluster',
+            return_mask=True,
+            )
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp2 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='queue',
+            return_mask=True,
+        )
+        assert np.all(trp1 == trp2)
+
+    def test_find_trapped_regions_return_mask_top_outlet(self):
+        im = ps.generators.blobs(shape=[100, 100], porosity=0.6, seed=7)
+        inlets = np.zeros_like(im)
+        inlets[0, :] = True
+        outlets = np.zeros_like(im)
+        outlets[-1, :] = True
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp1 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='cluster',
+            return_mask=True,
+            )
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp2 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='queue',
+            return_mask=True,
+        )
+        assert np.all(trp1 == trp2)
+
+    def test_find_trapped_regions_top_outlet(self):
+        im = ps.generators.blobs(shape=[100, 100], porosity=0.6, seed=7)
+        inlets = np.zeros_like(im)
+        inlets[0, :] = True
+        outlets = np.zeros_like(im)
+        outlets[-1, :] = True
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp1 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='cluster',
+            return_mask=False,
+            )
+        inv = ps.simulations.ibop(im, inlets=inlets)
+        trp2 = ps.filters.find_trapped_regions(
+            im=im,
+            seq=inv.im_seq,
+            outlets=outlets,
+            method='queue',
+            return_mask=False,
+        )
+        assert np.all(trp1 == trp2)
+
+        fig, ax = plt.subplots(1, 3)
+        ax[0].imshow(inv.im_seq/im, interpolation='none', origin='lower')
+        ax[1].imshow(trp1/im, interpolation='none', origin='lower')
+        ax[2].imshow(trp2/im, interpolation='none', origin='lower')
 
 
 if __name__ == '__main__':

@@ -6,6 +6,12 @@ import psutil
 from porespy.tools import all_to_uniform
 
 
+__all__ = [
+    'fractal_noise',
+]
+
+
+
 def fractal_noise(
     shape,
     porosity: float = None,

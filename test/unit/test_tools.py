@@ -1,5 +1,4 @@
 import sys
-
 import matplotlib.pyplot as plt
 import numpy as np
 import porespy as ps
@@ -352,6 +351,8 @@ class ToolsTest():
     condition = sys.platform.startswith("win")  # and sys.version_info[:2] == (3, 8)
 
     @pytest.mark.skipif(condition, reason="scikit-fmm clashes with numpy")
+    @pytest.mark.skipif(np.__version__ >= '2',
+                        reason="scikit-fmm clashes with numpy")
     def test_marching_map(self):
         if np.__version__ < '2':
             im = ps.generators.lattice_spheres(shape=[101, 101],
