@@ -156,7 +156,7 @@ def qbip(
     dt = np.atleast_3d(dt)
 
     if pc is None:
-        pc = 1.0/dt
+        pc = 2.0/dt
         return_pressures = False  # Does not make sense if pc is not given
     pc = np.atleast_3d(pc)
 

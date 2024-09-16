@@ -154,7 +154,7 @@ def ibop(
             raise Exception('Specified inlets and outlets overlap')
 
     if pc is None:
-        pc = 1.0/dt
+        pc = 2.0/dt
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
     if isinstance(bins, int):  # Use values in pc for invasion steps
