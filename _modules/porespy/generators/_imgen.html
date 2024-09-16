@@ -220,6 +220,7 @@
     <span class="s2">&quot;bundle_of_tubes&quot;</span><span class="p">,</span>
     <span class="s2">&quot;cylinders&quot;</span><span class="p">,</span>
     <span class="s2">&quot;cylindrical_plug&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;elevation&quot;</span><span class="p">,</span>
     <span class="s2">&quot;insert_shape&quot;</span><span class="p">,</span>
     <span class="s2">&quot;lattice_spheres&quot;</span><span class="p">,</span>
     <span class="s2">&quot;line_segment&quot;</span><span class="p">,</span>
@@ -234,6 +235,52 @@
 
 <span class="n">tqdm</span> <span class="o">=</span> <span class="n">get_tqdm</span><span class="p">()</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">elevation</span><span class="p">(</span>
+    <span class="n">shape</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span>
+    <span class="n">voxel_size</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generates a image of distances from given axis</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    shape : ndarray or list</span>
+<span class="sd">        This dictates the shape of the output image. If an image is supplied, then</span>
+<span class="sd">        it&#39;s shape is used. Otherwise, the shape should be supplied as a N-D long</span>
+<span class="sd">        list of the shape for each axis (i.e. `[200, 200]` or `[300, 300, 300]`).</span>
+<span class="sd">    voxel_size : scalar</span>
+<span class="sd">        The size of the voxels in physical units (i.e. `100e-6` would be 100 um per</span>
+<span class="sd">        voxel side).</span>
+<span class="sd">    axis : int, optional, default is 0</span>
+<span class="sd">        The direction along which the height is calculated.  The default is 0, which</span>
+<span class="sd">        is the &#39;x-axis&#39;.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    elevation : ndarray</span>
+<span class="sd">        A numpy array of the specified shape with the values in each voxel indicating</span>
+<span class="sd">        the height of that voxel from the beginning of the specified axis.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    ramp</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    # TODO: Create a notebook example for this function</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+    <span class="n">a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">[</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="n">voxel_size</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span>
 
 
 <span class="k">def</span> <span class="nf">ramp</span><span class="p">(</span>
@@ -266,6 +313,10 @@
 <span class="sd">    ramp : ndarray</span>
 <span class="sd">        An array of the requested shape with values changing linearly from inlet</span>
 <span class="sd">        to outlet in the direction specified.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    elevation</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
@@ -598,22 +649,22 @@
 
 
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">_set_seed</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_set_seed</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
 
 
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">_get_rand_float</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_rand_float</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
 
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">_get_rand_int</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_get_rand_int</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
 
 <span class="nd">@njit</span>
-<span class="k">def</span> <span class="nf">_make_choice</span><span class="p">(</span><span class="n">options_im</span><span class="p">,</span> <span class="n">free_sites</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_make_choice</span><span class="p">(</span><span class="n">options_im</span><span class="p">,</span> <span class="n">free_sites</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function is called by _begin_inserting to find valid insertion</span>
 <span class="sd">    points.</span>

@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1030,7 +1010,8 @@
 invasion.  0’s are treated as solid and -1’s are treated as uninvaded
 void space.</p></li>
 <li><p><strong>s</strong> (<em>scalar</em>) – The global saturation value for which the profile is desired. If <cite>satn</cite> is
-a pre-thresholded boolean image then this is ignored, <cite>im</cite> is required.</p></li>
+a pre-thresholded boolean image then this is ignored, in which case <cite>im</cite>
+is required.</p></li>
 <li><p><strong>im</strong> (<em>ndarray</em>) – A boolean image with <cite>True</cite> values indicating the void phase. This is used
 to compute the void volume if <cite>satn</cite> is given as a pre-thresholded boolean
 mask.</p></li>

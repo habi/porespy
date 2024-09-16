@@ -41,7 +41,7 @@
     <script src="../../../_static/js/custom.js?v=8f303282"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-    <link rel="next" title="pc_curve_from_ibip" href="porespy.metrics.pc_curve_from_ibip.html" />
+    <link rel="next" title="phase_fraction" href="porespy.metrics.phase_fraction.html" />
     <link rel="prev" title="mesh_volume" href="porespy.metrics.mesh_volume.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2 current active">
     <a class="current reference internal" href="#">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1021,7 +1001,7 @@
 <h1>pc_curve<a class="headerlink" href="#pc-curve" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.metrics.pc_curve">
-<span class="sig-name descname"><span class="pre">pc_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sizes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.072</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">180</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_funcs.html#pc_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.pc_curve" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">pc_curve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_funcs.html#pc_curve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.pc_curve" title="Link to this definition">¶</a></dt>
 <dd><p>Produces a Pc-Snwp curve given a map of meniscus radii or capillary
 pressures at which each voxel was invaded</p>
 <dl class="field-list simple">
@@ -1029,24 +1009,12 @@ pressures at which each voxel was invaded</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>im</strong> (<em>ndarray</em>) – The voxel image of the porous media with <code class="docutils literal notranslate"><span class="pre">True</span></code> values indicating
 the void space</p></li>
-<li><p><strong>sizes</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – An image containing the sphere radii at which each voxel was invaded
-during an invasion experiment.</p></li>
-<li><p><strong>pc</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – An image containing the capillary pressures at which each voxel was
-invaded during an invasion experiment.</p></li>
+<li><p><strong>pc</strong> (<em>ndarray</em>) – An image containing the capillary pressures at which each voxel was
+invaded during an invasion experiment. This image can be produced
+using <cite>size_to_pc</cite> if not available.</p></li>
 <li><p><strong>seq</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – An image containing invasion sequence values, such as that returned
-from the <code class="docutils literal notranslate"><span class="pre">ibip</span></code> function.</p></li>
-<li><p><strong>sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – The surface tension of the fluid-fluid system of interest.
-This argument is ignored if <code class="docutils literal notranslate"><span class="pre">pc</span></code> are specified, otherwise it
-is used in the Washburn equation to convert <code class="docutils literal notranslate"><span class="pre">sizes</span></code> to capillary
-pc.</p></li>
-<li><p><strong>theta</strong> (<em>float</em>) – The contact angle measured through the invading phase in degrees.
-This argument is ignored if <code class="docutils literal notranslate"><span class="pre">pc</span></code> are specified, otherwise it
-is used in the Washburn equation to convert <code class="docutils literal notranslate"><span class="pre">sizes</span></code> to capillary
-pressures.</p></li>
-<li><p><strong>voxel_size</strong> (<em>float</em>) – The voxel resolution of the image.
-This argument is ignored if <code class="docutils literal notranslate"><span class="pre">pc</span></code> are specified, otherwise it
-is used in the Washburn equation to convert <code class="docutils literal notranslate"><span class="pre">sizes</span></code> to capillary
-pressures.</p></li>
+from the <code class="docutils literal notranslate"><span class="pre">ibip</span></code> function. The curve is generated by scanning from
+lowest to highest values and computing the corresponding saturation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -1075,16 +1043,6 @@ phase at each pressure in <code class="docutils literal notranslate"><span class
 <dd class="field-odd"><p>Results object</p>
 </dd>
 </dl>
-<p class="rubric">Notes</p>
-<p>If <code class="docutils literal notranslate"><span class="pre">sizes</span></code> is provided, then the Washburn equation is used to convert
-the radii to capillary pressures, using the given <code class="docutils literal notranslate"><span class="pre">sigma</span></code> and <code class="docutils literal notranslate"><span class="pre">theta</span></code>
-values, along with the <code class="docutils literal notranslate"><span class="pre">voxel_size</span></code> if the values are in voxel radii.
-For more control over how capillary pressure model, it can be computed by
-hand, for example:</p>
-<blockquote>
-<div><p>$$ pc = frac{-2*0.072*np.cos(np.deg2rad(180))}{sizes cdot voxel_size} $$</p>
-</div></blockquote>
-<p>then passed in as the <code class="docutils literal notranslate"><span class="pre">pc</span></code> argument.</p>
 <p class="rubric">Examples</p>
 <p><a class="reference external" href="https://porespy.org/examples/metrics/reference/pc_curve.html">Click here</a>
 to view online example.</p>

@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1034,31 +1014,43 @@ value.  This is useful for visualization and statistics.</p>
 and 0’s elsewhere.</p></li>
 <li><p><strong>labels</strong> (<em>array_like</em>) – An array the same shape as <code class="docutils literal notranslate"><span class="pre">im</span></code> with each region labeled.</p></li>
 <li><p><strong>mode</strong> (<em>string</em>) – <p>Specifies how to determine the value to flood each region. Options
-taken from the <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.measurements</span></code> functions:</p>
-<blockquote>
-<div><dl class="simple">
-<dt>’maximum’</dt><dd><p>Floods each region with the local max in that region. The
-keyword <code class="docutils literal notranslate"><span class="pre">max</span></code> is also accepted.</p>
-</dd>
-<dt>’minimum’</dt><dd><p>Floods each region the local minimum in that region. The
-keyword <code class="docutils literal notranslate"><span class="pre">min</span></code> is also accepted.</p>
-</dd>
-<dt>’median’</dt><dd><p>Floods each region the local median in that region</p>
-</dd>
-<dt>’mean’</dt><dd><p>Floods each region the local mean in that region</p>
-</dd>
-<dt>’size’</dt><dd><p>Floods each region with the size of that region.  This is
-actually accomplished with <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.sum</span></code> by converting
-<code class="docutils literal notranslate"><span class="pre">im</span></code> to a boolean image (<code class="docutils literal notranslate"><span class="pre">im</span> <span class="pre">=</span> <span class="pre">im</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>).</p>
-</dd>
-<dt>’standard_deviation’</dt><dd><p>Floods each region with the value of the standard deviation
-of the voxels in <code class="docutils literal notranslate"><span class="pre">im</span></code>.</p>
-</dd>
-<dt>’variance’</dt><dd><p>Floods each region with the value of the variance of the voxels
-in <code class="docutils literal notranslate"><span class="pre">im</span></code>.</p>
-</dd>
-</dl>
-</div></blockquote>
+taken from the <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.measurements</span></code> function include:</p>
+<table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>maximum</p></td>
+<td><p>Floods each region with the local max in that region.
+The keyword <code class="docutils literal notranslate"><span class="pre">max</span></code> is also accepted.</p></td>
+</tr>
+<tr class="row-odd"><td><p>minimum</p></td>
+<td><p>Floods each region the local minimum in that region.
+The keyword <code class="docutils literal notranslate"><span class="pre">min</span></code> is also accepted.</p></td>
+</tr>
+<tr class="row-even"><td><p>median</p></td>
+<td><p>Floods each region the local median in that region</p></td>
+</tr>
+<tr class="row-odd"><td><p>mean</p></td>
+<td><p>Floods each region the local mean in that region</p></td>
+</tr>
+<tr class="row-even"><td><p>size</p></td>
+<td><p>Floods each region with the size of that region.  This
+is actually accomplished with <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.sum</span></code> by
+converting <code class="docutils literal notranslate"><span class="pre">im</span></code> to a boolean image (<code class="docutils literal notranslate"><span class="pre">im</span> <span class="pre">=</span> <span class="pre">im</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>standard_deviation</p></td>
+<td><p>Floods each region with the value of the standard
+deviation of the voxels in <code class="docutils literal notranslate"><span class="pre">im</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>variance</p></td>
+<td><p>Floods each region with the value of the variance of
+the voxels in <code class="docutils literal notranslate"><span class="pre">im</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
 </p></li>
 </ul>
 </dd>

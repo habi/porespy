@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1024,9 +1004,6 @@
 <span class="sig-name descname"><span class="pre">find_dt_artifacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/filters/_funcs.html#find_dt_artifacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.filters.find_dt_artifacts" title="Link to this definition">¶</a></dt>
 <dd><p>Label points in a distance transform that are closer to image boundary
 than solid</p>
-<p>These points could <em>potentially</em> be erroneously high since their
-distance values do not reflect the possibility that solid may have
-been present beyond the border of the image but was lost by trimming.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>dt</strong> (<em>ndarray</em>) – The distance transform of the phase of interest.</p>
@@ -1044,6 +1021,10 @@ value of zero have no error.</p>
 <dd class="field-odd"><p>ndarray</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>These points could <em>potentially</em> be erroneously high since their
+distance values do not reflect the possibility that solid may have
+been present beyond the border of the image but was lost by trimming.</p>
 <p class="rubric">Examples</p>
 <p><a class="reference external" href="https://porespy.org/examples/filters/reference/find_dt_artifacts.html">Click here</a>
 to view online example.</p>

@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1022,32 +1002,44 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.metrics.boxcount">
 <span class="sig-name descname"><span class="pre">boxcount</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_funcs.html#boxcount"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.boxcount" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates fractal dimension of an image using the tiled box counting
+<dd><p>Calculates the fractal dimension of an image using the tiled box counting
 method <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>im</strong> (<em>ndarray</em>) – The image of the porous material.</p></li>
-<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>array_like</em><em>, </em><em>optional</em>) – The number of box sizes to use. The default is 10 sizes
-logarithmically spaced between 1 and <code class="docutils literal notranslate"><span class="pre">min(im.shape)</span></code>.
-If an array is provided, this is used directly.</p></li>
+<li><p><strong>im</strong> (<em>ndarray</em>) – A boolean image of the porous material with <cite>True</cite> values indicating the
+phase of interest.</p></li>
+<li><p><strong>bins</strong> (<em>int</em><em> or </em><em>array_like</em><em>, </em><em>optional</em>) – The number of box sizes to use. The default is 10 sizes logarithmically
+spaced between 1 and <code class="docutils literal notranslate"><span class="pre">min(im.shape)</span></code>. If an array is provided, this is
+used directly.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><p>An object possessing the following attributes:</p>
-<dl class="simple">
-<dt>size<span class="classifier">ndarray</span></dt><dd><p>The box sizes used</p>
-</dd>
-<dt>count<span class="classifier">ndarray</span></dt><dd><p>The number of boxes of each size that contain both solid and void</p>
-</dd>
-<dt>slope<span class="classifier">ndarray</span></dt><dd><p>The gradient of <code class="docutils literal notranslate"><span class="pre">count</span></code>. This has the same number of elements as
-<code class="docutils literal notranslate"><span class="pre">count</span></code> and</p>
-</dd>
-</dl>
+<dd class="field-even"><p><p><strong>results</strong> – An object possessing the following attributes:</p>
+<table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Attribute</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>size</p></td>
+<td><p>An array containing the specific box sizes used</p></td>
+</tr>
+<tr class="row-odd"><td><p>count</p></td>
+<td><p>An array containing the number of boxes of each size that
+contain both solid and void</p></td>
+</tr>
+<tr class="row-even"><td><p>slope</p></td>
+<td><p>The gradient of <code class="docutils literal notranslate"><span class="pre">count</span></code>. This has the same number of elements
+as <code class="docutils literal notranslate"><span class="pre">count</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
 </p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>results</p>
+<dd class="field-odd"><p>dataclass-like</p>
 </dd>
 </dl>
 <p class="rubric">References</p>

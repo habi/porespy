@@ -349,16 +349,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -523,16 +513,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1026,7 +1006,7 @@
 <span class="sig-name descname"><span class="pre">radial_density_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bins</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voxel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/metrics/_funcs.html#radial_density_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.metrics.radial_density_distribution" title="Link to this definition">¶</a></dt>
 <dd><p>Computes radial density function by analyzing the histogram of voxel
 values in the distance transform.  This function is defined by
-Torquato [1] as:</p>
+Torquato <a class="footnote-reference brackets" href="#id2" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a> as:</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
 \[\int_0^\infty P(r)dr = 1.0\]</div>
@@ -1104,8 +1084,13 @@ that it is also known as the <em>pore-size distribution function</em>.  These
 terms are avoided here since they have specific connotations in porous
 media analysis.</p>
 <p class="rubric">References</p>
-<p>[1] Torquato, S. Random Heterogeneous Materials: Mircostructure and
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id2" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Torquato, S. Random Heterogeneous Materials: Mircostructure and
 Macroscopic Properties. Springer, New York (2002) - See page 48 &amp; 292</p>
+</aside>
+</aside>
 <p class="rubric">Examples</p>
 <p><a class="reference external" href="https://porespy.org/examples/metrics/reference/radial_density.html">Click here</a>
 to view online example.</p>

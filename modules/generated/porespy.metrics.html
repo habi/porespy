@@ -349,16 +349,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="generated/porespy.filters.imagej.html">
      imagej
     </a>
@@ -523,16 +513,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="generated/porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1025,7 +1005,7 @@ but a few functions can be applied directly to the binary image.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.metrics.boxcount.html#porespy.metrics.boxcount" title="porespy.metrics.boxcount"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.boxcount</span></code></a>(im[, bins])</p></td>
-<td><p>Calculates fractal dimension of an image using the tiled box counting method <a href="#id2"><span class="problematic" id="id1">[1]_</span></a></p></td>
+<td><p>Calculates the fractal dimension of an image using the tiled box counting method <a href="#id2"><span class="problematic" id="id1">[1]_</span></a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.metrics.chord_counts.html#porespy.metrics.chord_counts" title="porespy.metrics.chord_counts"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.chord_counts</span></code></a>(im)</p></td>
 <td><p>Find the length of each chord in the supplied image</p></td>
@@ -1045,14 +1025,8 @@ but a few functions can be applied directly to the binary image.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.metrics.mesh_volume.html#porespy.metrics.mesh_volume" title="porespy.metrics.mesh_volume"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.mesh_volume</span></code></a>(region[, voxel_size])</p></td>
 <td><p>Compute the volume of a single region by meshing it</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.metrics.pc_curve.html#porespy.metrics.pc_curve" title="porespy.metrics.pc_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.pc_curve</span></code></a>(im[, sizes, pc, seq, ...])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.metrics.pc_curve.html#porespy.metrics.pc_curve" title="porespy.metrics.pc_curve"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.pc_curve</span></code></a>(im, pc[, seq])</p></td>
 <td><p>Produces a Pc-Snwp curve given a map of meniscus radii or capillary pressures at which each voxel was invaded</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.metrics.pc_curve_from_ibip.html#porespy.metrics.pc_curve_from_ibip" title="porespy.metrics.pc_curve_from_ibip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.pc_curve_from_ibip</span></code></a>(*args, **kwargs)</p></td>
-<td><p>This function is deprecated.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.metrics.pc_curve_from_mio.html#porespy.metrics.pc_curve_from_mio" title="porespy.metrics.pc_curve_from_mio"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.pc_curve_from_mio</span></code></a>(*args, **kwargs)</p></td>
-<td><p>This function is deprecated.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.metrics.phase_fraction.html#porespy.metrics.phase_fraction" title="porespy.metrics.phase_fraction"><code class="xref py py-obj docutils literal notranslate"><span class="pre">metrics.phase_fraction</span></code></a>(im[, normed])</p></td>
 <td><p>Calculate the fraction of each phase in an image</p></td>

@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1021,14 +1001,18 @@
 <h1>region_size<a class="headerlink" href="#region-size" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="porespy.filters.region_size">
-<span class="sig-name descname"><span class="pre">region_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/filters/_funcs.html#region_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.filters.region_size" title="Link to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">region_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">im</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/porespy/filters/_funcs.html#region_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#porespy.filters.region_size" title="Link to this definition">¶</a></dt>
 <dd><p>Replace each voxel with the size of the region to which it belongs</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>im</strong> (<em>ndarray</em>) – Either a boolean image wtih <code class="docutils literal notranslate"><span class="pre">True</span></code> indicating the features of
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>im</strong> (<em>ndarray</em>) – Either a boolean image wtih <code class="docutils literal notranslate"><span class="pre">True</span></code> indicating the features of
 interest, in which case <code class="docutils literal notranslate"><span class="pre">scipy.ndimage.label</span></code> will be applied to
 find regions, or a greyscale image with integer values indicating
-regions.</p>
+regions.</p></li>
+<li><p><strong>strel</strong> (<em>ndarray</em>) – The structuring element to use for defining which connected voxels form
+a region</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>image</strong> – A copy of <code class="docutils literal notranslate"><span class="pre">im</span></code> with each voxel value indicating the size of the

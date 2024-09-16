@@ -347,16 +347,6 @@
     </a>
    </li>
    <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.filters.ibip.html">
-     ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.filters.ibip_gpu.html">
-     ibip_gpu
-    </a>
-   </li>
-   <li class="toctree-l2">
     <a class="reference internal" href="generated/porespy.filters.imagej.html">
      imagej
     </a>
@@ -521,16 +511,6 @@
    <li class="toctree-l2">
     <a class="reference internal" href="generated/porespy.metrics.pc_curve.html">
      pc_curve
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.metrics.pc_curve_from_ibip.html">
-     pc_curve_from_ibip
-    </a>
-   </li>
-   <li class="toctree-l2">
-    <a class="reference internal" href="generated/porespy.metrics.pc_curve_from_mio.html">
-     pc_curve_from_mio
     </a>
    </li>
    <li class="toctree-l2">
@@ -1019,7 +999,7 @@
 <h2>Collection of functions for altering images based on structural properties<a class="headerlink" href="#collection-of-functions-for-altering-images-based-on-structural-properties" title="Link to this heading">¶</a></h2>
 <p>This module contains a variety of functions for altering images based on
 the structural characteristics, such as pore sizes.  A definition of a
-<em>filter</em> is a function that returns an image the shape as the original
+<em>filter</em> is a function that returns an image the same shape as the original
 image, but with altered values.</p>
 <table class="autosummary longtable table autosummary">
 <tbody>
@@ -1053,8 +1033,8 @@ image, but with altered values.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.find_peaks.html#porespy.filters.find_peaks" title="porespy.filters.find_peaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.find_peaks</span></code></a>(dt[, r_max, strel, ...])</p></td>
 <td><p>Finds local maxima in the distance transform</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.find_trapped_regions.html#porespy.filters.find_trapped_regions" title="porespy.filters.find_trapped_regions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.find_trapped_regions</span></code></a>(seq[, outlets, ...])</p></td>
-<td><p>Find the trapped regions given an invasion sequence image</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.find_trapped_regions.html#porespy.filters.find_trapped_regions" title="porespy.filters.find_trapped_regions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.find_trapped_regions</span></code></a>(im, seq, outlets)</p></td>
+<td><p>Find the trapped regions given an invasion sequence map and specified outlets</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.flood.html#porespy.filters.flood" title="porespy.filters.flood"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.flood</span></code></a>(im, labels[, mode])</p></td>
 <td><p>Floods/fills each region in an image with a single value based on the specific values in that region.</p></td>
@@ -1064,12 +1044,6 @@ image, but with altered values.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.hold_peaks.html#porespy.filters.hold_peaks" title="porespy.filters.hold_peaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.hold_peaks</span></code></a>(im[, axis, ascending])</p></td>
 <td><p>Replaces each voxel with the highest value along the given axis.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.ibip.html#porespy.filters.ibip" title="porespy.filters.ibip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.ibip</span></code></a>(**kwargs)</p></td>
-<td><p>This function has been moved to the <code class="docutils literal notranslate"><span class="pre">simulations</span></code> module, please use that.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.ibip_gpu.html#porespy.filters.ibip_gpu" title="porespy.filters.ibip_gpu"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.ibip_gpu</span></code></a>(**kwargs)</p></td>
-<td><p>This function has been moved to the <code class="docutils literal notranslate"><span class="pre">simulations</span></code> module, please use that.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="porespy.filters.imagej.html#module-porespy.filters.imagej" title="porespy.filters.imagej"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.imagej</span></code></a></p></td>
 <td><p>imagej</p></td>
@@ -1095,14 +1069,14 @@ image, but with altered values.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.reduce_peaks.html#porespy.filters.reduce_peaks" title="porespy.filters.reduce_peaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.reduce_peaks</span></code></a>(peaks)</p></td>
 <td><p>Any peaks that are broad or elongated are replaced with a single voxel that is located at the center of mass of the original voxels.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.region_size.html#porespy.filters.region_size" title="porespy.filters.region_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.region_size</span></code></a>(im)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.region_size.html#porespy.filters.region_size" title="porespy.filters.region_size"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.region_size</span></code></a>(im[, strel])</p></td>
 <td><p>Replace each voxel with the size of the region to which it belongs</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.satn_to_seq.html#porespy.filters.satn_to_seq" title="porespy.filters.satn_to_seq"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.satn_to_seq</span></code></a>(satn[, im, mode])</p></td>
 <td><p>Converts an image of nonwetting phase saturations to invasion sequence values</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/porespy.filters.seq_to_satn.html#porespy.filters.seq_to_satn" title="porespy.filters.seq_to_satn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.seq_to_satn</span></code></a>(seq[, im, mode])</p></td>
-<td><p>Converts an image of invasion sequence values to non-wetting phase saturation values.</p></td>
+<td><p>Converts an image of invasion sequence values to invading phase saturation values.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/porespy.filters.size_to_satn.html#porespy.filters.size_to_satn" title="porespy.filters.size_to_satn"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filters.size_to_satn</span></code></a>(size[, im, bins, mode])</p></td>
 <td><p>Converts an image of invasion size values into non-wetting phase saturations.</p></td>
