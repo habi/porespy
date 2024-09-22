@@ -14,11 +14,21 @@ logger = logging.getLogger("porespy")
 __all__ = [
     "sanitize_filename",
     "get_tqdm",
+    "get_edt",
     "show_docstring",
     "Results",
     "tic",
     "toc",
 ]
+
+
+def get_edt():
+    try:
+        package = importlib.import_module("pyedt")
+        return package.edt
+    except ModuleNotFoundError:
+        package = importlib.import_module("edt")
+        return package.edt
 
 
 def _format_time(timespan, precision=3):

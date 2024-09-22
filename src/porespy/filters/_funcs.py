@@ -13,12 +13,8 @@ from porespy.tools import get_border, subdivide, recombine
 from porespy.tools import unpad, extract_subsection
 from porespy.tools import ps_disk, ps_ball, ps_round
 from porespy import settings
-from porespy.tools import get_tqdm
+from porespy.tools import get_tqdm, get_edt
 from typing import Literal
-try:
-    from pyedt import edt
-except ModuleNotFoundError:
-    from edt import edt
 
 
 __all__ = [
@@ -45,7 +41,7 @@ __all__ = [
     "trim_small_clusters",
 ]
 
-
+edt = get_edt()
 tqdm = get_tqdm()
 logger = logging.getLogger(__name__)
 

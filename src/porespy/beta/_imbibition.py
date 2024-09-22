@@ -69,9 +69,9 @@ def imbibition(
     pc,
     dt=None,
     inlets=None,
+    outlets=None,
     residual=None,
     bins=25,
-    return_snwp=False,
 ):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
@@ -115,28 +115,30 @@ def imbibition(
         inlets = np.zeros_like(im)
         inlets[0, ...] = True
 
+    pc = np.copy(pc)
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
     if isinstance(bins, int):
         vmax = pc[pc < np.inf].max()
         vmin = pc[im][pc[im] > -np.inf].min()
-        Ps = np.logspace(np.log10(vmax), np.log10(vmin), bins)
+        Ps = np.logspace(np.log10(np.ceil(vmax)), np.log10(np.floor(vmin)), bins)
     else:
         Ps = np.unique(bins)[::-1]  # To ensure they are in descending order
 
     # Initialize empty arrays to accumulate results of each loop
     im_pc = np.zeros_like(im, dtype=float)
+    im_seq = np.zeros_like(im, dtype=int)
     strel = ball(1) if im.ndim == 3 else disk(1)
     for i in tqdm(range(len(Ps)), **settings.tqdm):
         # This can be made faster if I find a way to get only seeds on edge, so
         # less spheres need to be drawn
-        invadable = (pc < Ps[i])*im
-        inv_mask = np.zeros_like(im, dtype=bool)
+        invadable = (pc <= Ps[i])*im
+        nwp_mask = np.zeros_like(im, dtype=bool)
         if np.any(invadable):
             coords = np.where(invadable)
             radii = dt[coords].astype(int)
-            inv_mask = _insert_disks_at_points_parallel(
-                im=inv_mask,
+            nwp_mask = _insert_disks_at_points_parallel(
+                im=nwp_mask,
                 coords=np.vstack(coords),
                 radii=radii,
                 v=True,
@@ -144,15 +146,20 @@ def imbibition(
                 overwrite=True,
             )
         if inlets is not None:
-            mask = trim_disconnected_blobs((~inv_mask)*im, inlets=inlets, strel=strel)
-            im_pc += mask*Ps[i]*(im_pc == 0)
+            nwp_mask = ~trim_disconnected_blobs((~nwp_mask)*im, inlets=inlets, strel=strel)
+        mask = (nwp_mask == 0) * (im_seq == 0) * im
+        im_seq[mask] = i
+        im_pc[mask] = Ps[i]
 
+    if outlets is not None:
+        mask = find_trapped_regions(
+            im=im, seq=im_seq, outlets=outlets, return_mask=True, method='cluster')
+        im_pc[mask] = -np.inf
+        im_seq[mask] = -1
     # Collect data in a Results object
     result = Results()
-    im_pc[im_pc == 0] = -np.inf
-    im_pc[~im] = 0
+    result.im_seq = im_seq
     result.im_pc = im_pc
-    result.im_seq = pc_to_seq(pc=im_pc, im=im, mode='imbibition')
     return result
 
 
@@ -211,6 +218,7 @@ if __name__ == '__main__':
     cm.set_over('k')
 
     i = np.random.randint(1, 100000)  # bad: 38364, good: 65270, 71698
+    i = 38364
     im = ps.generators.blobs([500, 500], porosity=0.55, blobiness=1.5, seed=i)
     im = ps.filters.fill_blind_pores(im, surface=True)
 
@@ -218,28 +226,28 @@ if __name__ == '__main__':
     inlets[0, ...] = True
     outlets = np.zeros_like(im)
     outlets[-1, ...] = True
-    pc = ps.simulations.capillary_transform(im=im, voxel_size=1e-4)
+    pc = ps.filters.capillary_transform(im=im, voxel_size=1e-4)
 
-    imb = imbibition(im=im, pc=pc, inlets=inlets)
+    imb1 = imbibition(im=im, pc=pc, inlets=inlets)
+    imb2 = imbibition(im=im, pc=pc, inlets=inlets, outlets=outlets)
     pc_curve1 = ps.metrics.pc_map_to_pc_curve(
-        pc=imb.im_pc,
+        pc=imb1.im_pc,
         im=im,
-        seq=imb.im_seq,
+        seq=imb1.im_seq,
         mode='imbibition',
     )
 
     fig, ax = plt.subplots(1, 2)
-    ax[0].imshow(imb.im_seq, origin='lower', cmap=cm)
+    imb1.im_pc[~im] = -1
+    ax[0].imshow(imb1.im_seq, origin='lower', cmap=cm, vmin=0)
 
-    mask = ps.filters.find_trapped_regions(seq=imb.im_seq, outlets=outlets)
-    imb.im_pc[mask] = np.inf
-    imb.im_seq[mask] = -1
-    ax[1].imshow(imb.im_pc, origin='lower', cmap=cm)
+    vmax = imb2.im_seq.max()
+    ax[1].imshow(imb2.im_seq, origin='lower', cmap=cm, vmin=0, vmax=vmax)
 
     pc_curve2 = ps.metrics.pc_map_to_pc_curve(
-        pc=imb.im_pc,
+        pc=imb2.im_pc,
         im=im,
-        seq=imb.im_seq,
+        seq=imb2.im_seq,
         mode='imbibition',
     )
     fig, ax = plt.subplots()
