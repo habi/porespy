@@ -142,6 +142,9 @@ def imbibition(
                 inlets=inlets,
                 strel=strel,
             )
+        if residual is not None:
+            nwp_mask = nwp_mask * ~residual
+
         mask = (nwp_mask == 0) * (im_seq == 0) * im
         im_seq[mask] = i
         im_pc[mask] = Ps[i]
@@ -224,14 +227,15 @@ if __name__ == '__main__':
     im = ps.generators.blobs([500, 500], porosity=0.75, blobiness=2, seed=i)
     im = ps.filters.fill_blind_pores(im, surface=True)
 
-    # inlets = np.zeros_like(im)
-    # inlets[0, ...] = True
-    inlets = None
+    inlets = np.zeros_like(im)
+    inlets[0, ...] = True
     outlets = ps.generators.borders(im.shape, mode='faces')
+    lt = ps.filters.local_thickness(im)
+    residual = (lt < 8)*im
     pc = ps.filters.capillary_transform(im=im, voxel_size=1e-4)
 
     imb1 = imbibition(im=im, pc=pc, inlets=inlets)
-    imb2 = imbibition(im=im, pc=pc, inlets=inlets, outlets=outlets)
+    imb2 = imbibition(im=im, pc=pc, inlets=inlets, residual=residual, outlets=outlets)
 
     # %%
 
