@@ -1,16 +1,11 @@
 import numpy as np
 from skimage.morphology import ball, disk
 from porespy.filters import (
-    local_thickness,
     find_trapped_regions,
-    size_to_satn,
-    size_to_seq,
     seq_to_satn,
-    pc_to_satn,
-    pc_to_seq,
     trim_disconnected_blobs,
-    find_disconnected_voxels,
 )
+from porespy.metrics import pc_map_to_pc_curve
 from porespy.tools import (
     Results,
     get_tqdm,
@@ -111,10 +106,6 @@ def imbibition(
     if dt is None:
         dt = edt(im)
 
-    if inlets is None:
-        inlets = np.zeros_like(im)
-        inlets[0, ...] = True
-
     pc = np.copy(pc)
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
@@ -146,21 +137,32 @@ def imbibition(
                 overwrite=True,
             )
         if inlets is not None:
-            nwp_mask = ~trim_disconnected_blobs((~nwp_mask)*im, inlets=inlets, strel=strel)
+            nwp_mask = ~trim_disconnected_blobs(
+                im=(~nwp_mask)*im,
+                inlets=inlets,
+                strel=strel,
+            )
         mask = (nwp_mask == 0) * (im_seq == 0) * im
         im_seq[mask] = i
         im_pc[mask] = Ps[i]
 
     if outlets is not None:
+        if inlets is not None:
+            outlets[inlets] = False  # Ensure outlets do not overlap inlets
         mask = find_trapped_regions(
             im=im, seq=im_seq, outlets=outlets, return_mask=True, method='cluster')
         im_pc[mask] = -np.inf
         im_seq[mask] = -1
+    satn = seq_to_satn(im=im, seq=im_seq, mode='imbibition')
+    pc_curve = pc_map_to_pc_curve(pc=im_pc, im=im, seq=im_seq, mode='imbibition')
     # Collect data in a Results object
-    result = Results()
-    result.im_seq = im_seq
-    result.im_pc = im_pc
-    return result
+    results = Results()
+    results.im_seq = im_seq
+    results.im_pc = im_pc
+    results.im_snwp = satn
+    results.pc = pc_curve.pc
+    results.snwp = pc_curve.snwp
+    return results
 
 
 @njit(parallel=True)
@@ -218,42 +220,31 @@ if __name__ == '__main__':
     cm.set_over('k')
 
     i = np.random.randint(1, 100000)  # bad: 38364, good: 65270, 71698
-    i = 38364
-    im = ps.generators.blobs([500, 500], porosity=0.55, blobiness=1.5, seed=i)
+    print(i)
+    im = ps.generators.blobs([500, 500], porosity=0.75, blobiness=2, seed=i)
     im = ps.filters.fill_blind_pores(im, surface=True)
 
-    inlets = np.zeros_like(im)
-    inlets[0, ...] = True
-    outlets = np.zeros_like(im)
-    outlets[-1, ...] = True
+    # inlets = np.zeros_like(im)
+    # inlets[0, ...] = True
+    inlets = None
+    outlets = ps.generators.borders(im.shape, mode='faces')
     pc = ps.filters.capillary_transform(im=im, voxel_size=1e-4)
 
     imb1 = imbibition(im=im, pc=pc, inlets=inlets)
     imb2 = imbibition(im=im, pc=pc, inlets=inlets, outlets=outlets)
-    pc_curve1 = ps.metrics.pc_map_to_pc_curve(
-        pc=imb1.im_pc,
-        im=im,
-        seq=imb1.im_seq,
-        mode='imbibition',
-    )
 
-    fig, ax = plt.subplots(1, 2)
+    # %%
+
+    fig, ax = plt.subplots(1, 3)
     imb1.im_pc[~im] = -1
-    ax[0].imshow(imb1.im_seq, origin='lower', cmap=cm, vmin=0)
+    ax[0].imshow(imb1.im_seq/im, origin='lower', cmap=cm, vmin=0)
 
     vmax = imb2.im_seq.max()
-    ax[1].imshow(imb2.im_seq, origin='lower', cmap=cm, vmin=0, vmax=vmax)
+    ax[1].imshow(imb2.im_seq/im, origin='lower', cmap=cm, vmin=0, vmax=vmax)
 
-    pc_curve2 = ps.metrics.pc_map_to_pc_curve(
-        pc=imb2.im_pc,
-        im=im,
-        seq=imb2.im_seq,
-        mode='imbibition',
-    )
-    fig, ax = plt.subplots()
-    ax.semilogx(pc_curve1.pc, pc_curve1.snwp, 'b->', label='imbibition')
-    ax.semilogx(pc_curve2.pc, pc_curve2.snwp, 'r-<', label='imbibition with trapping')
-    ax.legend(loc='lower right')
+    ax[2].semilogx(imb1.pc, imb1.snwp, 'b->', label='imbibition')
+    ax[2].semilogx(imb2.pc, imb2.snwp, 'r-<', label='imbibition with trapping')
+    ax[2].legend()
 
 
 
