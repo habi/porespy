@@ -453,39 +453,11 @@ def size_to_pc(im, size, f=None, **kwargs):
     return pc
 
 
-# def satn_to_time(im, satn, flow_rate):
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# Seems to color in wrong order for imbibition
+# def satn_to_time(im, satn, flow_rate, voxel_size, mode='imbibition'):
+#     f = 1 if mode == 'imbibition' else 0
+#     bins = np.digitize(satn.flatten()-f, bins=np.unique(satn-f), right=True)
+#     counts = np.cumsum(np.bincount(bins))
+#     time = counts*(voxel_size**im.ndim)/flow_rate
+#     time_map = np.reshape(time[bins], im.shape)
+#     plt.imshow(time_map/im)

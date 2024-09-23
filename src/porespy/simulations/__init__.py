@@ -21,3 +21,4 @@ from ._ibop import *
 from ._ibip import *
 from ._ibip_gpu import *
 from ._qbip import *
+from ._imbibition import *
