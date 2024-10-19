@@ -17,8 +17,6 @@ This module contains routines for performing simulations directly on images.
 """
 
 from ._dns import *
-from ._ibop import *
-from ._ibip import *
-from ._ibip_gpu import *
-from ._qbip import *
+from ._drainage import *
+from ._invasion import *
 from ._imbibition import *
