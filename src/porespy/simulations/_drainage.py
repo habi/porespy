@@ -307,6 +307,7 @@ def drainage(
     residual: npt.NDArray = None,
     bins: int = 25,
     return_sizes: bool = False,
+    min_size: int = 0,
 ):
     results = ibop(
         im=im,
@@ -317,6 +318,7 @@ def drainage(
         residual=residual,
         bins=bins,
         return_sizes=return_sizes,
+        min_size=min_size,
     )
     return results
 
