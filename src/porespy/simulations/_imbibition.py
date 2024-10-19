@@ -32,6 +32,7 @@ def imbibition(
     outlets=None,
     residual=None,
     bins=25,
+    min_size=0,
 ):
     r"""
     Performs an imbibition simulation using image-based sphere insertion
@@ -43,7 +44,7 @@ def imbibition(
     pc : ndarray
         An array containing precomputed capillary pressure values in each
         voxel. This can include gravity effects or not. This can be generated
-        by ``capillary_transform``.
+        by ``capillary_transform``. It not provided that `2/dt` is used.
     inlets : ndarray
         An image the same shape as ``im`` with ``True`` values indicating the
         wetting fluid inlet(s).  If ``None`` then the wetting film is able to
@@ -56,6 +57,13 @@ def imbibition(
         then bins will be created between the lowest and highest pressures
         in ``pc``. If a list is given, each value in the list is used
         directly in order.
+    min_size : int
+        Any clusters of trapped voxels smaller than this size will be set to not
+        trapped. This argument is only used if `outlets` is given. This is useful
+        to prevent small voxels along edges of the void space from being set to
+        trapped. These can appear to be trapped due to the jagged nature of the
+        digital image. The default is 0, meaning this adjustment is not applied,
+        but a value of 3 or 4 is recommended to activate this adjustment.
 
     Returns
     -------
@@ -94,6 +102,8 @@ def imbibition(
     if dt is None:
         dt = edt(im)
 
+    if pc is None:
+        pc = 2/dt
     pc = np.copy(pc)
     pc[~im] = 0  # Remove any infs or nans from pc computation
 
@@ -142,7 +152,13 @@ def imbibition(
         if inlets is not None:
             outlets[inlets] = False  # Ensure outlets do not overlap inlets
         trapped = find_trapped_regions(
-            im=im, seq=im_seq, outlets=outlets, return_mask=True, method='cluster')
+            im=im,
+            seq=im_seq,
+            outlets=outlets,
+            return_mask=True,
+            method='cluster',
+            min_size=min_size,
+        )
         im_pc[trapped] = -np.inf
         im_seq[trapped] = -1
     satn = seq_to_satn(im=im, seq=im_seq, mode='imbibition')

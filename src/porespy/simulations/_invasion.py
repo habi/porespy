@@ -94,13 +94,13 @@ def qbip(
                   26 neighbors in 3D.
         ========= ==================================================================
 
-    min_size : int, default = 0
-        Any clusters of trapped voxels smaller than this size will be set to *not
-        trapped*. This is useful to prevent small voxels along edges of the void
-        space from being set to trapped. These can appear to be trapped due to the
-        jagged nature of the digital image. The default is 0, meaning this
-        adjustment is not applied, but a value of 3 or 4 is recommended to activate
-        this adjustment.
+    min_size : int
+        Any clusters of trapped voxels smaller than this size will be set to not
+        trapped. This argument is only used if `outlets` is given. This is useful
+        to prevent small voxels along edges of the void space from being set to
+        trapped. These can appear to be trapped due to the jagged nature of the
+        digital image. The default is 0, meaning this adjustment is not applied,
+        but a value of 3 or 4 is recommended to activate this adjustment.
 
     Returns
     -------
@@ -129,10 +129,9 @@ def qbip(
       ``ibip`` [2]_.  It is much faster and can include the effect of gravity. Here
       a priority queue (via the `heapq` module from the standard libary) is used to
       maintain an up-to-date list of which voxels should be invaded next.
-    * If `pc` is not given, then the negative of the distance transform is used to
-      determine the priority of each voxels.  This allows for `qbip` to be used in an
-      abstract way, based only on voxel sizes instead of having to define the fluid
-      properties necesssary to compute the capillary transform.
+    * If `pc` is not given, `pc` is calculated as `2/dt`.  This allows for `qbip`
+      to be used in an abstract way, based only on voxel sizes instead of having
+      to define the fluid properties necesssary to compute the capillary transform.
 
     References
     ----------

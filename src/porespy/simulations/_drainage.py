@@ -44,6 +44,7 @@ def ibop(
     bins: int = None,
     return_sizes: bool = False,
     conn: Literal['min', 'max'] = 'min',
+    min_size: int = 0,
 ):
     r"""
     Simulate drainage using image-based sphere insertion, optionally including
@@ -56,8 +57,8 @@ def ibop(
         void space.
     pc : ndarray, optional
         Precomputed capillary pressure transform which is used to determine
-        the invadability of each voxel. If not provided then twice the inverse of
-        the distance transform of `im` is used.
+        the invadability of each voxel. If not provided then it is calculated
+        as `2/dt`.
     dt : ndarray (optional)
         The distance transform of ``im``.  If not provided it will be
         calculated, so supplying it saves time.
@@ -99,6 +100,14 @@ def ibop(
         'max'     This corresponds to a square or cube with 8 neighbors in 2D and
                   26 neighbors in 3D.
         ========= ==================================================================
+
+    min_size : int
+        Any clusters of trapped voxels smaller than this size will be set to not
+        trapped. This argument is only used if `outlets` is given. This is useful
+        to prevent small voxels along edges of the void space from being set to
+        trapped. These can appear to be trapped due to the jagged nature of the
+        digital image. The default is 0, meaning this adjustment is not applied,
+        but a value of 3 or 4 is recommended to activate this adjustment.
 
     Returns
     -------
@@ -265,6 +274,7 @@ def ibop(
             seq=seq,
             outlets=outlets,
             method='cluster',
+            min_size=min_size,
         )
         trapped[seq == -1] = True
         pc_inv[trapped] = np.inf
