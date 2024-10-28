@@ -89,7 +89,7 @@ here](https://github.com/PMEAL/porespy/tree/dev/examples).
 ## Generating an image
 
 PoreSpy offers several ways to generate artificial images, for quick
-testing and developmnet of work flows, instead of dealing with
+testing and development of work flows, instead of dealing with
 reading/writing/storing of large tomograms.
 
 ``` python
